@@ -25,7 +25,6 @@ dbus-python==1.2.16
 decorator==4.4.2
 distlib==0.3.6
 distro==1.4.0
-distro-info===0.23ubuntu1
 Django==4.2.1
 djangorestframework==3.14.0
 docutils==0.16
