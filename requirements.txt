@@ -1,5 +1,4 @@
 appdirs==1.4.4
-apturl==0.5.2
 asciitree==0.3.3
 asgiref==3.7.2
 atomicwrites==1.1.5
