@@ -1,9 +1,9 @@
 pypng==0.0.20
-python-apt==2.0.1+ubuntu0.20.4.1
-python-dateutil==2.7.3
-python-debian===0.1.36ubuntu1
-python-gitlab==2.0.1
-python-xlib==0.23
+python-apt
+python-dateutil
+python-debian
+python-gitlab
+python-xlib
 appdirs==1.4.4
 asciitree==0.3.3
 asgiref==3.7.2
