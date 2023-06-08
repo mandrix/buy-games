@@ -111,7 +111,6 @@ pyparsing==2.4.6
 pypng==0.0.20
 pyRFC3339==1.1
 pyserial==3.4
-pytest==4.6.9
 python-apt==2.0.1+ubuntu0.20.4.1
 python-dateutil==2.7.3
 python-debian===0.1.36ubuntu1
