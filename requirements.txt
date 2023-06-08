@@ -1,5 +1,4 @@
 pypng==0.0.20
-python-apt
 python-dateutil
 python-debian
 python-gitlab
