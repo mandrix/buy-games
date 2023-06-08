@@ -126,7 +126,6 @@ resolver==0.2.1
 roman==2.0.0
 rsa==4.0
 s3transfer==0.3.3
-screen-resolution-extra==0.0.0
 SecretStorage==2.3.1
 selector==0.10.1
 simplejson==3.16.0
