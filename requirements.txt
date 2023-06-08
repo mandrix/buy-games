@@ -161,6 +161,7 @@ virtualenv==20.0.17
 virtualenv-clone==0.5.4
 wadllib==1.3.3
 wcwidth==0.1.8
+language-selector
 webencodings==0.5.1
 wxPython==4.0.7
 xarray==0.15.0
