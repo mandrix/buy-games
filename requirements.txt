@@ -150,4 +150,3 @@ requests==2.22.0
 requests-unixsocket==0.2.0
 resolver==0.2.1
 roman==2.0.0
-rsa==4.0
