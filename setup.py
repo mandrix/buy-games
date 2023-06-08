@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='nombre-del-paquete',
+    name='buy-games',
     version='1.0.0',
-    author='Autor del paquete',
-    author_email='correo@ejemplo.com',
+    author='mandrix',
+    author_email='mandrix@ejemplo.com',
     description='Descripción del paquete',
     packages=find_packages(),
     classifiers=[
