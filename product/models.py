@@ -23,22 +23,23 @@ class ConsoleEnum(models.TextChoices):
     PlayStation3 = "ps3", "PS3"
     PlayStation4 = "ps4", "PS4"
     PlayStation5 = "ps5", "PS5"
+    Wii = "wii", "Wii"
     N64 = "n64", "N64"
     Snes = "snes", "SNES"
     Switch = "switch", "Nintendo Switch"
 
 
 class Product(models.Model):
-    sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     provider_price = models.DecimalField(max_digits=8, decimal_places=2, help_text="En colones")
-    barcode = models.CharField(max_length=100, unique=True, null=True)
+    barcode = models.CharField(max_length=100, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     provider_purchase_date = models.DateField()
-    sale_date = models.DateField(null=True)
-    owner = models.CharField(max_length=100, choices=OwnerEnum.choices, null=True)
+    sale_date = models.DateField(null=True, blank=True)
+    owner = models.CharField(max_length=100, choices=OwnerEnum.choices, null=True, blank=True)
     description = models.TextField(default="")
-    region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True)
+    region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True, blank=True)
 
 
 class Console(models.Model):

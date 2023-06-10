@@ -25,10 +25,10 @@ SECRET_KEY = 'django-insecure-)0nm0komohtrna_tfhhaq(#_cb!h)ob8ip8wz5jm&y8=p^5pyc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://buy-games.herokuapp.com", "buy-games.herokuapp.com", "localhost"]
+ALLOWED_HOSTS = ["https://buy-games.herokuapp.com", "buy-games.herokuapp.com", "localhost", "6ac2-201-203-117-241.ngrok-free.app"]
 
 
-CSRF_TRUSTED_ORIGINS = ['https://buy-games.herokuapp.com']
+CSRF_TRUSTED_ORIGINS = ['https://buy-games.herokuapp.com', 'https://6ac2-201-203-117-241.ngrok-free.app']
 
 
 # Application definition
@@ -56,7 +56,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
