@@ -77,7 +77,7 @@ class Collectable(models.Model):
 
 class Accessory(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    title = models.CharField(max_length=10, default="")
+    title = models.CharField(max_length=200, default="")
     console = models.CharField(
         max_length=20,
         choices=ConsoleEnum.choices,
