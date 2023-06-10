@@ -28,6 +28,9 @@ DEBUG = True
 ALLOWED_HOSTS = ["https://buy-games.herokuapp.com", "buy-games.herokuapp.com", "localhost"]
 
 
+CSRF_TRUSTED_ORIGINS = ['https://buy-games.herokuapp.com']
+
+
 # Application definition
 
 INSTALLED_APPS = [
