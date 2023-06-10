@@ -3,33 +3,49 @@ from django.db import models
 # Create your models here.
 
 from django.db import models
-from enum import Enum
 
 
-class ConsoleEnum(Enum):
-    PlayStation1 = "ps1"
-    PlayStation2 = "ps2"
-    PlayStation3 = "ps3"
-    PlayStation4 = "ps4"
-    PlayStation5 = "ps5"
+class RegionEnum(models.TextChoices):
+    Japan = "jp", "Japan"
+    USA = "usa", "USA"
+    Europe = "eu", "Europe"
+
+
+class OwnerEnum(models.TextChoices):
+    Joseph = "joseph", "Joseph"
+    Mauricio = "mauricio", "Mauricio"
+    Business = "business", "Business"
+
+
+class ConsoleEnum(models.TextChoices):
+    PlayStation1 = "ps1", "PS1"
+    PlayStation2 = "ps2", "PS2"
+    PlayStation3 = "ps3", "PS3"
+    PlayStation4 = "ps4", "PS4"
+    PlayStation5 = "ps5", "PS5"
+    N64 = "n64", "N64"
+    Snes = "snes", "SNES"
+    Switch = "switch", "Nintendo Switch"
 
 
 class Product(models.Model):
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-    barcode = models.CharField(max_length=100, unique=True)
-    creation_date = models.DateField(auto_now_add=True)
-    modification_date = models.DateField(auto_now=True)
-    departure_date = models.DateField()
-
-    def __str__(self):
-        return self.price
+    sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True)
+    provider_price = models.DecimalField(max_digits=8, decimal_places=2, help_text="En colones")
+    barcode = models.CharField(max_length=100, unique=True, null=True)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True)
+    provider_purchase_date = models.DateField()
+    sale_date = models.DateField(null=True)
+    owner = models.CharField(max_length=100, choices=OwnerEnum.choices, null=True)
+    description = models.CharField(max_length=2000, default="")
+    region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True)
 
 
 class Console(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     console = models.CharField(
         max_length=20,
-        choices=[(console.value, console.name) for console in ConsoleEnum]
+        choices=ConsoleEnum.choices
     )
 
     def __str__(self):
@@ -40,10 +56,9 @@ class VideoGame(models.Model):
     title = models.CharField(max_length=100)
     console = models.CharField(
         max_length=20,
-        choices=[(console.value, console.name) for console in ConsoleEnum]
+        choices=ConsoleEnum.choices
     )
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    #genero = models.CharField(max_length=100)
 
     def __str__(self):
         return self.title
@@ -53,7 +68,6 @@ class Collectable(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     category = models.CharField(max_length=100)
     description = models.TextField()
-
 
     def __str__(self):
         return self.description

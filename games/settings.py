@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-)0nm0komohtrna_tfhhaq(#_cb!h)ob8ip8wz5jm&y8=p^5pyc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["https://buy-games.herokuapp.com", "buy-games.herokuapp.com"]
+ALLOWED_HOSTS = ["https://buy-games.herokuapp.com", "buy-games.herokuapp.com", "localhost"]
 
 
 # Application definition
