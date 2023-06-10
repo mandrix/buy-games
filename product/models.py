@@ -37,7 +37,7 @@ class Product(models.Model):
     provider_purchase_date = models.DateField()
     sale_date = models.DateField(null=True)
     owner = models.CharField(max_length=100, choices=OwnerEnum.choices, null=True)
-    description = models.CharField(max_length=2000, default="")
+    description = models.TextField(default="")
     region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True)
 
 
@@ -45,7 +45,8 @@ class Console(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     console = models.CharField(
         max_length=20,
-        choices=ConsoleEnum.choices
+        choices=ConsoleEnum.choices,
+        null=True
     )
 
     def __str__(self):
@@ -53,10 +54,11 @@ class Console(models.Model):
 
 
 class VideoGame(models.Model):
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=100, default="")
     console = models.CharField(
         max_length=20,
-        choices=ConsoleEnum.choices
+        choices=ConsoleEnum.choices,
+        null=True
     )
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
@@ -67,7 +69,20 @@ class VideoGame(models.Model):
 class Collectable(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     category = models.CharField(max_length=100)
-    description = models.TextField()
+    title = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.description
+        return self.title
+
+
+class Accessory(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    title = models.CharField(max_length=10, default="")
+    console = models.CharField(
+        max_length=20,
+        choices=ConsoleEnum.choices,
+        null=True
+    )
+
+    def __str__(self):
+        return self.title
