@@ -9,7 +9,11 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-# Price Barcode Departure date
+def create_product(validated_data):
+    nested_data = validated_data['product']
+    if nested_data is not None:
+        validated_data["product"] = Product.objects.create(**nested_data)
+    return validated_data
 
 
 class CollectableSerializer(serializers.ModelSerializer):
@@ -20,13 +24,7 @@ class CollectableSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        nested_data = validated_data['product']
-
-        if nested_data is not None:
-            validated_data["product"] = Product.objects.create(**nested_data)
-
-        instance = super().create(validated_data)
-        return instance
+        return super().create(create_product(validated_data))
 
 
 class VideoGameSerializer(serializers.ModelSerializer):
@@ -37,13 +35,8 @@ class VideoGameSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        nested_data = validated_data['product']
+        return super().create(create_product(validated_data))
 
-        if nested_data is not None:
-            validated_data["product"] = Product.objects.create(**nested_data)
-
-        instance = super().create(validated_data)
-        return instance
 
 class AccessorySerializer(serializers.ModelSerializer):
     product = ProductSerializer()
@@ -53,10 +46,4 @@ class AccessorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        nested_data = validated_data['product']
-
-        if nested_data is not None:
-            validated_data["product"] = Product.objects.create(**nested_data)
-
-        instance = super().create(validated_data)
-        return instance
+        return super().create(create_product(validated_data))

@@ -41,17 +41,38 @@ class Product(models.Model):
     description = models.TextField(default="")
     region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True, blank=True)
 
+    def __str__(self):
+        return self.get_additional_product_info().title
+
+    def get_additional_product_info(self):
+        if additional_info := VideoGame.objects.filter(product=self).first():
+            return additional_info
+        elif additional_info := Console.objects.filter(product=self).first():
+            return additional_info
+        elif additional_info := Accessory.objects.filter(product=self).first():
+            return additional_info
+        else:
+            raise Exception("Este producto no tiene informacion adicional")
+        
+    def get_product_type(self):
+        type_mapping = {
+            VideoGame: "Videojuego",
+            Console: "Consola",
+            Accessory: "Accesorio"
+        }
+        return type_mapping[type(self.get_additional_product_info())]
+
 
 class Console(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    console = models.CharField(
+    title = models.CharField(
         max_length=20,
         choices=ConsoleEnum.choices,
         null=True
     )
 
     def __str__(self):
-        return self.console
+        return self.title
 
 
 class VideoGame(models.Model):
