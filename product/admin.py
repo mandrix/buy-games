@@ -23,11 +23,6 @@ class SoldFilter(admin.SimpleListFilter):
             return queryset.exclude(sale_date__isnull=False)
 
 
-class VideoGamesForm(forms.ModelForm):
-    class Meta:
-        model = VideoGame
-        fields = '__all__'
-
 class ProductAdmin(admin.ModelAdmin):
     list_display = ("__str__", "tipo", "owner", "vendido", "sale_price")
     model = Product
