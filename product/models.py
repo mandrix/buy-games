@@ -18,12 +18,14 @@ class OwnerEnum(models.TextChoices):
 
 
 class ConsoleEnum(models.TextChoices):
+    NA = "na", "N/A"
     PlayStation1 = "ps1", "PS1"
     PlayStation2 = "ps2", "PS2"
     PlayStation3 = "ps3", "PS3"
     PlayStation4 = "ps4", "PS4"
     PlayStation5 = "ps5", "PS5"
     Wii = "wii", "Wii"
+    WiiU = "wiiu", "Wii U"
     N64 = "n64", "N64"
     Snes = "snes", "SNES"
     Switch = "switch", "Nintendo Switch"
