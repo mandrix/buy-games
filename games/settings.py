@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+
+import dj_database_url
 import environ
 from pathlib import Path
 
@@ -157,7 +159,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 try:
     if django_heroku := __import__("django_heroku"):
-        django_heroku.settings(locals())
+        DATABASES = {
+            "default": dj_database_url.config(
+                conn_max_age=600,
+                conn_health_checks=True,
+                ssl_require=True,
+            ),
+        }
+
 except ModuleNotFoundError:
 
     DATABASES = {
