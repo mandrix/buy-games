@@ -1,1 +1,1 @@
-web: uvicorn games.asgi:application
+web: python -m uvicorn games.asgi:application
