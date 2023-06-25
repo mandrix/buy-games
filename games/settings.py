@@ -54,6 +54,7 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
 CORS_ALLOWED_ORIGINS = [
     "https://buy-games.herokuapp.com",
+    "https://readygamescr.com",
     "http://localhost:3000",
 ]
 
