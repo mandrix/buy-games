@@ -10,7 +10,30 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+import environ
 from pathlib import Path
+
+
+env = environ.Env(
+    DEBUG=(bool, True),
+    SECRET_KEY=(str, "w((&w@u3!)2$75uhxnk3x68bykks&=gn0$r@k^reqfuvc*8bp2"),
+    AWS_ACCESS_KEY=(str, "AKIAJM5VET276RQ3UYPA"),
+    AWS_SECRET_KEY=(str, "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"),
+    ALLOWED_HOSTS=(str, "*"),
+    CORS_ORIGIN_WHITELIST=(str, "http://localhost:3333,http://127.0.0.1:3333"),
+    REDIS_URL=(str, "redis://127.0.0.1:6379"),
+    USE_S3=(bool, False),
+    MEDIA_VIDEO_CDN_URL=(str, "d1f2porn8aqwt0.cloudfront.net"),
+    MEDIA_CDN_URL=(str, "d1i4l9sy6nvjes.cloudfront.net"),
+    RECAPTCHA_KEY=(str, "6LcWGtMZAAAAAKYSjxQvsRx2MH0V1bnhNsx9GllI"),
+    ADMIN_URL=(str, "admin"),
+    USE_POSTGRES=(bool, False),
+    POSTGRES_IP=(str, "127.0.0.1"),
+    DB_PASSWORD=(str, ""),
+    DB_NAME=(str, ""),
+    DB_USER=(str, ""),
+)
+environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,11 +44,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-)0nm0komohtrna_tfhhaq(#_cb!h)ob8ip8wz5jm&y8=p^5pyc'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["https://buy-games.herokuapp.com", "buy-games.herokuapp.com", "localhost",
-                 "6ac2-201-203-117-241.ngrok-free.app"]
+ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
 CORS_ALLOWED_ORIGINS = [
     "https://buy-games.herokuapp.com",
@@ -139,3 +160,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+try:
+    if django_heroku := __import__("django_heroku"):
+        django_heroku.settings(locals())
+except ModuleNotFoundError:
+    pass
