@@ -110,7 +110,7 @@ WSGI_APPLICATION = 'games.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-IS_HEROKU_APP = "DYNO" in os.environ and not "CI" in os.environ
+IS_HEROKU_APP = "DYNO_RAM" in os.environ and not "CI" in os.environ
 
 if IS_HEROKU_APP:
     # In production on Heroku the database configuration is derived from the `DATABASE_URL`
