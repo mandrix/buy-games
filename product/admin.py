@@ -81,7 +81,7 @@ class ProductAdmin(admin.ModelAdmin):
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter)
     inlines = []
-    search_fields = ["videogame__title"]
+    search_fields = ["videogame__title", "barcode"]
 
     def tipo(self, obj):
         return obj.get_product_type()
