@@ -38,6 +38,7 @@ class Product(models.Model):
     owner = models.CharField(max_length=100, choices=OwnerEnum.choices, null=True, blank=True)
     description = models.TextField(default="")
     region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True, blank=True)
+    image = models.ImageField(upload_to='vents/photos/', null=True, blank=True)
 
     def __str__(self):
         return self.get_additional_product_info().title
