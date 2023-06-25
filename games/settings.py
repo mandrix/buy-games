@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 
 import dj_database_url
+import django_heroku
 import environ
 from pathlib import Path
 
@@ -122,7 +123,6 @@ if IS_HEROKU_APP:
         "default": dj_database_url.config(
             conn_max_age=600,
             conn_health_checks=True,
-            ssl_require=True,
         ),
     }
 else:
@@ -180,3 +180,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+if IS_HEROKU_APP:
+    django_heroku.settings(locals())
+    options = DATABASES['default'].get('OPTIONS', {})
+    options.pop('sslmode', None)
