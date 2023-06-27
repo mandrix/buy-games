@@ -128,7 +128,7 @@ class VideoGameAdmin(admin.ModelAdmin):
 
     @admin.display(description='Region')
     def get_region(self, obj):
-        return obj.product.region.upper()
+        return obj.product.region
 
 
 class AccessoryAdmin(admin.ModelAdmin):
