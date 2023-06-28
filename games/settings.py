@@ -56,7 +56,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://buy-games.herokuapp.com",
     "https://readygamescr.com",
     "http://localhost:3000",
-    "https://ready-games-ui.vercel.app/"
+    "https://ready-games-ui.vercel.app"
 ]
 
 # Application definition
