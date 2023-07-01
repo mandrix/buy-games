@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0;">
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+
+  
+    <style>
+      body, html {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Montserrat';;
+      }
+      
+      .bgimg {
+        background-image: url('/media/count-down/FOTO-PORTADA.png');
+        height: 100%;
+        background-position: center;
+        background-size: contain;
+        background-repeat:no-repeat;
+        transform: scale(1.4) translate(-2%,0%);
+        position: relative;
+        color: white;
+        font-size: 20px;
+      }
+    
+      @media screen and (max-width: 480px) {
+        .bgimg {
+          background-image: url('/media/count-down/FOTO-PORTADA-MOBILE.png');
+          transform: none;
+          background-size: cover;
+        }
+      }
+
+      .logo {
+        width: 70%;
+        position: absolute;
+        top: 40%;
+        left: 15%;
+      }
+
+      @media screen and (min-width: 480px) {
+        .logo {
+          display: none;
+        }
+      }
+
+      .topleft {
+        position: absolute;
+        top: 0;
+        left: 16px;
+      }
+
+      .bottomleft {
+        position: absolute;
+        bottom: 0;
+        left: 16px;
+      }
+
+      .middle {
+        position: absolute;
+        top: 75%;
+        left: 53%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+
+      @media screen and (max-width: 480px) {
+        .middle {
+          left: 50%;
+          width: 100%;
+        }
+      }
+
+      hr {
+        margin: auto;
+        width: 40%;
+      }
+
+      .image-with-outline {
+        outline: 4px solid white;
+      }
+    </style>
+
+    <script>
+      // Function to calculate and update the countdown
+      function updateCountdown() {
+        // Set the target date (year, month, day, hour, minute, second)
+        var targetDate = new Date("2023-07-05T00:00:00Z");
+
+        // Get the current date and time
+        var currentDate = new Date();
+
+        // Calculate the time difference in milliseconds
+        var timeDiff = targetDate - currentDate;
+
+        // Calculate the remaining days, hours, minutes, and seconds
+        var days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+        // Display the countdown in the HTML element with id "countdown"
+        document.getElementById("countdown").innerHTML = days + "d  &nbsp;&nbsp;" + hours + "h  &nbsp;&nbsp;" + minutes + "m  &nbsp;&nbsp;" + seconds + "s";
+
+        // Update the countdown every second
+        setTimeout(updateCountdown, 1000);
+      }
+    </script>
+
+  </head>
+  <body onload="updateCountdown()">
+    <div class="bgimg">
+        <img src="/READY-GAMES-LOGO.png" class="logo"/>
+      <div class="middle">
+        <h1>COMING SOON</h1>
+        <hr>
+        <p id="countdown"></p>
+      </div>
+    </div>
+
+  </body>
+</html>

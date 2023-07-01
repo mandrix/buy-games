@@ -74,6 +74,7 @@ INSTALLED_APPS = [
 # Custom apps
 INSTALLED_APPS += [
     "product",
+    "ui"
 ]
 
 # Third-party apps
@@ -96,7 +97,9 @@ ROOT_URLCONF = 'games.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            './templates'
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
