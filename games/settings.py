@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 env = environ.Env(
-    DEBUG=(bool, False),
+    DEBUG=(bool, True),
     SECRET_KEY=(str, "w((&w@u3!)2$75uhxnk3x68bykks&=gn0$r@k^reqfuvc*8bp2"),
     AWS_ACCESS_KEY=(str, "AKIAJM5VET276RQ3UYPA"),
     AWS_SECRET_KEY=(str, "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"),
