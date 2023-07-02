@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Factura</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2, p {
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        p {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .subtotal, .taxes, .discounts, .total {
+            text-align: right;
+        }
+
+        .submit-btn {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Factura</h1>
+
+    <h2>Store Name:</h2>
+    <p>Ready Games</p>
+
+    <h2>Store Address:</h2>
+    <p>50 norte del parque central de Alajuela. Costado del museo Juan Santamaria.</p>
+
+    <h2>Store Contact:</h2>
+    <p>84599023</p>
+
+    <h2>Receipt Number:</h2>
+    <p>{{ receipt_number }}</p>
+
+    <h2>Purchase Date:</h2>
+    <p>{{ purchase_date }}</p>
+
+    <h2>Customer Name:</h2>
+    <p>{{ customer_name }}</p>
+
+    <h2>Payment Method:</h2>
+    <p>{{ payment_method }}</p>
+
+    <h2>Products:</h2>
+    <table>
+        <tr>
+            <th>Barcode</th>
+            <th>Name</th>
+            <th>Price</th>
+        </tr>
+        {% for product in products %}
+        <tr>
+            <td>{{ product.barcode }}</td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.price }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <table>
+        <tr>
+            <th>Subtotal:</th>
+            <td class="subtotal">₡{{ subtotal }}</td>
+        </tr>
+        <tr>
+            <th>Taxes:</th>
+            <td class="taxes">₡{{ taxes }}</td>
+        </tr>
+        <tr>
+            <th>Discounts:</th>
+            <td class="discounts">₡{{ discounts }}</td>
+        </tr>
+        <tr>
+            <th>Total Amount:</th>
+            <td class="total">₡{{ total_amount }}</td>
+        </tr>
+    </table>
+
+    <h2>Payment Details:</h2>
+    <!-- Aquí puedes agregar los detalles del pago -->
+
+    <h2>Return Policy:</h2>
+    <!-- Aquí puedes agregar la política de devoluciones -->
+
+    <div class="submit-btn">
+        <button type="submit">Submit</button>
+    </div>
+</body>
+</html>

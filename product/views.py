@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from product.models import Product, Collectable, VideoGame, Accessory
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer
+from utils.creat_bills import create_bills, obtener_datos_factura
 
 
 class ProductViewSet(viewsets.ModelViewSet):
