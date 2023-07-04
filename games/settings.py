@@ -68,7 +68,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders'
+    'corsheaders',
+    'reportlab'
 ]
 
 # Custom apps
@@ -130,6 +131,8 @@ if IS_HEROKU_APP:
             conn_health_checks=True,
         ),
     }
+
+    DATABASES['default']['CONN_MAX_AGE'] = 0
 else:
     # When running locally in development or in CI, a sqlite database file will be used instead
     # to simplify initial setup. Longer term it's recommended to use Postgres locally too.

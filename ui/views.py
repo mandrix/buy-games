@@ -1,17 +1,10 @@
-import datetime
 
-from io import BytesIO
 from django.http import HttpResponse
-from django.template.loader import get_template
 from django.views.generic import TemplateView
 from django.views import View
-from reportlab.pdfgen import canvas
-from xhtml2pdf import pisa
-from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 import json
-
 
 
 class CountDownView(TemplateView):
