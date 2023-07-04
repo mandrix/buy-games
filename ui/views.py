@@ -4,11 +4,14 @@ from io import BytesIO
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.views.generic import TemplateView
+from django.views import View
 from reportlab.pdfgen import canvas
 from xhtml2pdf import pisa
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
+import json
+
 
 
 class CountDownView(TemplateView):
@@ -19,48 +22,25 @@ class ReceiptView(TemplateView):
     template_name = "receipt.html"
 
 
-class GenerateBill(TemplateView):
+class GenerateBill(View):
 
-    def get(self, request):
+    def post(self, request):
         # Obtener los datos de la factura
         invoice_number = 1
         invoice_date = "07/02/2023"
+        data = json.loads(request.body.decode('utf-8'))
+        store_name = data['storeName']
+        store_address = data['storeAddress']
+        store_contact = data['storeContact']
+        customer_name = data['customerName']
+        payment_method = data['paymentMethod']
 
-        request.data = {
-            'store_name': "Ready Games",
-            'store_address': "50 norte del parque central de Alajuela. Costado del museo Juan Santamaria.",
-            'store_contact': "84599023",
-            'customer_name': "john",
-            'receipt_number': "3",
-            'purchase_date': "hoy",
-            'customer_name': "venta",
-            'payment_method': "card",
-            'subtotal': "1000",
-            'taxes': "5000",
-            'discounts': "2",
-            'total_amount': "4000",
-            'barcode': "1212121",
-            'name': "consola ",
-            'price': "12000",
-            'products':
-                [
-                    {'barcode': '123456789', 'name': 'Product 1', 'price': 10.99},
-                    {'barcode': '987654321', 'name': 'Product 2', 'price': 19.99},
-                ]
-        }
+        products = data['items']
 
-        store_name = request.data['store_name']
-        store_address = request.data['store_address']
-        store_contact = request.data['store_contact']
-        customer_name = request.data['customer_name']
-        payment_method = request.data['payment_method']
-
-        products = request.data['products']
-
-        subtotal = request.data['subtotal']
-        taxes = request.data['taxes']
-        discounts = request.data['discounts']
-        total_amount = request.data['total_amount']
+        subtotal = data['subtotal']
+        taxes = data['taxes']
+        discounts = data['discounts']
+        total_amount = data['totalAmount']
 
         # Crear el documento PDF
         response = HttpResponse(content_type='application/pdf')
