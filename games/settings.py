@@ -194,5 +194,4 @@ if IS_HEROKU_APP:
     django_heroku.settings(locals())
     options = DATABASES['default'].get('OPTIONS', {})
     options.pop('sslmode', None)
-    django_heroku.config(locals())
     DATABASES['default']['CONN_MAX_AGE'] = 0
