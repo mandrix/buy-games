@@ -81,14 +81,14 @@ class GenerateBill(View):
         c.setFont("Helvetica-Bold", 12)
         c.drawString(0.5 * inch, 5.4 * inch, "Products:")
         c.setFont("Helvetica-Bold", 10)
-        c.drawString(0.5 * inch, 5.2 * inch, "Barcode")
+        c.drawString(0.5 * inch, 5.2 * inch, "ID")
         c.drawString(1.5 * inch, 5.2 * inch, "Name")
         c.drawString(2.5 * inch, 5.2 * inch, "Price")
 
         y = 5 * inch  # Posición vertical inicial para los productos
         for product in products:
             c.setFont("Helvetica", 10)
-            c.drawString(0.5 * inch, y, product['barcode'])
+            c.drawString(0.5 * inch, y, product['id'])
             c.drawString(1.5 * inch, y, product['name'])
             c.drawString(2.5 * inch, y, str(product['price']))
             y -= 0.2 * inch  # Espacio entre cada producto
