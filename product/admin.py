@@ -121,9 +121,8 @@ class ProductAdmin(admin.ModelAdmin):
 
     def vendido(self, obj):
         return format_html(
-            '<span style="background-color: {}; color: white;">{}</span>',
-            "green" if obj.sale_date else "red",
-            "SI" if obj.sale_date else "NO"
+            '<img src="/static/admin/img/icon-{}.svg" alt="True">',
+            "yes" if obj.sale_date else "no"
         )
 
     vendido.short_description = 'Vendido'
