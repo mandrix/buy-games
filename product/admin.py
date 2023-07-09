@@ -3,8 +3,26 @@ from django.contrib.admin import StackedInline
 from django.forms import ModelForm
 
 # Register your models here.
-from product.models import Product, Collectable, Console, VideoGame, Accessory
+from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum
 from django.utils.html import format_html
+
+
+class ConsoleTitleFilter(admin.SimpleListFilter):
+    title = 'Console Title'  # Displayed filter title
+    parameter_name = 'console_title'  # URL parameter name for the filter
+
+    def lookups(self, request, model_admin):
+        # Return a list of tuples representing the filter options
+        # The first element in each tuple is the actual value to filter on,
+        # and the second element is the human-readable option name
+        return ConsoleEnum.choices
+
+    def queryset(self, request, queryset):
+        # Apply the filter to the queryset
+        value = self.value()
+        if value:
+            return queryset.filter(console__title=value)
+        return queryset
 
 
 class TypeFilter(admin.SimpleListFilter):
@@ -77,9 +95,9 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo", "owner", "vendido", "sale_price")
+    list_display = ("__str__", "tipo", "owner", "vendido", "sale_price", 'used', 'region', 'description')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter)
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
     search_fields = ["videogame__title", "barcode"]
 
