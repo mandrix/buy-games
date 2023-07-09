@@ -65,7 +65,10 @@ class Product(models.Model):
     used = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.get_additional_product_info().title
+        try:
+            return self.get_additional_product_info().get_title_display()
+        except:
+            return self.get_additional_product_info().title
 
     def get_additional_product_info(self):
         if additional_info := VideoGame.objects.filter(product=self).first():
