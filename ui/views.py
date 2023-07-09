@@ -5,6 +5,7 @@ from django.views import View
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 import json
+from babel.numbers import format_currency
 
 
 class CountDownView(TemplateView):
@@ -16,6 +17,9 @@ class ReceiptView(TemplateView):
 
 
 class GenerateBill(View):
+
+    def formattedNumber(self, number):
+        return str(format_currency(number, 'CRC', locale='es_CR'))
 
     def post(self, request):
         # Obtener los datos de la factura
@@ -42,7 +46,6 @@ class GenerateBill(View):
         # Ajustar el tamaño del lienzo al tamaño de la factura (por ejemplo, 3.5 pulgadas x 8.5 pulgadas)
         c = canvas.Canvas(response, pagesize=(3.5 * inch, 8.5 * inch))
 
-        # Ajustar el tamaño y la posición de los elementos en el PDF
         c.setFont("Helvetica-Bold", 12)
         c.drawString(0.5 * inch, 7.5 * inch, "Store Name:")
         c.setFont("Helvetica", 10)
@@ -90,31 +93,30 @@ class GenerateBill(View):
             c.setFont("Helvetica", 10)
             c.drawString(0.5 * inch, y, product['id'])
             c.drawString(1.5 * inch, y, product['name'])
-            c.drawString(2.5 * inch, y, str(product['price']))
+            c.drawString(2.5 * inch, y, "₡%.2f" % product['price'])
             y -= 0.2 * inch  # Espacio entre cada producto
-
         c.setFont("Helvetica-Bold", 12)
         c.drawString(0.5 * inch, y, "Subtotal:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2.5 * inch, y, f"₡{subtotal}")
+        c.setFont("ArialUnicode", 10)
+        c.drawString(2.5 * inch, y, "₡₡%.2f" % subtotal)
 
         y -= 0.2 * inch
         c.setFont("Helvetica-Bold", 12)
         c.drawString(0.5 * inch, y, "Taxes:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2.5 * inch, y, f"₡{taxes}")
+        c.setFont("ArialUnicode", 10)
+        c.drawString(2.5 * inch, y, f"\u20A1%.2f{self.formattedNumber(taxes)}")
 
         y -= 0.2 * inch
         c.setFont("Helvetica-Bold", 12)
         c.drawString(0.5 * inch, y, "Discounts:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2.5 * inch, y, f"₡{discounts}")
+        c.setFont("ArialUnicode", 10)
+        c.drawString(2.5 * inch, y,  "₡" + self.formattedNumber(discounts))
 
         y -= 0.2 * inch
         c.setFont("Helvetica-Bold", 12)
         c.drawString(0.5 * inch, y, "Total Amount:")
         c.setFont("Helvetica", 10)
-        c.drawString(2.5 * inch, y, f"₡{total_amount}")
+        c.drawString(2.5 * inch, y, f"₡{self.formattedNumber(total_amount)}")
 
         c.showPage()
         c.save()
