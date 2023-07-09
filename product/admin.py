@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import StackedInline
+from django.db.models import Q
 from django.forms import ModelForm
 
 # Register your models here.
@@ -21,7 +22,7 @@ class ConsoleTitleFilter(admin.SimpleListFilter):
         # Apply the filter to the queryset
         value = self.value()
         if value:
-            return queryset.filter(console__title=value, videogame__console=value, accessory__console=value)
+            return queryset.filter(Q(console__title=value | Q(videogame__console=value) | Q(accessory__console=value)))
         return queryset
 
 
