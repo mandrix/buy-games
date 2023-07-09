@@ -1,3 +1,4 @@
+from django.contrib import admin
 from django.db import models
 
 
@@ -69,6 +70,19 @@ class Product(models.Model):
             return self.get_additional_product_info().get_title_display()
         except:
             return self.get_additional_product_info().title
+
+    @property
+    @admin.display(description='sale price', ordering='sale_price')
+    def sale_price_formatted(self):
+        if self.sale_price:
+            return f'{self.sale_price:,}₡'
+
+    @property
+    @admin.display(description='provider price', ordering='provider_price')
+    def provider_price_formatted(self):
+        if self.provider_price:
+            return f'{self.provider_price:,}₡'
+
 
     def get_additional_product_info(self):
         if additional_info := VideoGame.objects.filter(product=self).first():

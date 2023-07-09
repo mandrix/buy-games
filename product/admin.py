@@ -96,12 +96,17 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo", "owner", "vendido", "sale_price", 'used', 'region', 'description')
+    list_display = ("__str__", "tipo", "owner", "vendido", "sale_price_formatted", "provider_price_formatted", 'used', 'region', 'description')
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title", "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
+    readonly_fields = (
+        "id",
+        "creation_date",
+        "modification_date",
+    )
 
     def tipo(self, obj):
         return obj.get_product_type()
