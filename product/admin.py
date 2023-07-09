@@ -21,7 +21,7 @@ class ConsoleTitleFilter(admin.SimpleListFilter):
         # Apply the filter to the queryset
         value = self.value()
         if value:
-            return queryset.filter(console__title=value)
+            return queryset.filter(console__title=value, videogame__console=value, accessory__console=value)
         return queryset
 
 
@@ -99,7 +99,8 @@ class ProductAdmin(admin.ModelAdmin):
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
-    search_fields = ["videogame__title", "barcode"]
+    search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title", "description"]
+    search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
 
     def tipo(self, obj):
         return obj.get_product_type()
