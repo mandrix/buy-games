@@ -6,6 +6,7 @@ from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 import json
 from babel.numbers import format_currency
+from django.template.loader import render_to_string
 
 
 class SamplePrintPdfView(TemplateView):
@@ -50,112 +51,41 @@ class ReceiptView(TemplateView):
     template_name = "receipt.html"
 
 
-class GenerateBill(View):
+class GenerateBill(TemplateView):
+    template_name = "receipt-template.html"
 
     def formattedNumber(self, number):
         return str(format_currency(number, 'CRC', locale='es_CR'))
 
-    def post(self, request):
-        # Obtener los datos de la factura
-        invoice_number = 1
-        invoice_date = "07/02/2023"
+    def post(self, request, *args, **kwargs):
         data = json.loads(request.body.decode('utf-8'))
-        store_name = data['storeName']
-        store_address = data['storeAddress']
-        store_contact = data['storeContact']
-        customer_name = data['customerName']
-        payment_method = data['paymentMethod']
+        context = self.get_context_data(**kwargs)
+        context['store_name'] = data['storeName']
+        context['store_address'] = data['storeAddress']
+        context['store_contact'] = data['storeContact']
+        context['receipt_number'] = data['receiptNumber']
+        context['purchase_date'] = data['purchaseDate']
+        context['customer_name'] = data['customerName']
+        context['payment_method'] = data['paymentMethod']
+        context['items'] = data['items']
+        items = []
+        for item in data['items']:
+            formatted_price = self.formattedNumber(item['price'])
+            items.append({
+                'id': item['id'],
+                'name': item['name'],
+                'price': formatted_price,
+            })
+        context['items'] = items
+        context['subtotal'] = self.formattedNumber(data['subtotal'])
+        context['taxes'] = self.formattedNumber(data['taxes'])
+        context['discounts'] = self.formattedNumber(data['discounts'])
+        context['total_amount'] = self.formattedNumber(data['totalAmount'])
 
-        products = data['items']
+        rendered_template = render_to_string(self.template_name, context)
 
-        subtotal = data['subtotal']
-        taxes = data['taxes']
-        discounts = data['discounts']
-        total_amount = data['totalAmount']
+        response = HttpResponse(rendered_template, content_type='text/html')
 
-        # Crear el documento PDF
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="bill.pdf"'
-
-        # Ajustar el tamaño del lienzo al tamaño de la factura (por ejemplo, 3.5 pulgadas x 8.5 pulgadas)
-        c = canvas.Canvas(response, pagesize=(3.5 * inch, 8.5 * inch))
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(1.5 * inch, 0.5 * inch, "Ready Games")
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 7.5 * inch, "Store Name:")
-        c.setFont("Helvetica", 10)
-        c.drawString(1.5 * inch, 7.5 * inch, store_name)
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 7.2 * inch, "Store Address:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2 * inch, 7.2 * inch, store_address)
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 6.9 * inch, "Store Contact:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2 * inch, 6.9 * inch, store_contact)
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 6.6 * inch, "Receipt Number:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2 * inch, 6.6 * inch, str(invoice_number))
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 6.3 * inch, "Purchase Date:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2 * inch, 6.3 * inch, invoice_date)
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 6 * inch, "Customer Name:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2 * inch, 6 * inch, customer_name)
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 5.7 * inch, "Payment Method:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2 * inch, 5.7 * inch, payment_method)
-
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, 5.4 * inch, "Products:")
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(0.5 * inch, 5.2 * inch, "ID")
-        c.drawString(1.5 * inch, 5.2 * inch, "Name")
-        c.drawString(2.5 * inch, 5.2 * inch, "Price")
-
-        y = 5 * inch  # Posición vertical inicial para los productos
-        for product in products:
-            c.setFont("Helvetica", 10)
-            c.drawString(0.5 * inch, y, product['id'])
-            c.drawString(1.5 * inch, y, product['name'])
-            c.drawString(2.5 * inch, y, str(product['price']) + "₡")
-            y -= 0.2 * inch  # Espacio entre cada producto
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, y, "Subtotal:")
-        c.setFont("ArialUnicode", 10)
-        c.drawString(2.5 * inch, y, "₡₡%.2f" % subtotal)
-
-        y -= 0.2 * inch
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, y, "Taxes:")
-        c.setFont("ArialUnicode", 10)
-        c.drawString(2.5 * inch, y, f"\u20A1%.2f{self.formattedNumber(taxes)}")
-
-        y -= 0.2 * inch
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, y, "Discounts:")
-        c.setFont("ArialUnicode", 10)
-        c.drawString(2.5 * inch, y,  "₡" + self.formattedNumber(discounts))
-
-        y -= 0.2 * inch
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(0.5 * inch, y, "Total Amount:")
-        c.setFont("Helvetica", 10)
-        c.drawString(2.5 * inch, y, f"₡{self.formattedNumber(total_amount)}")
-
-        c.showPage()
-        c.save()
-
-        return response
+        response['Content-Disposition'] = 'inline; filename="bill.html"'
+        response['Cache-Control'] = 'no-cache'
+        return self.render_to_response(context)
