@@ -53,11 +53,18 @@ DEBUG = True
 ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
 CORS_ALLOWED_ORIGINS = [
-    "https://buy-games.herokuapp.com",
     "https://readygamescr.com",
+    "https://www.readygamescr.com",
     "http://localhost:3000",
     "https://ready-games-ui.vercel.app"
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://readygamescr.com",
+    "https://www.readygamescr.com",
+    "http://localhost:8000",
+]
+
 
 # Application definition
 
@@ -92,6 +99,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'games.middleware.WwwRedirectMiddleware'
 ]
 
 ROOT_URLCONF = 'games.urls'

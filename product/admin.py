@@ -1,10 +1,29 @@
 from django.contrib import admin
 from django.contrib.admin import StackedInline
+from django.db.models import Q
 from django.forms import ModelForm
 
 # Register your models here.
-from product.models import Product, Collectable, Console, VideoGame, Accessory
+from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum
 from django.utils.html import format_html
+
+
+class ConsoleTitleFilter(admin.SimpleListFilter):
+    title = 'Console Title'  # Displayed filter title
+    parameter_name = 'console_title'  # URL parameter name for the filter
+
+    def lookups(self, request, model_admin):
+        # Return a list of tuples representing the filter options
+        # The first element in each tuple is the actual value to filter on,
+        # and the second element is the human-readable option name
+        return ConsoleEnum.choices
+
+    def queryset(self, request, queryset):
+        # Apply the filter to the queryset
+        value = self.value()
+        if value:
+            return queryset.filter(Q(console__title=value) | Q(videogame__console=value) | Q(accessory__console=value))
+        return queryset
 
 
 class TypeFilter(admin.SimpleListFilter):
@@ -77,11 +96,12 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo", "owner", "vendido", "sale_price")
+    list_display = ("__str__", "tipo", "owner", "vendido", "sale_price", 'used', 'region', 'description')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter)
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
-    search_fields = ["videogame__title", "barcode"]
+    search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title", "description"]
+    search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
 
     def tipo(self, obj):
         return obj.get_product_type()
@@ -103,9 +123,8 @@ class ProductAdmin(admin.ModelAdmin):
 
     def vendido(self, obj):
         return format_html(
-            '<span style="background-color: {}; color: white;">{}</span>',
-            "green" if obj.sale_date else "red",
-            "SI" if obj.sale_date else "NO"
+            '<img src="/static/admin/img/icon-{}.svg" alt="True">',
+            "yes" if obj.sale_date else "no"
         )
 
     vendido.short_description = 'Vendido'

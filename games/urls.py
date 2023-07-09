@@ -26,3 +26,8 @@ urlpatterns = [
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+
+admin.site.site_header = "Ready Games Admin"
+admin.site.site_title = "Ready Games Admin"
+admin.site.index_title = "Welcome to Ready Games Admin"
