@@ -20,25 +20,49 @@ class ConsoleEnum(models.TextChoices):
     PlayStation3 = "ps3", "PS3"
     PlayStation4 = "ps4", "PS4"
     PlayStation5 = "ps5", "PS5"
+    Xbox = "xbox", "Xbox"
+    Xbox360 = "xbox360", "Xbox360"
+    XboxOne = "xbox-one", "XboxOne"
+    XboxSeriesS = "xbox-series-s", "XboxSeriesS"
+    XboxSeriesX = "xbox-series-x", "XboxSeriesX"
+    PSVita = "psvita", "PSVita"
+    PSP = "psp", "PSP"
     Wii = "wii", "Wii"
     WiiU = "wiiu", "Wii U"
     N64 = "n64", "N64"
     Snes = "snes", "SNES"
+    Nes = "nes", "Nes"
+    Atari2600 = "atari2600", "Atari 2600"
+    SegaGenesis = "sega-genesis", "Sega Genesis"
+    SegaDreamcast = "sega-dreamcast", "Sega Dreamcast"
+    SegaSaturn = "sega-saturn", "Sega Saturn"
+    SegaNomad = "sega-nomad", "Sega Nomad"
+    SegaGameGear = "sega-gamegear", "Sega GameGear"
+    Gameboy = "gameboy", "Gameboy"
+    GameboyColor = "gameboy-color", "Gameboy Color"
+    GameboyPocket = "gameboy-pocket", "Gameboy Pocket"
+    GameboyAdvanced = "gameboy-advanced", "Gameboy Advanced"
+    GameboyAdvancedSP = "gameboy-advanced-sp", "Gameboy Advanced SP"
+    DS = "ds", "DS"
+    DSi = "dsi", "DSi"
+    _3DS = "3ds", "3DS"
     Switch = "switch", "Nintendo Switch"
 
 
 class Product(models.Model):
-    sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
-    provider_price = models.DecimalField(max_digits=8, decimal_places=2, help_text="En colones")
+    sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
+    provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
     barcode = models.CharField(max_length=100, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     provider_purchase_date = models.DateField()
     sale_date = models.DateField(null=True, blank=True)
-    owner = models.CharField(max_length=100, choices=OwnerEnum.choices, null=True, blank=True)
+    owner = models.CharField(default=OwnerEnum.Business, max_length=100, choices=OwnerEnum.choices, null=True, blank=True)
     description = models.TextField(default="")
-    region = models.CharField(max_length=100, choices=RegionEnum.choices, null=True, blank=True)
+    region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
     image = models.ImageField(upload_to='vents/photos/', null=True, blank=True)
+    amount = models.PositiveIntegerField(default=1)
+    used = models.BooleanField(default=True)
 
     def __str__(self):
         return self.get_additional_product_info().title
@@ -56,6 +80,7 @@ class Product(models.Model):
     def get_product_type(self):
         type_mapping = {
             VideoGame: "Videojuego",
+            Collectable: "Collecionable",
             Console: "Consola",
             Accessory: "Accesorio"
         }
@@ -71,7 +96,7 @@ class Console(models.Model):
     )
 
     def __str__(self):
-        return self.title
+        return self.get_title_display()
 
 
 class VideoGame(models.Model):
