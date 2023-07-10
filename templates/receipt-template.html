@@ -34,7 +34,7 @@
             td.price,
             th.price {
                 width: 40px;
-                max-width: 40px;
+                max-width: 60px;
                 word-break: break-all;
             }
 
@@ -90,16 +90,27 @@
                         <td class="price">{{ item.price }}</td>
                     </tr>
                     {% endfor %}
-                    <tr>
-                        <td class="id"></td>
-                        <td class="name">TOTAL</td>
-                        <td class="price">{{ total }}</td>
-                    </tr>
+                     <tr>
+                    <td class="id"></td>
+                    <td class="name">Subtotal</td>
+                    <td class="price">{{ subtotal }}</td>
+                </tr>
+                <tr>
+                    <td class="id"></td>
+                    <td class="name">Taxes</td>
+                    <td class="price">{{ taxes }}</td>
+                </tr>
+                <tr>
+                    <td class="id"></td>
+                    <td class="name">TOTAL</td>
+                    <td class="price">{{ total_amount }}</td>
+                </tr>
                 </tbody>
             </table>
 
-            <p class="centered">Thanks for your purchase!
-                <br>parzibyte.me/blog</p>
-        </div>
+            <p class="centered">Return Policy: {{ return_policy }}
+            <br>¡Gracias por su compra!
+            <br>readygamescr.com</p>
+    </div>
     </body>
 </html>
