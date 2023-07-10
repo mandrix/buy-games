@@ -33,6 +33,8 @@ class GenerateBill(TemplateView):
         context['customer_name'] = data['customerName']
         context['payment_method'] = data['paymentMethod']
         context['items'] = data['items']
+        context['payment_details'] = data['paymentDetails']
+        context['return_policy'] = data['returnPolicy']
         items = []
         for item in data['items']:
             formatted_price = self.formattedNumber(item['price'])
