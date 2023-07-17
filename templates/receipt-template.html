@@ -113,8 +113,11 @@
                 </tbody>
             </table>
 
-            <p class="centered">Política de devoluciones: {{ return_policy }}
-            <p class="centered">Detalles de Pago: {{ payment_details }}
+            <p class="centered">Política de devoluciones:
+             <img src="{{ return_policy }}" rel="icon"  style="max-width: 100%;" />
+            <p class="centered">Escanea el QR o entra a este enlace:</p>
+            <p class="centered"><a href="{{ qr_url }}">{{ qr_url }}</a></p>
+            <p class="centered">Detalles de Padgo: {{ payment_details }}
             <br>¡Gracias por su compra!
             <br>readygamescr.com</p>
     </div>
