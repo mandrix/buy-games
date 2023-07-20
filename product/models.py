@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db import models
+import shortuuid
 
 
 class RegionEnum(models.TextChoices):
@@ -53,12 +54,13 @@ class ConsoleEnum(models.TextChoices):
 class Product(models.Model):
     sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
-    barcode = models.CharField(max_length=100, null=True, blank=True)
+    barcode = models.CharField(max_length=22, null=True, blank=True, unique=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     provider_purchase_date = models.DateField()
     sale_date = models.DateField(null=True, blank=True)
-    owner = models.CharField(default=OwnerEnum.Business, max_length=100, choices=OwnerEnum.choices, null=True, blank=True)
+    owner = models.CharField(default=OwnerEnum.Business, max_length=100, choices=OwnerEnum.choices, null=True,
+                             blank=True)
     description = models.TextField(default="")
     region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
     image = models.ImageField(upload_to='vents/photos/', null=True, blank=True)
@@ -70,6 +72,9 @@ class Product(models.Model):
             return self.get_additional_product_info().get_title_display()
         except:
             return self.get_additional_product_info().title
+
+    def generate_barcode(self, *args, **kwargs):
+        self.barcode = shortuuid.uuid()
 
     @property
     @admin.display(description='sale price', ordering='sale_price')
@@ -83,7 +88,6 @@ class Product(models.Model):
         if self.provider_price:
             return f'{self.provider_price:,}₡'
 
-
     def get_additional_product_info(self):
         if additional_info := VideoGame.objects.filter(product=self).first():
             return additional_info
@@ -93,7 +97,7 @@ class Product(models.Model):
             return additional_info
         else:
             raise Exception("Este producto no tiene informacion adicional")
-        
+
     def get_product_type(self):
         type_mapping = {
             VideoGame: "Videojuego",
@@ -102,6 +106,11 @@ class Product(models.Model):
             Accessory: "Accesorio"
         }
         return type_mapping[type(self.get_additional_product_info())]
+
+    def save(self, *args, **kwargs):
+        if not self.barcode:
+            self.generate_barcode()
+        super().save(*args, **kwargs)
 
 
 class Console(models.Model):

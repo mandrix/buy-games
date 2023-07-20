@@ -16,3 +16,4 @@ sqlparse==0.4.4
 typing_extensions==4.6.3
 uvicorn==0.22.0
 whitenoise==6.5.0
+shortuuid==1.0.11

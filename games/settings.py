@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'babel',
+    'shortuuid',
 ]
 
 # Custom apps
