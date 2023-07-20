@@ -14,7 +14,7 @@ class ReturnPolicyView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        t_param = self.request.GET.get('t')
+        t_param = kwargs.get('t')
         context['return_policy_text'] = returnPolicyOptions[int(t_param)]
         return context
 

@@ -5,5 +5,5 @@ urlpatterns = [
     path("receipt", ReceiptView.as_view()),
     path("", CountDownView.as_view()),
     path("generate-bill", GenerateBill.as_view()),
-    path('return-policy/', ReturnPolicyView.as_view(), name='return-policy'),
+    path('return-policy/<int:t>/', ReturnPolicyView.as_view(), name='return-policy'),
 ]
