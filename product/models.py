@@ -54,7 +54,7 @@ class ConsoleEnum(models.TextChoices):
 class Product(models.Model):
     sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
-    barcode = models.CharField(max_length=22, null=True, blank=True, unique=True)
+    barcode = models.CharField(max_length=22, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     provider_purchase_date = models.DateField()
