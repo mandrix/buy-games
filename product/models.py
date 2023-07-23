@@ -95,6 +95,8 @@ class Product(models.Model):
             return additional_info
         elif additional_info := Accessory.objects.filter(product=self).first():
             return additional_info
+        elif additional_info := Collectable.objects.filter(product=self).first():
+            return additional_info
         else:
             raise Exception("Este producto no tiene informacion adicional")
 
