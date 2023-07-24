@@ -76,8 +76,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'reportlab',
     'babel',
+    'shortuuid',
 ]
 
 # Custom apps

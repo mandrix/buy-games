@@ -60,7 +60,7 @@
                 }
             }
         </style>
-        <title>Receipt example</title>
+
     </head>
     <body>
         <div class="ticket">
@@ -78,8 +78,8 @@
                 <thead>
                     <tr>
                         <th class="id">ID</th>
-                        <th class="name">Name</th>
-                        <th class="price">Price</th>
+                        <th class="name">Nombre</th>
+                        <th class="price">Precio</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,12 +97,12 @@
                 </tr>
                 <tr>
                     <td class="id"></td>
-                    <td class="name">Taxes</td>
+                    <td class="name">Impuestos</td>
                     <td class="price">{{ taxes }}</td>
                 </tr>
                     <tr>
                     <td class="id"></td>
-                    <td class="name">Discounts</td>
+                    <td class="name">Descuentos</td>
                     <td class="price">{{ discounts }}</td>
                     </tr>
                 <tr>
@@ -113,8 +113,11 @@
                 </tbody>
             </table>
 
-            <p class="centered">Return Policy: {{ return_policy }}
-            <p class="centered">Payment Details: {{ payment_details }}
+            <p class="centered">Política de devoluciones:
+             <img src="{{ return_policy }}" rel="icon"  style="max-width: 100%;" />
+            <p class="centered">Escanea el QR o entra a este enlace:</p>
+            <p class="centered"><a href="{{ qr_url }}">{{ qr_url }}</a></p>
+            <p class="centered">Detalles de Padgo: {{ payment_details }}
             <br>¡Gracias por su compra!
             <br>readygamescr.com</p>
     </div>
