@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='product',
             name='barcode',
-            field=models.CharField(blank=True, max_length=22, null=True, unique=True),
+            field=models.CharField(blank=True, max_length=22, null=True, unique=False),
         ),
     ]
