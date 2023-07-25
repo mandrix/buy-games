@@ -1,10 +1,13 @@
 import json
 
+import logging
 from babel.numbers import format_currency
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.views.generic import TemplateView
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import returnPolicyOptions
 
@@ -65,6 +68,44 @@ class GenerateBill(TemplateView):
 
         response = HttpResponse(rendered_template, content_type='text/html')
 
+        try:
+            self.enviar_factura_por_correo(rendered_template)
+        except SendMailError as e:
+            logging.error(f'Error al enviar el correo: {e}')
+
         response['Content-Disposition'] = 'inline; filename="bill.html"'
         response['Cache-Control'] = 'no-cache'
         return self.render_to_response(context)
+
+    def enviar_factura_por_correo(self, factura_html):
+
+        smtp_server = 'smtp.gmail.com'
+        smtp_port = 587
+        smtp_user = '@gmail.com'
+        smtp_password = ''
+
+        remitente = '@gmail.com'
+        destinatario = '@gmail.com'
+
+        mensaje = MIMEMultipart()
+        mensaje['From'] = remitente
+        mensaje['To'] = destinatario
+        mensaje['Subject'] = 'Factura de compra'
+
+        cuerpo = MIMEText(factura_html, 'html')
+        mensaje.attach(cuerpo)
+
+        try:
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(remitente, destinatario, mensaje.as_string())
+            print('Correo enviado correctamente')
+        except Exception as e:
+            raise SendMailError(str(e))
+        finally:
+            server.quit()
+
+
+class SendMailError(Exception):
+    pass
