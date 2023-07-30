@@ -71,7 +71,7 @@ class GenerateBill(TemplateView):
         response = HttpResponse(rendered_template, content_type='text/html')
 
         try:
-            self.enviar_factura_por_correo(rendered_template)
+            self.enviar_factura_por_correo(rendered_template, data['customerMail'])
         except SendMailError as e:
             logging.error(f'Error al enviar el correo: {e}')
 
