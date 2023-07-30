@@ -42,9 +42,11 @@ class GenerateBill(TemplateView):
         context['store_name'] = data['storeName']
         context['store_address'] = data['storeAddress']
         context['store_contact'] = data['storeContact']
+        context['store_mail'] = data['storeMail']
         context['receipt_number'] = data['receiptNumber']
         context['purchase_date'] = data['purchaseDate']
         context['customer_name'] = data['customerName']
+        context['customer_mail'] = data['customerMail']
         context['payment_method'] = data['paymentMethod']
         context['items'] = data['items']
         context['payment_details'] = data['paymentDetails']
@@ -77,15 +79,15 @@ class GenerateBill(TemplateView):
         response['Cache-Control'] = 'no-cache'
         return self.render_to_response(context)
 
-    def enviar_factura_por_correo(self, factura_html):
+    def enviar_factura_por_correo(self, factura_html, address):
 
         smtp_server = 'smtp.gmail.com'
         smtp_port = 587
-        smtp_user = '@gmail.com'
-        smtp_password = ''
+        smtp_user = 'aazv.ale@gmail.com'
+        smtp_password = 'thqjutoaiavpcqzv'
 
-        remitente = '@gmail.com'
-        destinatario = '@gmail.com'
+        remitente = 'aazv.ale@gmail.com'
+        destinatario = address
 
         mensaje = MIMEMultipart()
         mensaje['From'] = remitente
