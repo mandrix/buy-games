@@ -45,6 +45,7 @@ class ConsoleEnum(models.TextChoices):
     GameboyPocket = "gameboy-pocket", "Gameboy Pocket"
     GameboyAdvanced = "gameboy-advanced", "Gameboy Advanced"
     GameboyAdvancedSP = "gameboy-advanced-sp", "Gameboy Advanced SP"
+    Gamecube = "gamecube", "Gamecube"
     DS = "ds", "DS"
     DSi = "dsi", "DSi"
     _3DS = "3ds", "3DS"
