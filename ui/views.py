@@ -71,7 +71,7 @@ class GenerateBill(TemplateView):
         response = HttpResponse(rendered_template, content_type='text/html')
 
         try:
-            self.enviar_factura_por_correo(rendered_template, data['customerMail'])
+            self.enviar_factura_por_correo(rendered_template, data['customerMail'], data['returnPolicy'])
         except SendMailError as e:
             logging.error(f'Error al enviar el correo: {e}')
 
@@ -79,29 +79,36 @@ class GenerateBill(TemplateView):
         response['Cache-Control'] = 'no-cache'
         return self.render_to_response(context)
 
-    def enviar_factura_por_correo(self, factura_html, address):
+    def enviar_factura_por_correo(self, factura_html, address, return_policy):
 
         smtp_server = 'smtp.gmail.com'
         smtp_port = 587
-        smtp_user = 'aazv.ale@gmail.com'
-        smtp_password = 'thqjutoaiavpcqzv'
+        smtp_user = 'readygamescr@gmail.com'
+        smtp_password = 'dasieujszfbbvcew'
 
-        remitente = 'aazv.ale@gmail.com'
-        destinatario = address
+        remittent = 'readygamescr@gmail.com'
+        destination = address
 
-        mensaje = MIMEMultipart()
-        mensaje['From'] = remitente
-        mensaje['To'] = destinatario
-        mensaje['Subject'] = 'Factura de compra'
+        message = MIMEMultipart()
+        message['From'] = remittent
+        message['To'] = destination
+        message['Subject'] = 'Factura de compra'
 
-        cuerpo = MIMEText(factura_html, 'html')
-        mensaje.attach(cuerpo)
+        email_template_name = "return-policy.html"
+        email_context = {
+            'return_policy_text': returnPolicyOptions[return_policy],
+        }
+
+        rendered_email_template = render_to_string(email_template_name, email_context)
+
+        message.attach(MIMEText(factura_html, 'html'))
+        message.attach(MIMEText(rendered_email_template, 'html'))
 
         try:
             server = smtplib.SMTP(smtp_server, smtp_port)
             server.starttls()
             server.login(smtp_user, smtp_password)
-            server.sendmail(remitente, destinatario, mensaje.as_string())
+            server.sendmail(remittent, destination, message.as_string())
             print('Correo enviado correctamente')
         except Exception as e:
             raise SendMailError(str(e))
