@@ -1,6 +1,8 @@
 import json
 
 import logging
+from datetime import datetime
+
 from babel.numbers import format_currency
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -10,6 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import returnPolicyOptions
+from product.models import Product
 
 
 class ReturnPolicyView(TemplateView):
@@ -60,6 +63,9 @@ class GenerateBill(TemplateView):
                 'name': item['name'],
                 'price': formatted_price,
             })
+            product = Product.objects.get(id=item['id'])
+            product.sale_date = datetime.now()
+            product.save()
         context['items'] = items
         context['subtotal'] = self.formattedNumber(data['subtotal'])
         context['taxes'] = self.formattedNumber(data['taxes'])
