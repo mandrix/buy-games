@@ -23,7 +23,8 @@ Cuando no lo están, se golpean, se rayan o se deforman.
 * No use limpiadores de lectores de tarjetas ya que dañarán el lector de tarjetas de la máquina tragamonedas. Si necesita limpiarlo, diríjase al centro de servicio técnico o llame al número de nuestra empresa. 22586741 para atenderte mejor.
 * Las consolas portátiles o de escritorio que utilicen lectores ópticos sólo tendrán
 1 mes de garantía para lentes ópticos.
-* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación. 14- Pantalla de interruptor de Nintendo para revisión del cliente. La garantía no aplica. Píxeles rotos o daños en la pantalla. Joy-con y Dock Base 1 mes de garantía.'''
+* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación. 14- Pantalla de interruptor de Nintendo para revisión del cliente. La garantía no aplica. Píxeles rotos o daños en la pantalla. Joy-con y Dock Base 1 mes de garantía.
+* No hay devolución de dinero, sino un intercambio por otro producto de valor igual'''
 
 returnPolicy3monthConsole = '''Garantia de consola
 
@@ -50,7 +51,8 @@ Cuando no lo están, se golpean, se rayan o se deforman.
 * No use limpiadores de lectores de tarjetas ya que dañarán el lector de tarjetas de la máquina tragamonedas. Si necesita limpiarlo, diríjase al centro de servicio técnico o llame al número de nuestra empresa. 22586741 para atenderte mejor.
 * Las consolas portátiles o de escritorio que utilicen lectores ópticos sólo tendrán
 1 mes de garantía para lentes ópticos.
-* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación. 14- Pantalla de interruptor de Nintendo para revisión del cliente. La garantía no aplica. Píxeles rotos o daños en la pantalla. Joy-con y Dock Base 1 mes de garantía.'''
+* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación. 14- Pantalla de interruptor de Nintendo para revisión del cliente. La garantía no aplica. Píxeles rotos o daños en la pantalla. Joy-con y Dock Base 1 mes de garantía.
+* No hay devolución de dinero, sino un intercambio por otro producto de valor igual'''
 
 returnPolicy1yearConsole = '''Garantia de consola
 
@@ -77,7 +79,8 @@ Cuando no lo están, se golpean, se rayan o se deforman.
 * No use limpiadores de lectores de tarjetas ya que dañarán el lector de tarjetas de la máquina tragamonedas. Si necesita limpiarlo, diríjase al centro de servicio técnico o llame al número de nuestra empresa. 22586741 para atenderte mejor.
 * Las consolas portátiles o de escritorio que utilicen lectores ópticos sólo tendrán
 1 mes de garantía para lentes ópticos.
-* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación. 14- Pantalla de interruptor de Nintendo para revisión del cliente. La garantía no aplica. Píxeles rotos o daños en la pantalla. Joy-con y Dock Base 1 mes de garantía.'''
+* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación. 14- Pantalla de interruptor de Nintendo para revisión del cliente. La garantía no aplica. Píxeles rotos o daños en la pantalla. Joy-con y Dock Base 1 mes de garantía.
+* No hay devolución de dinero, sino un intercambio por otro producto de valor igual'''
 
 returnPolicy1monthGeneric = '''Garantia del producto
 
@@ -100,7 +103,8 @@ returnPolicy1monthGeneric = '''Garantia del producto
 Cuando no lo están, se golpean, se rayan o se deforman.
 * Todas las baterías deben cargarse por primera vez durante 24 horas, después de que la batería parezca estar descargada, el tiempo de carga no debe exceder las 4 horas. Solo tienen 1 mes de garantía.
 * El dispositivo debe ser operado por un adulto, y los niños menores de 12 años necesitan supervisión.
-* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación.'''
+* La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación.
+* No hay devolución de dinero, sino un intercambio por otro producto de valor igual'''
 
 returnPolicyOptions = [
     returnPolicy1monthConsole,

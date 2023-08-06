@@ -69,12 +69,14 @@
                 <br>{{ store_name }}
                 <br>{{ store_address }}
                 <br>{{ store_contact }}
+                <br> Persona Fisica: 117350106
                 <br>{{ receipt_number }}
-                <br>{{ receipt_mail }}
+                <br><!--email_off-->{{ receipt_mail }}<!--/email_off-->
+                <br>Condicion: {{ payment_method }}
+                <br>Moneda: CRC
                 <br>{{ purchase_date }}
-                <br><!--email_off-->{{ customer_name }}<!--/email_off-->
-                <br>{{ customer_mail }}
-                <br>{{ payment_method }}
+                <br>{{ customer_name }}
+                <br><!--email_off-->{{ customer_mail }}<!--/email_off-->
             </p>
             <table>
                 <thead>
@@ -122,6 +124,8 @@
             <p class="centered">Detalles de Pago: {{ payment_details }}
             <br>¡Gracias por su compra!
             <br>readygamescr.com</p>
+            <br>Instagram @readygamescr</p>
+            <br>Facebook Ready Games CR</p>
     </div>
     </body>
 </html>

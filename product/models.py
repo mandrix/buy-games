@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import admin
 from django.db import models
 import shortuuid
@@ -52,13 +54,83 @@ class ConsoleEnum(models.TextChoices):
     Switch = "switch", "Nintendo Switch"
 
 
+class Console(models.Model):
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    title = models.CharField(
+        max_length=20,
+        choices=ConsoleEnum.choices,
+        null=True
+    )
+
+    def __str__(self):
+        return self.get_title_display()
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.product.amount > 1:
+            self.product.duplicate()
+
+
+class VideoGame(models.Model):
+    title = models.CharField(max_length=100, default="")
+    console = models.CharField(
+        max_length=20,
+        choices=ConsoleEnum.choices,
+        null=True
+    )
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.product.amount > 1:
+            self.product.duplicate()
+
+class Collectable(models.Model):
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    category = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.product.amount > 1:
+            self.product.duplicate()
+
+
+class Accessory(models.Model):
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+    title = models.CharField(max_length=200, default="")
+    console = models.CharField(
+        max_length=20,
+        choices=ConsoleEnum.choices,
+        null=True
+    )
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.product.amount > 1:
+            self.product.duplicate()
+
+
 class Product(models.Model):
-    sale_price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
+    sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
     barcode = models.CharField(max_length=22, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
-    provider_purchase_date = models.DateField()
+    provider_purchase_date = models.DateField(default=datetime.date.today)
     sale_date = models.DateField(null=True, blank=True)
     owner = models.CharField(default=OwnerEnum.Business, max_length=100, choices=OwnerEnum.choices, null=True,
                              blank=True)
@@ -78,6 +150,12 @@ class Product(models.Model):
         self.barcode = shortuuid.uuid()
 
     @property
+    @admin.display(description='consola')
+    def console_type(self):
+        if self.console_set.first():
+            return self.console_set.first()
+
+    @property
     @admin.display(description='sale price', ordering='sale_price')
     def sale_price_formatted(self):
         if self.sale_price:
@@ -89,7 +167,7 @@ class Product(models.Model):
         if self.provider_price:
             return f'{self.provider_price:,}₡'
 
-    def get_additional_product_info(self):
+    def get_additional_product_info(self) -> VideoGame | Console | Accessory | Collectable:
         if additional_info := VideoGame.objects.filter(product=self).first():
             return additional_info
         elif additional_info := Console.objects.filter(product=self).first():
@@ -110,54 +188,28 @@ class Product(models.Model):
         }
         return type_mapping[type(self.get_additional_product_info())]
 
+    def duplicate(self):
+        amount = self.amount
+        self.amount = 1
+        self.save()
+        for _ in range(amount - 1):
+            print("in")
+            copy = self
+
+            additional_info = copy.get_additional_product_info()
+
+            copy.pk = None
+            copy.amount = 1
+            copy.save()
+
+            additional_info.pk = None
+            additional_info.product = copy
+            additional_info.save()
+
     def save(self, *args, **kwargs):
         if not self.barcode:
             self.generate_barcode()
         super().save(*args, **kwargs)
 
-
-class Console(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    title = models.CharField(
-        max_length=20,
-        choices=ConsoleEnum.choices,
-        null=True
-    )
-
-    def __str__(self):
-        return self.get_title_display()
-
-
-class VideoGame(models.Model):
-    title = models.CharField(max_length=100, default="")
-    console = models.CharField(
-        max_length=20,
-        choices=ConsoleEnum.choices,
-        null=True
-    )
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.title
-
-
-class Collectable(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    category = models.CharField(max_length=100)
-    title = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.title
-
-
-class Accessory(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    title = models.CharField(max_length=200, default="")
-    console = models.CharField(
-        max_length=20,
-        choices=ConsoleEnum.choices,
-        null=True
-    )
-
-    def __str__(self):
-        return self.title
+        if self.amount > 1 and self.get_additional_product_info():
+            self.duplicate()
