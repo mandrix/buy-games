@@ -96,7 +96,7 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo", "console_type", "owner", "vendido", "sale_price_formatted", 'used', 'description')
+    list_display = ("__str__", "tipo", "console_type", "owner", "vendido", "sale_price_formatted", 'used', 'copies', 'description')
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []

@@ -150,10 +150,16 @@ class Product(models.Model):
         self.barcode = shortuuid.uuid()
 
     @property
-    @admin.display(description='consola')
+    @admin.display(description='console')
     def console_type(self):
         if self.console_set.first():
             return self.console_set.first()
+
+    @property
+    @admin.display(description='copies')
+    def copies(self):
+        return self.get_additional_product_info().__class__.objects.filter(
+            title=self.get_additional_product_info().title, product__sale_date__isnull=not self.sale_date).count()
 
     @property
     @admin.display(description='sale price', ordering='sale_price')
@@ -193,7 +199,6 @@ class Product(models.Model):
         self.amount = 1
         self.save()
         for _ in range(amount - 1):
-            print("in")
             copy = self
 
             additional_info = copy.get_additional_product_info()
