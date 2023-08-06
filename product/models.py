@@ -154,6 +154,8 @@ class Product(models.Model):
     def console_type(self):
         if self.console_set.first():
             return self.console_set.first()
+        else:
+            return self.get_additional_product_info().console
 
     @property
     @admin.display(description='copies')
