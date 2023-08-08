@@ -166,8 +166,11 @@ class Product(models.Model):
     @property
     @admin.display(description='copies')
     def copies(self):
-        return self.get_additional_product_info().__class__.objects.filter(
-            title=self.get_additional_product_info().title, product__sale_date__isnull=not self.sale_date).count()
+        try:
+            return self.get_additional_product_info().__class__.objects.filter(
+                title=self.get_additional_product_info().title, product__sale_date__isnull=not self.sale_date).count()
+        except ValueError:
+            return "ERROR"
 
     @property
     @admin.display(description='sale price', ordering='sale_price')
