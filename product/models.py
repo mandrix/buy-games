@@ -144,7 +144,10 @@ class Product(models.Model):
         try:
             return self.get_additional_product_info().get_title_display()
         except:
-            return self.get_additional_product_info().title
+            try:
+                return self.get_additional_product_info().title
+            except:
+                return "ERROR sin info adicional"
 
     def generate_barcode(self, *args, **kwargs):
         self.barcode = shortuuid.uuid()
