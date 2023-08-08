@@ -109,7 +109,10 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
     def tipo(self, obj):
-        return obj.get_product_type()
+        try:
+            return obj.get_product_type()
+        except:
+            return "ERROR no tiene tipo de producto"
 
     def get_inlines(self, request, obj):
         if not obj:
