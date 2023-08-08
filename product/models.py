@@ -155,10 +155,13 @@ class Product(models.Model):
     @property
     @admin.display(description='console')
     def console_type(self):
-        if self.console_set.first():
-            return self.console_set.first()
-        elif hasattr(self.get_additional_product_info(), "console"):
-            return self.get_additional_product_info().console
+        try:
+            if self.console_set.first():
+                return self.console_set.first()
+            elif hasattr(self.get_additional_product_info(), "console"):
+                return self.get_additional_product_info().console
+        except:
+            return "ERROR no tiene tipo"
 
     @property
     @admin.display(description='copies')
