@@ -99,6 +99,7 @@ class GenerateBill(TemplateView):
         message['From'] = remittent
         message['To'] = destination
         message['Subject'] = 'Factura de compra'
+        message['Bcc'] = 'joseph.zamora64@gmail.com'
 
         email_template_name = "return-policy.html"
         email_context = {
