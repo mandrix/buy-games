@@ -14,7 +14,7 @@ class RegionEnum(models.TextChoices):
 class StateEnum(models.TextChoices):
     sold = "sold", "Vendido"
     available = "availabel", "Disponible"
-    reserved = "reserved", "reserved"
+    reserved = "reserved", "Apartado"
     na = "na", "N/A"
 
 

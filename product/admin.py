@@ -96,9 +96,9 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo", "console_type", "owner", "vendido", "sale_price_formatted", 'used', 'copies', 'description')
+    list_display = ("__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'state')
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title", "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"

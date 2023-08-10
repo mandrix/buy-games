@@ -98,10 +98,8 @@ class GenerateBill(TemplateView):
 
         message = MIMEMultipart()
         message['From'] = remittent
-        message['To'] = destination
+        message['To'] = f'{destination},joseph.zamora64@gmail.com'
         message['Subject'] = '¡Factura Ready Games🎮🕹️👾!'
-        message['Bcc'] = 'joseph.zamora64@gmail.com'
-        message['Cc'] = 'joseph.zamora64@gmail.com'
 
         email_template_name = "return-policy.html"
         email_context = {
