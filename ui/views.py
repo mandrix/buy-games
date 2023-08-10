@@ -36,6 +36,8 @@ class ReceiptView(TemplateView):
 class GenerateBill(TemplateView):
     template_name = "receipt-template.html"
 
+    SERVICE = "S"
+
     def formattedNumber(self, number):
         return str(format_currency(number, 'CRC', locale='es_CR'))
 
@@ -64,7 +66,7 @@ class GenerateBill(TemplateView):
                 'price': formatted_price,
                 'status': "APARTADO" if item.get('reserved') else ""
             })
-            if item['id'] != 'SERVICE':
+            if item['id'] != self.SERVICE:
                 product = Product.objects.get(id=item['id'])
                 product.sale_date = datetime.now()
                 product.state = StateEnum.sold if not item.get('reserved') else StateEnum.reserved
