@@ -73,7 +73,6 @@
                 <br>{{ receipt_number }}
                 <br><!--email_off-->{{ receipt_mail }}<!--/email_off-->
                 <br>Metodo: {{ payment_method }}
-                <br>Condicion: {{ status }}
                 <br>Moneda: CRC
                 <br>{{ purchase_date }}
                 <br>{{ customer_name }}
@@ -91,7 +90,7 @@
                     {% for item in items %}
                     <tr>
                         <td class="id">{{ item.id }}</td>
-                        <td class="name">{{ item.name }}</td>
+                        <td class="name">{{ item.name }}-{{ item.status }}</td>
                         <td class="price">{{ item.price }}</td>
                     </tr>
                     {% endfor %}

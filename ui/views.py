@@ -99,7 +99,7 @@ class GenerateBill(TemplateView):
 
         message = MIMEMultipart()
         message['From'] = remittent
-        message['To'] = f'{destination},joseph.zamora64@gmail.com'
+        message['To'] = f'{destination}'
         message['Subject'] = '¡Factura Ready Games🎮🕹️👾!'
 
         email_template_name = "return-policy.html"
