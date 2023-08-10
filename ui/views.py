@@ -62,7 +62,7 @@ class GenerateBill(TemplateView):
                 'id': item['id'],
                 'name': item['name'],
                 'price': formatted_price,
-                'status': "APARTADO" if data['reserved'] else "COMPRA"
+                'status': "APARTADO" if item['reserved'] else "COMPRA"
             })
             product = Product.objects.get(id=item['id'])
             product.sale_date = datetime.now()
