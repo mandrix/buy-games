@@ -72,6 +72,7 @@ class GenerateBill(TemplateView):
         context['taxes'] = self.formattedNumber(data['taxes'])
         context['discounts'] = self.formattedNumber(data['discounts'])
         context['total_amount'] = self.formattedNumber(data['totalAmount'])
+        context['status'] = "APARTADO" if data['reserved'] else "COMPRA"
 
         rendered_template = render_to_string(self.template_name, context)
 
