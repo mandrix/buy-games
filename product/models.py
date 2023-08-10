@@ -11,6 +11,13 @@ class RegionEnum(models.TextChoices):
     Europe = "eu", "Europe"
 
 
+class StateEnum(models.TextChoices):
+    sold = "sold", "Vendido"
+    available = "availabel", "Disponible"
+    reserved = "reserved", "reserved"
+    na = "na", "N/A"
+
+
 class OwnerEnum(models.TextChoices):
     Joseph = "joseph", "Joseph"
     Mauricio = "mauricio", "Mauricio"
@@ -127,7 +134,7 @@ class Accessory(models.Model):
 class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
-    barcode = models.CharField(max_length=22, null=True, blank=True)
+    barcode = models.CharField(max_length=22, null=True, blank=True, unique=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     provider_purchase_date = models.DateField(default=datetime.date.today)
@@ -139,6 +146,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='vents/photos/', null=True, blank=True)
     amount = models.PositiveIntegerField(default=1)
     used = models.BooleanField(default=True)
+    state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
 
     def __str__(self):
         try:

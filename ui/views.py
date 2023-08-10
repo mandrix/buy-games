@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import returnPolicyOptions
-from product.models import Product
+from product.models import Product, StateEnum
 
 
 class ReturnPolicyView(TemplateView):
@@ -65,6 +65,7 @@ class GenerateBill(TemplateView):
             })
             product = Product.objects.get(id=item['id'])
             product.sale_date = datetime.now()
+            product.state = StateEnum.sold if not item['reserved'] else StateEnum.reserved
             product.save()
         context['items'] = items
         context['subtotal'] = self.formattedNumber(data['subtotal'])
@@ -98,8 +99,9 @@ class GenerateBill(TemplateView):
         message = MIMEMultipart()
         message['From'] = remittent
         message['To'] = destination
-        message['Subject'] = 'Factura de compra'
+        message['Subject'] = '¡Factura Ready Games🎮🕹️👾!'
         message['Bcc'] = 'joseph.zamora64@gmail.com'
+        message['Cc'] = 'joseph.zamora64@gmail.com'
 
         email_template_name = "return-policy.html"
         email_context = {
