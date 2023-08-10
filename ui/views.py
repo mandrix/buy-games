@@ -62,6 +62,7 @@ class GenerateBill(TemplateView):
                 'id': item['id'],
                 'name': item['name'],
                 'price': formatted_price,
+                'status': "APARTADO" if data['reserved'] else "COMPRA"
             })
             product = Product.objects.get(id=item['id'])
             product.sale_date = datetime.now()
@@ -72,7 +73,6 @@ class GenerateBill(TemplateView):
         context['taxes'] = self.formattedNumber(data['taxes'])
         context['discounts'] = self.formattedNumber(data['discounts'])
         context['total_amount'] = self.formattedNumber(data['totalAmount'])
-        context['status'] = "APARTADO" if data['reserved'] else "COMPRA"
 
         rendered_template = render_to_string(self.template_name, context)
 
