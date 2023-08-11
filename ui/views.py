@@ -12,8 +12,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import returnPolicyOptions
-from product.models import Product, Sale, Report
 from django.db import transaction
+from product.models import Product, StateEnum, Sale, Report
 
 
 class ReturnPolicyView(TemplateView):
@@ -36,6 +36,8 @@ class ReceiptView(TemplateView):
 
 class GenerateBill(TemplateView):
     template_name = "receipt-template.html"
+
+    SERVICE = "S"
 
     def formattedNumber(self, number):
         return str(format_currency(number, 'CRC', locale='es_CR'))
@@ -63,10 +65,13 @@ class GenerateBill(TemplateView):
                 'id': item['id'],
                 'name': item['name'],
                 'price': formatted_price,
+                'status': "APARTADO" if item.get('reserved') else ""
             })
-            product = Product.objects.get(id=item['id'])
-            product.sale_date = datetime.now()
-            product.save()
+            if item['id'] != self.SERVICE:
+                product = Product.objects.get(id=item['id'])
+                product.sale_date = datetime.now()
+                product.state = StateEnum.sold if not item.get('reserved') else StateEnum.reserved
+                product.save()
         context['items'] = items
         context['subtotal'] = self.formattedNumber(data['subtotal'])
         context['taxes'] = self.formattedNumber(data['taxes'])
@@ -130,9 +135,8 @@ class GenerateBill(TemplateView):
 
         message = MIMEMultipart()
         message['From'] = remittent
-        message['To'] = destination
-        message['Subject'] = 'Factura de compra'
-        message['Bcc'] = 'joseph.zamora64@gmail.com'
+        message['To'] = f'{destination}'
+        message['Subject'] = '¡Factura Ready Games🎮🕹️👾!'
 
         email_template_name = "return-policy.html"
         email_context = {

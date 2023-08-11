@@ -72,7 +72,7 @@
                 <br> Persona Fisica: 117350106
                 <br>{{ receipt_number }}
                 <br><!--email_off-->{{ receipt_mail }}<!--/email_off-->
-                <br>Condicion: {{ payment_method }}
+                <br>Metodo: {{ payment_method }}
                 <br>Moneda: CRC
                 <br>{{ purchase_date }}
                 <br>{{ customer_name }}
@@ -90,7 +90,7 @@
                     {% for item in items %}
                     <tr>
                         <td class="id">{{ item.id }}</td>
-                        <td class="name">{{ item.name }}</td>
+                        <td class="name">{{ item.name }}-{{ item.status }}</td>
                         <td class="price">{{ item.price }}</td>
                     </tr>
                     {% endfor %}
