@@ -54,6 +54,17 @@ class ConsoleEnum(models.TextChoices):
     Switch = "switch", "Nintendo Switch"
 
 
+class ReportType(models.TextChoices):
+    PURCHASE = "purchase", "Purchase"
+    SALE = "sale", "Sale"
+    RESERVE = "reserve", "Reserve"
+
+
+class WarrantyType(models.TextChoices):
+    STANDARD = "standard", "Standard"
+    EXTENDED = "extended", "Extended"
+
+
 class Console(models.Model):
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
     title = models.CharField(
@@ -90,6 +101,7 @@ class VideoGame(models.Model):
         if self.product.amount > 1:
             self.product.duplicate()
 
+
 class Collectable(models.Model):
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
     category = models.CharField(max_length=100)
@@ -125,7 +137,8 @@ class Accessory(models.Model):
 
 
 class Product(models.Model):
-    sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True, help_text="En colones")
+    sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                     help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
     barcode = models.CharField(max_length=22, null=True, blank=True)
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -232,3 +245,27 @@ class Product(models.Model):
                 self.duplicate()
         except ValueError as e:
             pass
+
+
+class Report(models.Model):
+    date = models.DateField()
+
+
+class Sale(models.Model):
+    report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
+    products = models.ManyToManyField(Product)
+    type = models.CharField(max_length=10, choices=ReportType.choices)
+    warranty_type = models.CharField(max_length=10, choices=WarrantyType.choices)
+    purchase_date_time = models.DateTimeField(auto_now_add=True)
+    payment_method = models.CharField(max_length=50)
+    subtotal = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                   help_text="En colones")
+    discount = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                   help_text="En colones")
+    taxes = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                help_text="En colones")
+    total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                help_text="En colones")
+    payment_details = models.TextField()
+    customer_name = models.CharField(max_length=100, default="Ready")
+    customer_mail = models.EmailField(default='readygamescr@gmail.com')

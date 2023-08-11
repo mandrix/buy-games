@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField, SerializerMethodField
 
-from product.models import Product, Collectable, VideoGame, Accessory, Console
+from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale
 
 
 def create_product(validated_data):
@@ -60,3 +60,25 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_type(self, obj: Product):
         return obj.get_product_type()
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
+class SaleSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Sale
+        fields = '__all__'
+
+
+class ReportSerializer(serializers.ModelSerializer):
+    sales = SaleSerializer(many=True, read_only=True, source='sale_set')
+
+    class Meta:
+        model = Report
+        fields = '__all__'
