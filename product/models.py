@@ -61,7 +61,7 @@ class ConsoleEnum(models.TextChoices):
     Switch = "switch", "Nintendo Switch"
 
 
-class ReportType(models.TextChoices):
+class SaleType(models.TextChoices):
     PURCHASE = "purchase", "Purchase"
     SALE = "sale", "Sale"
     RESERVE = "reserve", "Reserve"
@@ -258,11 +258,14 @@ class Product(models.Model):
 class Report(models.Model):
     date = models.DateField()
 
+    def __str__(self):
+        return self.date.strftime('%d de %B de %Y')
+
 
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
-    type = models.CharField(max_length=10, choices=ReportType.choices)
+    type = models.CharField(max_length=10, choices=SaleType.choices)
     warranty_type = models.CharField(max_length=10, choices=WarrantyType.choices)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=50)
@@ -277,3 +280,6 @@ class Sale(models.Model):
     payment_details = models.TextField()
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
+
+    def __str__(self):
+        return f"{self.report.date} - {self.customer_name}"
