@@ -62,14 +62,14 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.get_product_type()
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializerToShow(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
 
 
 class SaleSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = ProductSerializerToShow(many=True, read_only=True)
 
     class Meta:
         model = Sale
