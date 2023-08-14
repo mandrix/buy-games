@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.forms import ModelForm
 
 # Register your models here.
-from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum
+from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale
 from django.utils.html import format_html
 
 
@@ -96,11 +96,13 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
+    list_display = (
+    "__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'state')
     inlines = []
-    search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title", "description"]
+    search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
+                     "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
     readonly_fields = (
         "id",
@@ -162,8 +164,24 @@ class AccessoryAdmin(admin.ModelAdmin):
     model = Accessory
 
 
+class SaleInline(admin.TabularInline):
+    model = Sale
+    extra = 0
+
+
+class ReportAdmin(admin.ModelAdmin):
+    list_display = ('date',)
+    inlines = [SaleInline]
+
+
+class SaleAdmin(admin.ModelAdmin):
+    model = Sale
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Console, ConsoleAdmin)
 admin.site.register(Collectable, CollectableAdmin)
 admin.site.register(VideoGame, VideoGameAdmin)
 admin.site.register(Accessory, AccessoryAdmin)
+admin.site.register(Report, ReportAdmin)
+admin.site.register(Sale, SaleAdmin)
