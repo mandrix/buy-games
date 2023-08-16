@@ -70,7 +70,9 @@ class GenerateBill(TemplateView):
             if item['id'] != self.SERVICE:
                 product = Product.objects.get(id=item['id'])
                 product.sale_date = datetime.now()
-                product.state = StateEnum.sold if not item.get('reserved') else StateEnum.reserved
+                reserved = item.get('reserved')
+                product.remaining -= int(item['price']) if reserved else product.remaining
+                product.state = StateEnum.sold if reserved and product.remaining <= 0 else StateEnum.reserved
                 product.save()
         context['items'] = items
         context['subtotal'] = self.formattedNumber(data['subtotal'])

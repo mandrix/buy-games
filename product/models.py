@@ -61,12 +61,6 @@ class ConsoleEnum(models.TextChoices):
     Switch = "switch", "Nintendo Switch"
 
 
-class SaleType(models.TextChoices):
-    PURCHASE = "purchase", "Purchase"
-    SALE = "sale", "Sale"
-    RESERVE = "reserve", "Reserve"
-
-
 class WarrantyType(models.TextChoices):
     STANDARD = "standard", "Standard"
     EXTENDED = "extended", "Extended"
@@ -147,6 +141,8 @@ class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
+    remaining = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                    help_text="En colones")
     barcode = models.CharField(max_length=22, null=True, blank=True, unique=False)
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
@@ -265,7 +261,6 @@ class Report(models.Model):
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
-    type = models.CharField(max_length=10, choices=SaleType.choices)
     warranty_type = models.CharField(max_length=10, choices=WarrantyType.choices)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=50)
