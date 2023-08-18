@@ -264,9 +264,9 @@ class Report(models.Model):
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
-    warranty_type = models.CharField(max_length=10, choices=WarrantyType.choices)
+    warranty_type = models.CharField(max_length=100)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
-    payment_method = models.CharField(max_length=50)
+    payment_method = models.CharField(max_length=100)
     subtotal = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                    help_text="En colones")
     discount = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,

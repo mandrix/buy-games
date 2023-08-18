@@ -11,7 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from helpers.qr import qrOptions, qrLinkOptions
-from helpers.returnPolicy import returnPolicyOptions
+from helpers.returnPolicy import return_policy_options
 from django.db import transaction
 from product.models import Product, StateEnum, Sale, Report
 
@@ -22,7 +22,7 @@ class ReturnPolicyView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         t_param = kwargs.get('t')
-        context['return_policy_text'] = returnPolicyOptions[int(t_param)]
+        context['return_policy_text'] = return_policy_options[int(t_param)]["desc"]
         return context
 
 
@@ -99,7 +99,7 @@ class GenerateBill(TemplateView):
         with transaction.atomic():
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
-            warranty_type = returnPolicyOptions[data['returnPolicy']]
+            warranty_type = return_policy_options[data['returnPolicy']]["desc"]
 
             sale = Sale.objects.create(
                 report=report,
@@ -114,7 +114,6 @@ class GenerateBill(TemplateView):
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
             )
-            print("sale: ", sale)
 
             for item in data['items']:
                 product_id = item['id']
@@ -139,7 +138,7 @@ class GenerateBill(TemplateView):
 
         email_template_name = "return-policy.html"
         email_context = {
-            'return_policy_text': returnPolicyOptions[return_policy],
+            'return_policy_text': return_policy_options[return_policy]["desc"],
         }
 
         rendered_email_template = render_to_string(email_template_name, email_context)
