@@ -243,6 +243,8 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if not self.id:
             self.remaining = self.sale_price
+        if self.state == StateEnum.available:
+            self.remaining = self.sale_price
         if not self.barcode:
             self.generate_barcode()
         super().save(*args, **kwargs)
