@@ -240,6 +240,8 @@ class Product(models.Model):
             additional_info.save()
 
     def save(self, *args, **kwargs):
+        if self.remaining is None and not self.id:
+            self.remaining = self.sale_price
         if not self.barcode:
             self.generate_barcode()
         super().save(*args, **kwargs)
