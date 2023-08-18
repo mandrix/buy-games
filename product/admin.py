@@ -178,7 +178,7 @@ class SaleAdmin(admin.ModelAdmin):
     model = Sale
 
     readonly_fields = (
-        'creation_date_time ',
+        'creation_date_time',
     )
 
 
