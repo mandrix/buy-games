@@ -99,7 +99,7 @@ class GenerateBill(TemplateView):
         with transaction.atomic():
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
-            warranty_type = return_policy_options[data['returnPolicy']]["desc"]
+            warranty_type = return_policy_options[data['returnPolicy']]["name"]
 
             sale = Sale.objects.create(
                 report=report,
