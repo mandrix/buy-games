@@ -106,9 +106,9 @@ Cuando no lo están, se golpean, se rayan o se deforman.
 * La garantía se anula en caso de sobrecarga eléctrica de la fuente de alimentación.
 * No hay devolución de dinero, sino un intercambio por otro producto de valor igual'''
 
-returnPolicyOptions = [
-    returnPolicy1monthConsole,
-    returnPolicy3monthConsole,
-    returnPolicy1yearConsole,
-    returnPolicy1monthGeneric
+return_policy_options = [
+     {"desc": returnPolicy1monthConsole, "name": "1 month console"},
+     {"desc": returnPolicy3monthConsole, "name": "3 months console"},
+     {"desc": returnPolicy1yearConsole, "name": "1 year console"},
+     {"desc": returnPolicy1monthGeneric, "name": "1 month generic"}
 ]
