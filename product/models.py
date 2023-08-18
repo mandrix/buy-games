@@ -278,6 +278,7 @@ class Sale(models.Model):
     payment_details = models.TextField()
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
+    creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
 
     def __str__(self):
         return f"{self.report.date} - {self.customer_name}"
