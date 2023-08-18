@@ -99,7 +99,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'games.middleware.WwwRedirectMiddleware'
+    'games.middleware.WwwRedirectMiddleware',
+    "games.middleware.LoggingMiddleware",
 ]
 
 ROOT_URLCONF = 'games.urls'
@@ -198,6 +199,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGS_LIMIT = 5000
 
 if IS_HEROKU_APP:
     django_heroku.settings(locals())

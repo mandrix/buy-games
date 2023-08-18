@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.forms import ModelForm
 
 # Register your models here.
-from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale
+from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log
 from django.utils.html import format_html
 
 
@@ -178,6 +178,10 @@ class SaleAdmin(admin.ModelAdmin):
     model = Sale
 
 
+class LogAdmin(admin.ModelAdmin):
+    model = Log
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Console, ConsoleAdmin)
 admin.site.register(Collectable, CollectableAdmin)
@@ -185,3 +189,4 @@ admin.site.register(VideoGame, VideoGameAdmin)
 admin.site.register(Accessory, AccessoryAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Sale, SaleAdmin)
+admin.site.register(Log, LogAdmin)

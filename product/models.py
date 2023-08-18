@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib import admin
 from django.db import models
+import django.conf as conf
 import shortuuid
 
 
@@ -280,3 +281,36 @@ class Sale(models.Model):
 
     def __str__(self):
         return f"{self.report.date} - {self.customer_name}"
+
+
+class Log(models.Model):
+    """
+    Saving data to this model about every request
+    """
+
+    datetime = models.DateTimeField(auto_now=True)
+    status_code = models.PositiveSmallIntegerField()
+    status_text = models.TextField()
+    response = models.TextField()
+    request = models.TextField()
+    ipv4_address = models.GenericIPAddressField()
+    path = models.CharField(validators=[], max_length=100)
+    is_secure = models.BooleanField()
+
+    def __str__(self):
+        return f"Log(datetime={self.datetime}, status_code={self.status_code}, path={self.path})"
+
+    def save(
+            self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        """
+        Overriding the save method in order to limit the amount of Logs that can be saved in the database.
+        The limit is LOGS_LIMIT, after that the first ones inserted will be eliminated
+        """
+        super().save()
+        count = Log.objects.count()
+        extra = count - conf.settings.LOGS_LIMIT
+        if extra > 0:
+            remainder = Log.objects.all()[:extra]
+            for log in remainder:
+                log.delete()
