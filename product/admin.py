@@ -4,7 +4,8 @@ from django.db.models import Q
 from django.forms import ModelForm
 
 # Register your models here.
-from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log
+from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
+    StateEnum
 from django.utils.html import format_html
 
 
@@ -97,7 +98,7 @@ class AccessoryInline(StackedInline):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-    "__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
+        "__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'state')
     inlines = []
@@ -136,6 +137,20 @@ class ProductAdmin(admin.ModelAdmin):
             '<img src="/static/admin/img/icon-{}.svg" alt="True">',
             "yes" if obj.sale_date else "no"
         )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = list(self.readonly_fields)  # Start with initial readonly_fields
+
+        if obj and obj.state == StateEnum.sold:
+            readonly_fields.extend(
+                ['amount', 'sale_price', 'remaining', 'barcode', 'provider_purchase_date', 'sale_date'])
+        elif obj and obj.state == StateEnum.reserved:
+            readonly_fields.extend(
+                ['sale_price', 'remaining', 'barcode', 'provider_purchase_date', 'sale_date', 'amount'])
+        elif obj and obj.state == StateEnum.available:
+            readonly_fields.extend(['remaining', 'provider_purchase_date', 'sale_date'])
+
+        return readonly_fields
 
     vendido.short_description = 'Vendido'
     tipo.short_description = 'Tipo de producto'
