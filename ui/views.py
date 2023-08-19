@@ -71,7 +71,7 @@ class GenerateBill(TemplateView):
                 product = Product.objects.get(id=item['id'])
                 product.sale_date = datetime.now()
                 reserved = item.get('reserved')
-                product.remaining = max(0, product.remaining - int(item['price']) if reserved else product.remaining)
+                product.remaining = max(0, product.remaining - int(item['price']) if reserved else 0)
                 product.state = StateEnum.sold if reserved and product.remaining <= 0 else StateEnum.reserved
                 product.save()
         context['items'] = items
