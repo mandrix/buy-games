@@ -202,7 +202,7 @@ class Product(models.Model):
         if self.provider_price:
             return f'{self.provider_price:,}₡'
 
-    def get_additional_product_info(self):
+    def get_additional_product_info(self) -> VideoGame | Console | Accessory | Collectable:
         if additional_info := VideoGame.objects.filter(product=self).first():
             return additional_info
         elif additional_info := Console.objects.filter(product=self).first():
