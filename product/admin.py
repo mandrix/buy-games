@@ -177,6 +177,10 @@ class ReportAdmin(admin.ModelAdmin):
 class SaleAdmin(admin.ModelAdmin):
     model = Sale
 
+    readonly_fields = (
+        'creation_date_time',
+    )
+
 
 class LogAdmin(admin.ModelAdmin):
     model = Log
