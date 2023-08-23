@@ -117,8 +117,9 @@ class GenerateBill(TemplateView):
 
             for item in data['items']:
                 product_id = item['id']
-                product = Product.objects.get(id=product_id)
-                sale.products.add(product)
+                if product_id != self.SERVICE:
+                    product = Product.objects.get(id=product_id)
+                    sale.products.add(product)
 
             return sale
 
