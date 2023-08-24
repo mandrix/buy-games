@@ -110,6 +110,15 @@ class ProductAdmin(admin.ModelAdmin):
         "creation_date",
         "modification_date",
     )
+    exclude = ('remaining',)
+
+    def get_exclude(self, request, obj=None):
+        exclude = list(self.exclude)
+
+        if obj:
+            exclude.remove('remaining')
+
+        return exclude
 
     def tipo(self, obj):
         try:
