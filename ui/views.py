@@ -65,8 +65,7 @@ class GenerateBill(TemplateView):
                 'id': item['id'],
                 'name': item['name'],
                 'price': formatted_price,
-                'status': "APARTADO" if item.get('reserved') else "",
-                'remaining': item.get('reserved', 0)
+                'status': "APARTADO" if item.get('reserved') else ""
             })
             if item['id'] != self.SERVICE:
                 product = Product.objects.get(id=item['id'])
