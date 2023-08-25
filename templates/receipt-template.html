@@ -84,6 +84,7 @@
                         <th class="id">ID</th>
                         <th class="name">Nombre</th>
                         <th class="price">Precio</th>
+                        <th class="remaining">Cantidad Restante</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -92,6 +93,7 @@
                         <td class="id">{{ item.id }}</td>
                         <td class="name">{{ item.name }}-{{ item.status }}</td>
                         <td class="price">{{ item.price }}</td>
+                        <td class="remaining">{{ item.remaining }}</td>
                     </tr>
                     {% endfor %}
                      <tr>
