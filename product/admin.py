@@ -168,6 +168,13 @@ class SaleInline(admin.TabularInline):
     model = Sale
     extra = 0
 
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super(SaleInline, self).get_formset(request, obj=obj, **kwargs)
+        if obj:
+            formset.form.base_fields['products'].choices.queryset = Sale.objects.filter(report=obj)
+            formset.form.base_fields['products'].choices.field.queryset = Sale.objects.filter(report=obj)
+        return formset
+
 
 class ReportAdmin(admin.ModelAdmin):
     list_display = ('date',)
