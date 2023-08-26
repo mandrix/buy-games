@@ -75,8 +75,9 @@ class GenerateBill(TemplateView):
                 product.remaining = max(0, product.remaining - int(item['price']) if reserved else 0)
                 if product.remaining:
                     itemsRemaining.append({
+                        'id': item['id'],
                         'name': item['name'],
-                        'remaining': product.remaining
+                        'remaining': self.formattedNumber(product.remaining)
                         }
                     )
                 product.state = StateEnum.sold if not reserved or product.remaining <= 0 else StateEnum.reserved

@@ -116,7 +116,8 @@
                 </tr>
                 {% for item in itemsRemaining %}
                     <tr>
-                        <td class="name-remaining">{{ item.name }}-{{ item.status }}</td>
+                        <td class="id">{{ item.id }}</td>
+                        <td class="name-remaining">{{ item.name }}</td>
                         <td class="remaining">{{ item.remaining }}</td>
                     </tr>
                 {% endfor %}
