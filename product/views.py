@@ -2,7 +2,7 @@ from django.db.models import Q, Sum
 from rest_framework import viewsets
 
 from rest_framework.response import Response
-from product.models import Product, Collectable, VideoGame, Accessory, Report
+from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
     ReportSerializer
 
@@ -15,6 +15,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = []
 
     def retrieve(self, request, *args, **kwargs):
+        self.queryset = Product.objects.filter(state__in=[StateEnum.available, StateEnum.reserved])
         pk = kwargs.get("pk") if type(kwargs.get("pk")) == int else None
         instance = self.queryset.filter(Q(barcode=kwargs.get("pk")) | Q(pk=pk)).first()
         serializer = self.get_serializer(instance)
