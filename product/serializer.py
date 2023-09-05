@@ -59,7 +59,10 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ["sale_price", "barcode", "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
 
     def get_type(self, obj: Product):
-        return obj.get_product_type()
+        try:
+            return obj.get_product_type()
+        except:
+            return "N/A"
 
 
 class ProductSerializerToShow(serializers.ModelSerializer):
