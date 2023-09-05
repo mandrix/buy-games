@@ -114,6 +114,13 @@
                     <td class="name">TOTAL</td>
                     <td class="price">{{ total_amount }}</td>
                 </tr>
+                {% for item in itemsRemaining %}
+                    <tr>
+                        <td class="id">{{ item.id }}</td>
+                        <td class="name-remaining">{{ item.name }}</td>
+                        <td class="remaining">{{ item.remaining }}</td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
 

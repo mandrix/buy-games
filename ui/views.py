@@ -59,6 +59,7 @@ class GenerateBill(TemplateView):
         context['return_policy'] = qrOptions[data['returnPolicy']]
         context['qr_url'] = qrLinkOptions[data['returnPolicy']]
         items = []
+        itemsRemaining = []
         for item in data['items']:
             formatted_price = self.formattedNumber(item['price'])
             items.append({
@@ -72,8 +73,16 @@ class GenerateBill(TemplateView):
                 product.sale_date = datetime.now()
                 reserved = item.get('reserved')
                 product.remaining = max(0, product.remaining - int(item['price']) if reserved else 0)
+                if product.remaining:
+                    itemsRemaining.append({
+                        'id': item['id'],
+                        'name': item['name'],
+                        'remaining': self.formattedNumber(product.remaining)
+                        }
+                    )
                 product.state = StateEnum.sold if not reserved or product.remaining <= 0 else StateEnum.reserved
                 product.save()
+        context['itemsRemaining'] = itemsRemaining
         context['items'] = items
         context['subtotal'] = self.formattedNumber(data['subtotal'])
         context['taxes'] = self.formattedNumber(data['taxes'])
