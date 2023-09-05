@@ -88,9 +88,12 @@ class LoggingMiddleware:
                 _request = "Data is not JSON encoded"
         response = self.get_response(request)
         # Log creation
-        log = LoggingMiddleware.create_log(response=response, request=request, request_json=_request)
-        if log:
-            Log.objects.create(**log)
+        try:
+            log = LoggingMiddleware.create_log(response=response, request=request, request_json=_request)
+            if log:
+                Log.objects.create(**log)
+        except Exception as e:
+            print(f"Se produjo una excepción: {str(e)}")
 
         return response
 

@@ -2,6 +2,8 @@ import json
 
 import logging
 from datetime import datetime
+from datetime import date
+from openpyxl import Workbook
 
 from babel.numbers import format_currency
 from django.http import HttpResponse
@@ -13,7 +15,7 @@ from email.mime.multipart import MIMEMultipart
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
-from product.models import Product, StateEnum, Sale, Report
+from product.models import Product, StateEnum, Sale, Report, OwnerEnum
 
 
 class ReturnPolicyView(TemplateView):
@@ -78,7 +80,7 @@ class GenerateBill(TemplateView):
                         'id': item['id'],
                         'name': item['name'],
                         'remaining': self.formattedNumber(product.remaining)
-                        }
+                    }
                     )
                 product.state = StateEnum.sold if not reserved or product.remaining <= 0 else StateEnum.reserved
                 product.save()
@@ -166,6 +168,38 @@ class GenerateBill(TemplateView):
             raise SendMailError(str(e))
         finally:
             server.quit()
+
+
+def generate_excel_report(request):
+    today = date.today()
+    report = Report.objects.get_or_create(date=today)[0]
+    sales = Sale.objects.filter(report=report)
+
+    wb = Workbook()
+    ws = wb.active
+
+    ws.append(['Product Name', 'Sale Price', "total tienda", "owner"])
+
+    total_sales = 0.0
+    total_tienda = 0.0
+
+    for sale in sales:
+        for product in sale.products.all():
+            if product.owner == OwnerEnum.Business:
+                parte_tienda = float(sale.total)
+            else:
+                parte_tienda = float(sale.total // 10)
+            total_tienda += parte_tienda
+            ws.append([product.__str__(), product.sale_price, parte_tienda, product.owner])
+        total_sales += float(sale.total)
+
+    ws.append(['Total de Ventas', total_sales, total_tienda])
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=reporte_{today}.xlsx'
+    wb.save(response)
+
+    return response
 
 
 class SendMailError(Exception):
