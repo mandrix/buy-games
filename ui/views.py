@@ -186,22 +186,30 @@ def generate_excel_report(request, fecha=None):
     wb = Workbook()
     ws = wb.active
 
-    ws.append(['Product Name', 'Sale Price', "total tienda", "owner"])
+    ws.append(['nombre', 'precio', "para la tienda", "total recibido", "faltante", "owner"])
 
     total_sales = 0.0
     total_tienda = 0.0
+    total_remaining = 0.0
 
     for sale in sales:
         for product in sale.products.all():
+            receive_price = product.sale_price
+            remaining = 0
+            if product.state == StateEnum.reserved:
+                remaining = product.remaining
+                receive_price = receive_price - remaining
+
             if product.owner == OwnerEnum.Business:
-                parte_tienda = float(product.sale_price)
+                parte_tienda = float(receive_price)
             else:
-                parte_tienda = float(product.sale_price // 10)
+                parte_tienda = float(receive_price // 10)
+            total_remaining += remaining
             total_tienda += parte_tienda
-            ws.append([product.__str__(), product.sale_price, parte_tienda, product.owner])
+            ws.append([product.__str__(), product.sale_price, parte_tienda, receive_price, remaining, product.owner])
         total_sales += float(sale.total)
 
-    ws.append(['Total de Ventas', total_sales, total_tienda])
+    ws.append(['Total de Ventas', total_sales, total_tienda, "--", total_remaining])
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename=reporte_{today}.xlsx'
