@@ -195,8 +195,7 @@ class SaleInline(admin.TabularInline):
     def get_formset(self, request, obj=None, **kwargs):
         formset = super(SaleInline, self).get_formset(request, obj=obj, **kwargs)
         if obj:
-            formset.form.base_fields['products'].choices.queryset = Sale.objects.filter(report=obj)
-            formset.form.base_fields['products'].choices.field.queryset = Sale.objects.filter(report=obj)
+            formset.form.base_fields['products'].choices.field.queryset = Product.objects.filter(sale__report=obj)
         return formset
 
 
