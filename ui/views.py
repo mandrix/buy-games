@@ -194,9 +194,9 @@ def generate_excel_report(request, fecha=None):
     for sale in sales:
         for product in sale.products.all():
             if product.owner == OwnerEnum.Business:
-                parte_tienda = float(product.total)
+                parte_tienda = float(product.sale_price)
             else:
-                parte_tienda = float(product.total // 10)
+                parte_tienda = float(product.sale_price // 10)
             total_tienda += parte_tienda
             ws.append([product.__str__(), product.sale_price, parte_tienda, product.owner])
         total_sales += float(sale.total)
