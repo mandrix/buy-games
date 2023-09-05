@@ -10,7 +10,7 @@ from rest_framework import filters
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter()
+    queryset = Product.objects.filter(state=StateEnum.available)
     serializer_class = ProductSerializer
     permission_classes = []
 

@@ -114,25 +114,28 @@
                     <td class="name">TOTAL</td>
                     <td class="price">{{ total_amount }}</td>
                 </tr>
+                </tbody>
+            </table>
+            <table style="margin-top: 10px">
                 {% for item in itemsRemaining %}
                     <tr>
-                        <td class="id">{{ item.id }}</td>
+                        <td class="id">RESTANTE-</td>
                         <td class="name-remaining">{{ item.name }}</td>
                         <td class="remaining">{{ item.remaining }}</td>
                     </tr>
                 {% endfor %}
-                </tbody>
             </table>
 
             <p class="centered">Política de devoluciones:
              <img src="{{ return_policy }}" rel="icon"  style="max-width: 100%;" />
             <p class="centered">Escanea el QR o entra a este enlace:</p>
             <p class="centered"><a href="{{ qr_url }}">{{ qr_url }}</a></p>
-            <p class="centered">Detalles de Pago: {{ payment_details }}
-            <br>¡Gracias por su compra!
+            <b>Las devoluciones se hacen mediante un cambio equivalente de otro producto. No hay devolucion de dinero</b>
+            <p><br>¡Gracias por su compra!
             <br>readygamescr.com</p>
             <br>Instagram @readygamescr</p>
             <br>Facebook Ready Games CR</p>
+            <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDIwMDEwOTA0Ly9FTiIKICJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy1TVkctMjAwMTA5MDQvRFREL3N2ZzEwLmR0ZCI+CjxzdmcgdmVyc2lvbj0iMS4wIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiB3aWR0aD0iMTI4MC4wMDAwMDBwdCIgaGVpZ2h0PSI5MzYuMDAwMDAwcHQiIHZpZXdCb3g9IjAgMCAxMjgwLjAwMDAwMCA5MzYuMDAwMDAwIgogcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgbWVldCI+CjxtZXRhZGF0YT4KQ3JlYXRlZCBieSBwb3RyYWNlIDEuMTUsIHdyaXR0ZW4gYnkgUGV0ZXIgU2VsaW5nZXIgMjAwMS0yMDE3CjwvbWV0YWRhdGE+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLDkzNi4wMDAwMDApIHNjYWxlKDAuMTAwMDAwLC0wLjEwMDAwMCkiCmZpbGw9IiMwMDAwMDAiIHN0cm9rZT0ibm9uZSI+CjxwYXRoIGQ9Ik00MzY1IDkzNTAgYy00OTggLTM4IC05NjEgLTE0MyAtMTQxNSAtMzIyIC0xNzMgLTY4IC01MTggLTI0MCAtNjgzCi0zNDAgLTEyNDAgLTc1MiAtMjA1OCAtMjAxNSAtMjIzMSAtMzQ0MyAtMTI1IC0xMDMzIDk1IC0yMDc0IDYyNSAtMjk2MCAzOTgKLTY2NCA5NDEgLTEyMTAgMTYwNiAtMTYxMyAxNjUgLTEwMCA1MTAgLTI3MiA2ODMgLTM0MCAyMTQgLTg0IDQ2MCAtMTYxIDY2MAotMjA3IDYyNyAtMTQ0IDEyNTIgLTE2MiAxODc0IC01NSAxMTI2IDE5MyAyMTQzIDc5NiAyODYwIDE2OTQgMTM1IDE2OCAzMTcKNDMwIDMwNSA0MzkgLTIgMiAtODk0IDU1OSAtMTk4MSAxMjM4IC0xMDg4IDY3OSAtMTk3OCAxMjM2IC0xOTc4IDEyMzkgMCAzCjg5MCA1NjAgMTk3OCAxMjM5IDEwODcgNjc5IDE5NzkgMTIzNiAxOTgxIDEyMzggMTIgOSAtMTczIDI3NSAtMzE0IDQ1MCAtMzA4CjM4NCAtNjcxIDcxNCAtMTA4NyA5ODcgLTYzMiA0MTQgLTEzMzMgNjYzIC0yMDg5IDc0MSAtMTgzIDE5IC02MjUgMjcgLTc5NCAxNXoiLz4KPHBhdGggZD0iTTc2NTIgNTI4NiBjLTEzNCAtMzMgLTI4OCAtMTQzIC0zNjggLTI2MyAtMjEgLTMxIC01MSAtOTYgLTY4IC0xNDMKLTI2IC03NCAtMzAgLTk5IC0zMCAtMTk1IC0xIC0xMjIgMTMgLTE4MiA2NyAtMjk0IDQxIC04NSAxNTggLTIwNCAyNDcgLTI1NAoxNDAgLTc3IDMxOCAtOTggNDcwIC01NiAyODAgNzcgNDc2IDM1MCA0NTYgNjM3IC02IDEwMSAtNDcgMjI2IC0xMDAgMzA1IC04MwoxMjQgLTI0NiAyMzggLTM4NCAyNjYgLTcwIDE0IC0yMjQgMTMgLTI5MCAtM3oiLz4KPHBhdGggZD0iTTk4MjUgNTI4MSBjLTI3NSAtODAgLTQ1NCAtMzE2IC00NTUgLTU5OCAwIC0xMTIgMTQgLTE3MiA2NSAtMjc5IDYxCi0xMjcgMTUyIC0yMTggMjc5IC0yNzkgNTAgLTI0IDExNSAtNDggMTQ0IC01NCA2OCAtMTQgMTk2IC0xNCAyNjQgMCA3MyAxNQoyMDMgNzggMjY0IDEyNyA5NSA3NyAxNzYgMjA0IDIwOCAzMjkgMjEgNzggMjEgMjI3IDAgMzA3IC01NyAyMjEgLTIyOCAzOTMKLTQ1MSA0NTAgLTgyIDIxIC0yNDAgMjAgLTMxOCAtM3oiLz4KPHBhdGggZD0iTTEyMDIwIDUyODQgYy0xNjkgLTQ0IC0zMjMgLTE2OSAtMzk5IC0zMjQgLTkzIC0xOTAgLTkzIC0zNzAgMCAtNTU5CjUxIC0xMDMgMTUyIC0yMTAgMjQ5IC0yNjQgMTg0IC0xMDEgNDE3IC0xMDMgNjA1IC00IDg2IDQ1IDIxMiAxNzQgMjUzIDI1OSA1MwoxMDggNzYgMjE2IDY5IDMyMyAtMTAgMTY1IC02NSAyODUgLTE4NiA0MDYgLTYwIDYwIC05NCA4NSAtMTYxIDExNyAtNDcgMjIKLTEwOSA0NSAtMTM4IDUxIC03MyAxNSAtMjI2IDEzIC0yOTIgLTV6Ii8+CjwvZz4KPC9zdmc+Cg=="/>
     </div>
     </body>
 </html>
