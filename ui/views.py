@@ -170,8 +170,16 @@ class GenerateBill(TemplateView):
             server.quit()
 
 
-def generate_excel_report(request):
-    today = date.today()
+def generate_excel_report(request, fecha=None):
+    if fecha:
+        try:
+            datetime.strptime(fecha, '%Y-%m-%d')
+        except ValueError:
+            fecha = datetime.today().strftime('%Y-%m-%d')
+    else:
+        fecha = datetime.today().strftime('%Y-%m-%d')
+
+    today = fecha
     report = Report.objects.get_or_create(date=today)[0]
     sales = Sale.objects.filter(report=report)
 
