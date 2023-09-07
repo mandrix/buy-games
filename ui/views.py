@@ -36,6 +36,10 @@ class ReceiptView(TemplateView):
     template_name = "receipt.html"
 
 
+class ReportView(TemplateView):
+    template_name = "report.html"
+
+
 class GenerateBill(TemplateView):
     template_name = "receipt-template.html"
 
@@ -186,7 +190,7 @@ def generate_excel_report(request, fecha=None):
     wb = Workbook()
     ws = wb.active
 
-    ws.append(['nombre', 'precio', "para la tienda", "total recibido", "faltante", "owner"])
+    ws.append(['Producto', 'Precio Vendido', "Total Tienda", "Recibido", "Faltante", "Dueño"])
 
     total_sales = 0.0
     total_tienda = 0.0
