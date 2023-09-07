@@ -204,7 +204,7 @@ def generate_excel_report(request, fecha=None):
                 parte_tienda = float(receive_price)
             else:
                 parte_tienda = float(receive_price // 10)
-            total_remaining += remaining
+            total_remaining += float(remaining)
             total_tienda += parte_tienda
             ws.append([product.__str__(), product.sale_price, parte_tienda, receive_price, remaining, product.owner])
         total_sales += float(sale.total)
