@@ -105,7 +105,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'state')
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
