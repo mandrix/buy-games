@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'babel',
     'shortuuid',
+    'openpyxl'
 ]
 
 # Custom apps
