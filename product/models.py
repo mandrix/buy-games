@@ -321,3 +321,13 @@ class Log(models.Model):
             remainder = Log.objects.all()[:extra]
             for log in remainder:
                 log.delete()
+
+
+class Expense(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    amount = models.PositiveIntegerField()
+    report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.name

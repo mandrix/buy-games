@@ -5,7 +5,7 @@ from django.forms import ModelForm
 
 # Register your models here.
 from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
-    StateEnum
+    StateEnum, Expense
 from django.utils.html import format_html
 
 
@@ -216,7 +216,11 @@ class LogAdmin(admin.ModelAdmin):
     model = Log
 
 
-admin.site.register(Product, ProductAdmin)
+class ExpenseAdmin(admin.ModelAdmin):
+    model = Expense
+
+
+admin.site.register(Expense, ExpenseAdmin)
 admin.site.register(Console, ConsoleAdmin)
 admin.site.register(Collectable, CollectableAdmin)
 admin.site.register(VideoGame, VideoGameAdmin)
