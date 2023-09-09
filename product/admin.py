@@ -51,21 +51,26 @@ class TypeFilter(admin.SimpleListFilter):
 
 
 class SoldFilter(admin.SimpleListFilter):
-    title = 'Se vendio'
-    parameter_name = 'sold'
+    title = 'Estado de Producto'
+    parameter_name = 'state'
 
     def lookups(self, request, model_admin):
         # Devuelve las opciones de filtro y sus etiquetas
         return (
             ('vendido', ('Vendido')),
-            ('no_vendido', ('No Vendido')),
+            ('available', ('Disponible')),
+            ('reserved', ('Apartado')),
         )
 
     def queryset(self, request, queryset):
         if self.value() == 'vendido':
-            return queryset.exclude(sale_date__isnull=True)
-        elif self.value() == 'no_vendido':
-            return queryset.exclude(sale_date__isnull=False)
+            return queryset.filter(state=StateEnum.sold)
+        elif self.value() == 'available':
+            return queryset.filter(state=StateEnum.available)
+        elif self.value() == 'reserved':
+            return queryset.filter(state=StateEnum.reserved)
+        else:
+            return queryset.filter(Q(state=StateEnum.available) | Q(state=StateEnum.reserved))
 
 
 class VideoGamesInline(StackedInline):
@@ -100,7 +105,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", 'used', 'copies', 'description')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'state')
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
