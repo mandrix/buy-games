@@ -222,10 +222,6 @@ class LogAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Product, ProductAdmin)
-admin.site.register(Console, ConsoleAdmin)
-admin.site.register(Collectable, CollectableAdmin)
-admin.site.register(VideoGame, VideoGameAdmin)
-admin.site.register(Accessory, AccessoryAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Log, LogAdmin)
