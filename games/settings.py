@@ -101,7 +101,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'games.middleware.WwwRedirectMiddleware',
-    "games.middleware.LoggingMiddleware",
 ]
 
 ROOT_URLCONF = 'games.urls'
