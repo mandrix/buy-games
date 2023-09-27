@@ -298,7 +298,7 @@ class Sale(models.Model):
     def __str__(self):
         products_str = ", ".join(product.description[:30] for product in self.products.all()[:2])
         if not products_str:
-            products_str = "Reparaciòn"
+            products_str = "Reparación"
 
         return f"{self.report.date} - {products_str}"
 
