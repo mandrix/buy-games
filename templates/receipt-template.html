@@ -99,11 +99,13 @@
                     <td class="name">Subtotal</td>
                     <td class="price">{{ subtotal }}</td>
                 </tr>
-                <tr>
-                    <td class="id"></td>
-                    <td class="name">Impuestos</td>
-                    <td class="price">{{ taxes }}</td>
-                </tr>
+                    {% if taxes != 0 %}
+                    <tr>
+                        <td class="id"></td>
+                        <td class="name">Impuestos</td>
+                        <td class="price">{{ taxes }}</td>
+                    </tr>
+                    {% endif %}
                     <tr>
                     <td class="id"></td>
                     <td class="name">Descuentos</td>
