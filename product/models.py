@@ -198,13 +198,13 @@ class Product(models.Model):
             return f'{self.sale_price:,}₡'
 
     @property
-    @admin.display(description='precio de venta con datafono', ordering='sale_price')
+    @admin.display(description='precio datafono', ordering='sale_price')
     def sale_price_with_card(self):
         if self.sale_price:
             return f'{round(self.sale_price / decimal.Decimal(0.95), 2):,}₡'
 
     @property
-    @admin.display(description='precio de venta con tasa 0', ordering='sale_price')
+    @admin.display(description='precio tasa 0', ordering='sale_price')
     def sale_card_with_tasa_0(self):
         if self.sale_price:
             return f'{round(self.sale_price / decimal.Decimal(0.85)):,}₡'

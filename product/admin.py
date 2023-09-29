@@ -103,8 +103,9 @@ class AccessoryInline(StackedInline):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        "__str__", "tipo", "console_type", "owner", "state", "sale_price_formatted", "sale_price_with_card", "sale_card_with_tasa_0",
-        'used', 'copies', 'description')
+        "__str__", "tipo", "console_type", "description", 'copies', "state", "sale_price_formatted",
+        "sale_price_with_card", "sale_card_with_tasa_0",
+        'used', 'owner')
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
     inlines = []
@@ -220,6 +221,7 @@ class SaleAdmin(admin.ModelAdmin):
 
 class LogAdmin(admin.ModelAdmin):
     model = Log
+
 
 class ExpenseAdmin(admin.ModelAdmin):
     model = Expense
