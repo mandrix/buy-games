@@ -91,7 +91,10 @@ class GenerateBill(TemplateView):
         context['itemsRemaining'] = itemsRemaining
         context['items'] = items
         context['subtotal'] = self.formattedNumber(data['subtotal'])
-        context['taxes'] = self.formattedNumber(data['taxes'])
+        if data['taxes']:
+            context['taxes'] = self.formattedNumber(data['taxes'])
+        else:
+            context['taxes'] = 0
         context['discounts'] = self.formattedNumber(data['discounts'])
         context['total_amount'] = self.formattedNumber(data['totalAmount'])
 
