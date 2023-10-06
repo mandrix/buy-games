@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.contrib.admin import StackedInline
 from django.db.models import Q
@@ -104,7 +105,7 @@ class AccessoryInline(StackedInline):
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "__str__", "tipo", "console_type", "description", 'copies', "state", "sale_price_formatted",
-        "sale_price_with_card", "sale_card_with_tasa_0",
+        "sale_price_with_card", "sale_price_with_tasa_0",
         'used', 'owner')
     model = Product
     list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')

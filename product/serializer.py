@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CharField, SerializerMethodField
 
-from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale
+from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment
 
 
 def create_product(validated_data):
@@ -47,16 +47,27 @@ class ConsoleSerializer(serializers.ModelSerializer):
         return super().create(create_product(validated_data))
 
 
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        payment_info = instance.check_payment()
+        return payment_info
+
+
 class ProductSerializer(serializers.ModelSerializer):
     videogame_set = VideoGameSerializer(many=True)
     console_set = ConsoleSerializer(many=True)
     collectable_set = CollectableSerializer(many=True)
     accessory_set = AccessorySerializer(many=True)
     type = SerializerMethodField()
+    payment = PaymentSerializer(required=True)
 
     class Meta:
         model = Product
-        fields = ["sale_price", "barcode", "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
+        fields = ["payment", "barcode", "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
 
     def get_type(self, obj: Product):
         try:
