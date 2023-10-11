@@ -6,6 +6,8 @@ from django.db import models
 import django.conf as conf
 import shortuuid
 
+from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
+
 
 class RegionEnum(models.TextChoices):
     Japan = "jp", "Japan"
@@ -139,6 +141,47 @@ class Accessory(models.Model):
             self.product.duplicate()
 
 
+class Payment(models.Model):
+    sale_price = models.DecimalField(max_digits=8, decimal_places=2)
+    remaining = models.DecimalField(max_digits=8, decimal_places=2)
+    payment_method = models.CharField(default=PaymentMethodEnum.na, max_length=100, choices=PaymentMethodEnum.choices,
+                                      null=True, blank=True)
+
+    def __str__(self):
+        return self.payment_method
+
+    def check_payment(self):
+        payment_info = {
+            "sale_price": self.remaining,
+            "payment_method": self.payment_method,
+        }
+        if self.payment_method == PaymentMethodEnum.na:
+            payment_info.update({
+                "tasa0": commission_price(self.remaining, factor_tasa_0()),
+                "card": commission_price(self.remaining, factor_card()),
+            })
+
+        return payment_info
+
+    @property
+    @admin.display(description='sale price', ordering='sale_price')
+    def sale_price_formatted(self):
+        if self.sale_price:
+            return price_formatted(self.sale_price)
+
+    @property
+    @admin.display(description='precio datafono', ordering='sale_price')
+    def sale_price_with_card(self):
+        if self.sale_price:
+            return price_formatted(commission_price(self.sale_price, factor_card()))
+
+    @property
+    @admin.display(description='precio tasa 0', ordering='sale_price')
+    def sale_price_with_tasa_0(self):
+        if self.sale_price:
+            return price_formatted(commission_price(self.sale_price, factor_tasa_0()))
+
+
 class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
@@ -158,6 +201,7 @@ class Product(models.Model):
     amount = models.PositiveIntegerField(default=1)
     used = models.BooleanField(default=True)
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         try:
@@ -194,20 +238,20 @@ class Product(models.Model):
     @property
     @admin.display(description='sale price', ordering='sale_price')
     def sale_price_formatted(self):
-        if self.sale_price:
-            return f'{self.sale_price:,}₡'
+        if self.payment:
+            return self.payment.sale_price_formatted
 
     @property
     @admin.display(description='precio datafono', ordering='sale_price')
     def sale_price_with_card(self):
-        if self.sale_price:
-            return f'{round(self.sale_price / decimal.Decimal(0.95), 2):,}₡'
+        if self.payment:
+            return self.payment.sale_price_with_card
 
     @property
     @admin.display(description='precio tasa 0', ordering='sale_price')
-    def sale_card_with_tasa_0(self):
-        if self.sale_price:
-            return f'{round(self.sale_price / decimal.Decimal(0.85)):,}₡'
+    def sale_price_with_tasa_0(self):
+        if self.payment:
+            return self.payment.sale_price_with_tasa_0
 
     @property
     @admin.display(description='provider price', ordering='provider_price')
@@ -254,10 +298,18 @@ class Product(models.Model):
             additional_info.save()
 
     def save(self, *args, **kwargs):
-        if not self.id:
-            self.remaining = self.sale_price
+
+        if not self.payment:
+            payment = Payment(sale_price=self.sale_price,
+                              remaining=self.sale_price)  # TODO falta quitar sle_price de producto
+            payment.save()
+            self.payment = payment
+
         if self.state == StateEnum.available:
-            self.remaining = self.sale_price
+            self.payment.remaining = self.sale_price
+            self.payment.payment_method = PaymentMethodEnum.na
+            self.payment.save()
+
         if not self.barcode:
             self.generate_barcode()
         super().save(*args, **kwargs)
@@ -336,7 +388,7 @@ class Log(models.Model):
                 log.delete()
 
 
-class Expense(models.Model):
+class Expense(models.Model):  # gastos del negocio ordenados por dia (reporte)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     amount = models.PositiveIntegerField()

@@ -2,20 +2,22 @@ import json
 
 import logging
 from datetime import datetime
-from datetime import date
 from openpyxl import Workbook
 
-from babel.numbers import format_currency
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
 from product.models import Product, StateEnum, Sale, Report, OwnerEnum
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 
 class ReturnPolicyView(TemplateView):
@@ -45,9 +47,6 @@ class GenerateBill(TemplateView):
 
     SERVICE = "S"
 
-    def formattedNumber(self, number):
-        return str(format_currency(number, 'CRC', locale='es_CR'))
-
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body.decode('utf-8'))
         context = self.get_context_data(**kwargs)
@@ -65,9 +64,10 @@ class GenerateBill(TemplateView):
         context['return_policy'] = qrOptions[data['returnPolicy']]
         context['qr_url'] = qrLinkOptions[data['returnPolicy']]
         items = []
-        itemsRemaining = []
+        items_remaining = []
         for item in data['items']:
-            formatted_price = self.formattedNumber(item['price'])
+            formatted_price = formatted_number(item['price'])  # rework por
+            # la nueva tabla
             items.append({
                 'id': item['id'],
                 'name': item['name'],
@@ -77,26 +77,34 @@ class GenerateBill(TemplateView):
             if item['id'] != self.SERVICE:
                 product = Product.objects.get(id=item['id'])
                 product.sale_date = datetime.now()
+                payment = product.payment
                 reserved = item.get('reserved')
-                product.remaining = max(0, product.remaining - int(item['price']) if reserved else 0)
-                if product.remaining:
-                    itemsRemaining.append({
+                if payment.remaining == payment.sale_price:  # al iniciar un pago con un producto, se le
+                    # setea el metodo de pago y el costo nuevo si es el caso
+                    pay = choices_payment(data['paymentMethod'], payment.sale_price)
+                    payment.payment_method = pay["method"]
+                    payment.sale_price = pay["price"]
+                    payment.remaining = pay["price"]
+                payment.remaining = max(0, payment.remaining - int(item['price']) if reserved else 0)
+                if payment.remaining:
+                    items_remaining.append({
                         'id': item['id'],
                         'name': item['name'],
-                        'remaining': self.formattedNumber(product.remaining)
+                        'remaining': formatted_number(payment.remaining)
                     }
                     )
-                product.state = StateEnum.sold if not reserved or product.remaining <= 0 else StateEnum.reserved
+                product.state = StateEnum.sold if not reserved or payment.remaining <= 0 else StateEnum.reserved
+                payment.save()
                 product.save()
-        context['itemsRemaining'] = itemsRemaining
+        context['items_remaining'] = items_remaining
         context['items'] = items
-        context['subtotal'] = self.formattedNumber(data['subtotal'])
+        context['subtotal'] = formatted_number(data['subtotal'])
         if float(data['taxes']):
-            context['taxes'] = self.formattedNumber(data['taxes'])
+            context['taxes'] = formatted_number(data['taxes'])
         else:
             context['taxes'] = 0
-        context['discounts'] = self.formattedNumber(data['discounts'])
-        context['total_amount'] = self.formattedNumber(data['totalAmount'])
+        context['discounts'] = formatted_number(data['discounts'])
+        context['total_amount'] = formatted_number(data['totalAmount'])
 
         rendered_template = render_to_string(self.template_name, context)
 
@@ -175,6 +183,42 @@ class GenerateBill(TemplateView):
             raise SendMailError(str(e))
         finally:
             server.quit()
+
+
+class CalculateTotalView(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        products_data = data.get('products', [])
+        tax = data.get('tax', False)
+        total = 0
+        tax_total = 0
+        sub_total = 0
+        for product_data in products_data:
+            price = float(product_data.get('price', 0))
+            reserved = product_data.get('reserved', False)
+            if reserved:
+                total += price
+                sub_total += price
+                if tax:
+                    tax_total += price * 0.13
+                    sub_total -= tax_total
+                break
+            else:
+                sub_total += price
+                if tax:
+                    taxed_price = price / 0.87
+                    total += taxed_price
+                    tax_total += taxed_price - price
+                else:
+                    total += price
+
+        response_data = {
+            'subtotal': round(sub_total, 2),
+            'tax': round(tax_total, 2),
+            'total': round(total, 2),
+        }
+
+        return Response(response_data)
 
 
 def generate_excel_report(request, fecha=None):
