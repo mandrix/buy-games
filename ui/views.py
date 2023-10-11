@@ -93,7 +93,7 @@ class GenerateBill(TemplateView):
                         'remaining': formatted_number(payment.remaining)
                     }
                     )
-                product.state = StateEnum.sold if not reserved or product.remaining <= 0 else StateEnum.reserved
+                product.state = StateEnum.sold if not reserved or payment.remaining <= 0 else StateEnum.reserved
                 payment.save()
                 product.save()
         context['items_remaining'] = items_remaining
@@ -195,9 +195,8 @@ class CalculateTotalView(APIView):
         sub_total = 0
         for product_data in products_data:
             price = float(product_data.get('price', 0))
-            remaining = product_data.get('remaining', False)
-
-            if remaining:
+            reserved = product_data.get('reserved', False)
+            if reserved:
                 total += price
                 sub_total += price
                 if tax:

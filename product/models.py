@@ -147,13 +147,20 @@ class Payment(models.Model):
     payment_method = models.CharField(default=PaymentMethodEnum.na, max_length=100, choices=PaymentMethodEnum.choices,
                                       null=True, blank=True)
 
+    def __str__(self):
+        return self.payment_method
+
     def check_payment(self):
         payment_info = {
             "sale_price": self.remaining,
-            "tasa0": commission_price(self.remaining, factor_tasa_0()),
-            "card": commission_price(self.remaining, factor_card()),
             "payment_method": self.payment_method,
         }
+        if self.payment_method == PaymentMethodEnum.na:
+            payment_info.update({
+                "tasa0": commission_price(self.remaining, factor_tasa_0()),
+                "card": commission_price(self.remaining, factor_card()),
+            })
+
         return payment_info
 
     @property
@@ -300,6 +307,7 @@ class Product(models.Model):
 
         if self.state == StateEnum.available:
             self.payment.remaining = self.sale_price
+            self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
 
         if not self.barcode:

@@ -6,7 +6,7 @@ from django.forms import ModelForm
 
 # Register your models here.
 from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
-    StateEnum, Expense
+    StateEnum, Expense, Payment
 from django.utils.html import format_html
 
 
@@ -117,8 +117,10 @@ class ProductAdmin(admin.ModelAdmin):
         "id",
         "creation_date",
         "modification_date",
+        "payment_link"
+
     )
-    exclude = ('remaining',)
+    exclude = ('remaining', 'payment')
 
     def get_exclude(self, request, obj=None):
         exclude = list(self.exclude)
@@ -127,6 +129,15 @@ class ProductAdmin(admin.ModelAdmin):
             exclude.remove('remaining')
 
         return exclude
+
+    def payment_link(self, obj):
+        if obj.payment:
+            link = format_html(
+                f'<a href="/admin/product/payment/{obj.payment.id}/change/">{obj.payment}</a>'
+            )
+            return link
+        else:
+            return "N/A"
 
     def tipo(self, obj):
         try:
@@ -169,8 +180,10 @@ class ProductAdmin(admin.ModelAdmin):
 
         return readonly_fields
 
+    payment_link.allow_tags = True
     vendido.short_description = 'Vendido'
     tipo.short_description = 'Tipo de producto'
+
 
 
 class ConsoleAdmin(admin.ModelAdmin):
@@ -194,6 +207,10 @@ class VideoGameAdmin(admin.ModelAdmin):
 
 class AccessoryAdmin(admin.ModelAdmin):
     model = Accessory
+
+
+class PaymentAdmin(admin.ModelAdmin):
+    model = Payment
 
 
 class SaleInline(admin.TabularInline):
@@ -233,3 +250,4 @@ admin.site.register(Expense, ExpenseAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(Log, LogAdmin)
+admin.site.register(Payment, PaymentAdmin)
