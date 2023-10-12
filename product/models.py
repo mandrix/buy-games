@@ -308,6 +308,7 @@ class Product(models.Model):
         if self.state == StateEnum.available:
             self.payment.sale_price = self.sale_price
             self.payment.remaining = self.sale_price
+            self.remaining = self.sale_price
             self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
 
