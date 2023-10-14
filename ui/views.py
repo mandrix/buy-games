@@ -190,6 +190,7 @@ class CalculateTotalView(APIView):
         data = request.data
         products_data = data.get('products', [])
         tax = data.get('tax', False)
+        discounts = data.get('discounts', 0)
         total = 0
         tax_total = 0
         sub_total = 0
@@ -215,7 +216,7 @@ class CalculateTotalView(APIView):
         response_data = {
             'subtotal': round(sub_total, 2),
             'tax': round(tax_total, 2),
-            'total': round(total, 2),
+            'total': round(total - discounts, 2),
         }
 
         return Response(response_data)
