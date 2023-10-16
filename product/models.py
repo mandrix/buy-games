@@ -28,6 +28,14 @@ class OwnerEnum(models.TextChoices):
     Business = "business", "Business"
 
 
+class ProviderEnum(models.TextChoices):
+    ebay = "ebay", "Ebay"
+    tecnoplay = "tecnoplay", "Tecnoplay"
+    ali_express = "aliexpress", "AliExpress"
+    cliente = "cliente", "Cliente"
+    otros = "otros", "Otros"
+
+
 class ConsoleEnum(models.TextChoices):
     NA = "na", "N/A"
     PlayStation1 = "ps1", "PS1"
@@ -36,17 +44,17 @@ class ConsoleEnum(models.TextChoices):
     PlayStation4 = "ps4", "PS4"
     PlayStation5 = "ps5", "PS5"
     Xbox = "xbox", "Xbox"
-    Xbox360 = "xbox360", "Xbox360"
-    XboxOne = "xbox-one", "XboxOne"
-    XboxSeriesS = "xbox-series-s", "XboxSeriesS"
-    XboxSeriesX = "xbox-series-x", "XboxSeriesX"
+    Xbox360 = "xbox360", "Xbox 360"
+    XboxOne = "xbox-one", "Xbox One"
+    XboxSeriesS = "xbox-series-s", "Xbox Series S"
+    XboxSeriesX = "xbox-series-x", "Xbox Series X"
     PSVita = "psvita", "PSVita"
     PSP = "psp", "PSP"
     Wii = "wii", "Wii"
     WiiU = "wiiu", "Wii U"
     N64 = "n64", "N64"
     Snes = "snes", "SNES"
-    Nes = "nes", "Nes"
+    Nes = "nes", "NES"
     Atari2600 = "atari2600", "Atari 2600"
     SegaGenesis = "sega-genesis", "Sega Genesis"
     SegaDreamcast = "sega-dreamcast", "Sega Dreamcast"
@@ -186,6 +194,7 @@ class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
+    provider = models.CharField(max_length=200, null=True, blank=True, choices=ProviderEnum.choices)
     remaining = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     barcode = models.CharField(max_length=22, null=True, blank=True, unique=False)
