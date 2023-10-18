@@ -365,7 +365,7 @@ class Sale(models.Model):
         if not products_str:
             products_str = "Reparación"
 
-        return f"{self.report.date} - {products_str}"
+        return f"{self.report.date} - {products_str} - ₡{self.total:,}"
 
 
 class Log(models.Model):
