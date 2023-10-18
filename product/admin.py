@@ -217,7 +217,7 @@ class SaleInline(admin.TabularInline):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('date',)
+    list_display = ('date', 'total')
     inlines = [SaleInline]
 
     readonly_fields = ("total",)
