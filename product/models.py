@@ -359,6 +359,8 @@ class Sale(models.Model):
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
 
     def __str__(self):
+        if not self.report:
+            return ""
         products_str = ", ".join(product.description[:30] for product in self.products.all()[:2])
         if not products_str:
             products_str = "Reparación"
