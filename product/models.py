@@ -353,7 +353,7 @@ class Sale(models.Model):
                                 help_text="En colones")
     total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                 help_text="En colones")
-    payment_details = models.TextField()
+    payment_details = models.TextField(blank=True, default="")
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
