@@ -220,6 +220,14 @@ class ReportAdmin(admin.ModelAdmin):
     list_display = ('date',)
     inlines = [SaleInline]
 
+    readonly_fields = ("total",)
+
+    def total(self, report: Report):
+        if not report:
+            return 0
+        return f"₡{sum([sale.total for sale in report.sale_set.all()]):,}"
+
+
 
 class SaleAdmin(admin.ModelAdmin):
     model = Sale
