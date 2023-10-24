@@ -1,10 +1,8 @@
-from django import forms
 from django.contrib import admin
 from django.contrib.admin import StackedInline
 from django.db.models import Q
-from django.forms import ModelForm
 
-# Register your models here.
+from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
     StateEnum, Expense, Payment
 from django.utils.html import format_html
@@ -108,7 +106,7 @@ class ProductAdmin(admin.ModelAdmin):
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used', 'owner')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used')
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'provider')
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
@@ -118,7 +116,6 @@ class ProductAdmin(admin.ModelAdmin):
         "creation_date",
         "modification_date",
         "payment_link"
-
     )
     exclude = ('remaining', 'payment')
 
@@ -216,26 +213,38 @@ class PaymentAdmin(admin.ModelAdmin):
 class SaleInline(admin.TabularInline):
     model = Sale
     extra = 0
-
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super(SaleInline, self).get_formset(request, obj=obj, **kwargs)
-        if obj:
-            formset.form.base_fields['products'].choices.field.queryset = Product.objects.filter(sale__report=obj)
-        return formset
+    form = SaleInlineForm
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('date',)
+    list_display = ('date', 'total')
     inlines = [SaleInline]
+
+    readonly_fields = ("total",)
+
+    def total(self, report: Report):
+        if not report:
+            return 0
+        return f"₡{sum([sale.total for sale in report.sale_set.all()]):,}"
+
 
 
 class SaleAdmin(admin.ModelAdmin):
     model = Sale
 
+    exclude = ('products',)
     readonly_fields = (
         'creation_date_time',
+        'receipt_products'
     )
 
+    @staticmethod
+    def format_product_string(product):
+        return f"{str(product)} - ₡{product.sale_price:,} - {product.owner} - {product.barcode} \n"
+
+    def receipt_products(self, obj: Sale):
+        products_string = [ self.format_product_string(product) for product in obj.products.all() ]
+        return " ".join(products_string)
 
 class LogAdmin(admin.ModelAdmin):
     model = Log

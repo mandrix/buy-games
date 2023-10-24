@@ -258,7 +258,7 @@ class CalculateTotalView(APIView):
         data = request.data
         products_data = data.get('products', [])
         tax = data.get('tax', False)
-        discounts = data.get('discounts', 0)
+        discounts = float(data.get('discounts', 0))
         total = 0
         tax_total = 0
         sub_total = 0
