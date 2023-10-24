@@ -211,7 +211,6 @@ class GenerateBill(TemplateView):
         }
         return all_info[additional_info]
 
-
     def create_order(self, data):  # aqui se crea un pedido, el proceso es el siguiente:
         # se recibe la informacion del item (price, name, el pago adelantado, paymentMethod)
         # luego se crea un producto deacuerdo a la informacion, se asigna los valores extras como fechas, etc,
@@ -223,12 +222,12 @@ class GenerateBill(TemplateView):
         additional_info = self.get_additional_info(item_info['additionalInfo'])
         item_remaining = []
         item = []
-        formatted_price = formatted_number(item_info['price'])
+        formatted_price = formatted_number(part_paid)
 
         product = Product.objects.create(sale_price=price_total, sale_date=datetime.now(),
                                          state=StateEnum.reserved, order=False)
 
-        additional_info["additional_info"].create(title=item_info["title"], product=product)
+        additional_info["additional_info"].create(title=item_info["name"], product=product)
         item.append({
             'id': product.id,
             'name': item_info['name'],
@@ -239,7 +238,7 @@ class GenerateBill(TemplateView):
         payment = product.payment
         pay = choices_payment(data['paymentMethod'], payment.sale_price)
         payment.payment_method = pay["method"]
-        payment.remaining = max(0, payment.remaining - int(part_paid))  # aqui en ves de price,
+        payment.remaining = max(0, int(float(payment.remaining) - float(part_paid)))  # aqui en ves de price,
         # debe ser el pago de apartado que vendrá en una variable diferente
         item_remaining.append({
             'id': product.id,
@@ -285,6 +284,19 @@ class CalculateTotalView(APIView):
             'subtotal': round(sub_total, 2),
             'tax': round(tax_total, 2),
             'total': round(total - discounts, 2),
+        }
+
+        return Response(response_data)
+
+
+class CalculatePayNewProduct(APIView):
+    def post(self, request, format=None):
+        data = request.data
+        price = data.get('price', 0)
+        payment_method = data.get('paymentMethod', "Sinpe")
+        new_price = choices_payment(payment_method, price)["price"]
+        response_data = {
+            'price': round(new_price, 2)
         }
 
         return Response(response_data)

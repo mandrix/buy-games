@@ -16,8 +16,15 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         self.queryset = Product.objects.filter(state__in=[StateEnum.available, StateEnum.reserved])
-        pk = kwargs.get("pk") if type(kwargs.get("pk")) == int else None
-        instance = self.queryset.filter(Q(barcode=kwargs.get("pk")) | Q(pk=pk)).first()
+        pk = kwargs.get("pk")
+        instance = None
+
+        if pk is not None:
+            if pk.isdigit():
+                instance = self.queryset.filter(id=pk).first()
+
+            if instance is None:
+                instance = self.queryset.filter(barcode=pk).first()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
