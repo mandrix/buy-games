@@ -23,7 +23,7 @@ def price_formatted(price):
 
 
 def commission_price(price, factor):
-    return round(price / decimal.Decimal(factor), 2)
+    return round(int(price) / decimal.Decimal(factor), 2)
 
 
 def formatted_number(number):

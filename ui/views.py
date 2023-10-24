@@ -15,7 +15,7 @@ from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
-from product.models import Product, StateEnum, Sale, Report, OwnerEnum
+from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGame, Collectable, Console, Accessory
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -63,39 +63,11 @@ class GenerateBill(TemplateView):
         context['payment_details'] = data['paymentDetails']
         context['return_policy'] = qrOptions[data['returnPolicy']]
         context['qr_url'] = qrLinkOptions[data['returnPolicy']]
-        items = []
-        items_remaining = []
-        for item in data['items']:
-            formatted_price = formatted_number(item['price'])  # rework por
-            # la nueva tabla
-            items.append({
-                'id': item['id'],
-                'name': item['name'],
-                'price': formatted_price,
-                'status': "APARTADO" if item.get('reserved') else ""
-            })
-            if item['id'] != self.SERVICE:
-                product = Product.objects.get(id=item['id'])
-                product.sale_date = datetime.now()
-                payment = product.payment
-                reserved = item.get('reserved')
-                if payment.remaining == payment.sale_price:  # al iniciar un pago con un producto, se le
-                    # setea el metodo de pago y el costo nuevo si es el caso
-                    pay = choices_payment(data['paymentMethod'], payment.sale_price)
-                    payment.payment_method = pay["method"]
-                    payment.sale_price = pay["price"]
-                    payment.remaining = pay["price"]
-                payment.remaining = max(0, payment.remaining - int(item['price']) if reserved else 0)
-                if payment.remaining:
-                    items_remaining.append({
-                        'id': item['id'],
-                        'name': item['name'],
-                        'remaining': formatted_number(payment.remaining)
-                    }
-                    )
-                product.state = StateEnum.sold if not reserved or payment.remaining <= 0 else StateEnum.reserved
-                payment.save()
-                product.save()
+        if data.get('order'):
+            items, items_remaining = self.create_order(data)
+            data["items"] = items
+        else:
+            items, items_remaining = self.create_items_list(data)
         context['items_remaining'] = items_remaining
         context['items'] = items
         context['subtotal'] = formatted_number(data['subtotal'])
@@ -183,6 +155,102 @@ class GenerateBill(TemplateView):
             raise SendMailError(str(e))
         finally:
             server.quit()
+
+    def create_items_list(self, data):  # aqui se enlistan los items para ser modificados debido a
+        # su compra en la BD, luego para mostrarse en una facturaq
+        items = []
+        items_remaining = []
+        for item in data['items']:
+            formatted_price = formatted_number(item['price'])  # rework por
+            # la nueva tabla
+            items.append({
+                'id': item['id'],
+                'name': item['name'],
+                'price': formatted_price,
+                'status': "APARTADO" if item.get('reserved') else ""
+            })
+            if item['id'] != self.SERVICE:
+                product = Product.objects.get(id=item['id'])
+                product.sale_date = datetime.now()
+                payment = product.payment
+                reserved = item.get('reserved')
+                if payment.remaining == payment.sale_price:  # al iniciar un pago con un producto, se le
+                    # setea el metodo de pago y el costo nuevo si es el caso
+                    pay = choices_payment(data['paymentMethod'], payment.sale_price)
+                    payment.payment_method = pay["method"]
+                    payment.sale_price = pay["price"]
+                    payment.remaining = pay["price"]
+                payment.remaining = max(0, payment.remaining - int(item['price']) if reserved else 0)
+                if payment.remaining:
+                    items_remaining.append({
+                        'id': item['id'],
+                        'name': item['name'],
+                        'remaining': formatted_number(payment.remaining)
+                    }
+                    )
+                product.state = StateEnum.sold if not reserved or payment.remaining <= 0 else StateEnum.reserved
+                payment.save()
+                product.save()
+
+        return items, items_remaining
+
+    def get_additional_info(self, additional_info):
+        all_info = {
+            "videoGame": {
+                "additional_info": VideoGame.objects
+            },
+            "collectable": {
+                "additional_info": Collectable.objects
+            },
+            "console": {
+                "additional_info": Console.objects
+            },
+            "accessory": {
+                "additional_info": Accessory.objects
+            },
+        }
+        return all_info[additional_info]
+
+
+    def create_order(self, data):  # aqui se crea un pedido, el proceso es el siguiente:
+        # se recibe la informacion del item (price, name, el pago adelantado, paymentMethod)
+        # luego se crea un producto deacuerdo a la informacion, se asigna los valores extras como fechas, etc,
+        # al crearse  los valores automaticos como payment, agarramos el objeto payment
+        # le seteamos el paymentMethod y lo guardamos
+        item_info = data['items'][0]
+        price_total = item_info['price']
+        part_paid = item_info['partPaid']
+        additional_info = self.get_additional_info(item_info['additionalInfo'])
+        item_remaining = []
+        item = []
+        formatted_price = formatted_number(item_info['price'])
+
+        product = Product.objects.create(sale_price=price_total, sale_date=datetime.now(),
+                                         state=StateEnum.reserved, order=False)
+
+        additional_info["additional_info"].create(title=item_info["title"], product=product)
+        item.append({
+            'id': product.id,
+            'name': item_info['name'],
+            'price': formatted_price,
+            'status': "APARTADO"
+        })
+
+        payment = product.payment
+        pay = choices_payment(data['paymentMethod'], payment.sale_price)
+        payment.payment_method = pay["method"]
+        payment.remaining = max(0, payment.remaining - int(part_paid))  # aqui en ves de price,
+        # debe ser el pago de apartado que vendrá en una variable diferente
+        item_remaining.append({
+            'id': product.id,
+            'name': item_info['name'],
+            'remaining': formatted_number(payment.remaining)
+        }
+        )
+        payment.save()
+        product.save()
+
+        return item, item_remaining
 
 
 class CalculateTotalView(APIView):

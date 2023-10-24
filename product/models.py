@@ -202,6 +202,7 @@ class Product(models.Model):
     used = models.BooleanField(default=True)
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.BooleanField(default=False, blank=True, null=True)
 
     def __str__(self):
         try:
@@ -290,6 +291,7 @@ class Product(models.Model):
             additional_info = copy.get_additional_product_info()
 
             copy.pk = None
+            copy.payment = None
             copy.amount = 1
             copy.save()
 
