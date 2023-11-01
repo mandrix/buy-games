@@ -1,12 +1,17 @@
-from django.db.models import Q, Sum
+from django.db.models import Sum, Count
 from rest_framework import viewsets
 
 from rest_framework.response import Response
-from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum
+from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
     ReportSerializer
+from django_filters import rest_framework as django_filters
+from datetime import datetime
 
-from rest_framework import filters
+from django.utils import timezone
+from rest_framework.views import APIView
+from rest_framework import filters, status
+from django.http import JsonResponse
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -45,6 +50,37 @@ class AccessoryViewSet(viewsets.ModelViewSet):
     queryset = Accessory.objects.filter()
     serializer_class = AccessorySerializer
     permission_classes = []
+
+
+class DailySalesReport(APIView):
+
+    def post(self, request):
+        start_date_str = request.data.get('start_date')
+        end_date_str = request.data.get('end_date')
+
+        if start_date_str and end_date_str:
+            try:
+                start_date = timezone.make_aware(datetime.strptime(start_date_str, "%Y-%m-%d"))
+                end_date = timezone.make_aware(datetime.strptime(end_date_str, "%Y-%m-%d"))
+            except ValueError:
+                return Response(
+                    {"error": "Las fechas proporcionadas no tienen el formato correcto (YYYY-MM-DD)."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            queryset = Sale.objects.filter(purchase_date_time__range=(start_date, end_date))
+            queryset = queryset.values('purchase_date_time__date').annotate(
+                total_sales=Count('id'),
+                total_amount=Sum('total'),
+            ).order_by('purchase_date_time__date')
+
+            data = list(queryset)  # Convertir el QuerySet en una lista de diccionarios
+            return JsonResponse(data, safe=False)
+        else:
+            return Response(
+                {"error": "Debes proporcionar las fechas de inicio y fin (start_date y end_date) en los parámetros de consulta."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class ReportViewSet(viewsets.ModelViewSet):
