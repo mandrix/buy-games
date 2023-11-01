@@ -296,7 +296,7 @@ class CalculatePayNewProduct(APIView):
         payment_method = data.get('paymentMethod', "Sinpe")
         new_price = choices_payment(payment_method, price)["price"]
         response_data = {
-            'price': round(new_price, 2)
+            'price': round(float(new_price), 2)
         }
 
         return Response(response_data)
