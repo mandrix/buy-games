@@ -1,6 +1,12 @@
+from io import BytesIO
+
 from django.contrib import admin
 from django.contrib.admin import StackedInline
 from django.db.models import Q
+from django.http import HttpResponseRedirect, HttpResponse
+from reportlab.graphics.barcode import code39, code128
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
@@ -119,6 +125,8 @@ class ProductAdmin(admin.ModelAdmin):
     )
     exclude = ('remaining', 'payment')
 
+    change_form_template = "overrides/change_form.html"
+
     def get_exclude(self, request, obj=None):
         exclude = list(self.exclude)
 
@@ -176,6 +184,31 @@ class ProductAdmin(admin.ModelAdmin):
             readonly_fields.extend(['remaining', 'provider_purchase_date', 'sale_date'])
 
         return readonly_fields
+
+    def response_change(self, request, obj: Product):
+        if "_print_barcode" in request.POST:
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="barcode_with_string.pdf"'
+
+            buffer = BytesIO()
+            c = canvas.Canvas(buffer, pagesize=letter)
+
+            data_string = str(obj.barcode)  # Customize this to extract the string data from your model
+            c.drawString(10, 750, str(obj))
+            c.drawString(30, 730, obj.barcode)
+
+            barcode = code128.Code128(data_string, barWidth=1, barHeight=25)
+            barcode.drawOn(c, 0, 700)
+
+            c.showPage()
+
+            c.save()
+            pdf_data = buffer.getvalue()
+            buffer.close()
+
+            response.write(pdf_data)
+            return response
+        return super().response_change(request, obj)
 
     payment_link.allow_tags = True
     vendido.short_description = 'Vendido'
