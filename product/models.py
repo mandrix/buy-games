@@ -4,7 +4,7 @@ import decimal
 from django.contrib import admin
 from django.db import models
 import django.conf as conf
-import shortuuid
+import uuid
 
 from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
 
@@ -223,7 +223,7 @@ class Product(models.Model):
                 return "ERROR sin info adicional"
 
     def generate_barcode(self, *args, **kwargs):
-        self.barcode = shortuuid.uuid()[:12]
+        self.barcode = uuid.uuid4()[:12]
 
     @property
     @admin.display(description='console')
