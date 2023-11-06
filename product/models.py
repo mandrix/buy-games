@@ -223,7 +223,7 @@ class Product(models.Model):
                 return "ERROR sin info adicional"
 
     def generate_barcode(self, *args, **kwargs):
-        self.barcode = uuid.uuid4()[:12]
+        self.barcode = str(uuid.uuid4())[:12]
 
     @property
     @admin.display(description='console')
@@ -323,8 +323,11 @@ class Product(models.Model):
             self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
 
-        if not self.barcode:
+        if not self.barcode or len(self.barcode) > 12 or not self.barcode.isdigit():
             self.generate_barcode()
+        else:
+            duplicate_products = Product.objects.filter(barcode=self.barcode)
+
         super().save(*args, **kwargs)
 
         try:
