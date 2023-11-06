@@ -4,7 +4,7 @@ import decimal
 from django.contrib import admin
 from django.db import models
 import django.conf as conf
-import uuid
+import random
 
 from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
 
@@ -223,7 +223,7 @@ class Product(models.Model):
                 return "ERROR sin info adicional"
 
     def generate_barcode(self, *args, **kwargs):
-        self.barcode = str(uuid.uuid4())[:12]
+        self.barcode = ''.join(random.choice('0123456789') for _ in range(12))
 
     @property
     @admin.display(description='console')
@@ -323,7 +323,7 @@ class Product(models.Model):
             self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
 
-        if not self.barcode or len(self.barcode) > 12 or not self.barcode.isdigit():
+        if not self.barcode:
             self.generate_barcode()
         else:
             duplicate_products = Product.objects.filter(barcode=self.barcode)
