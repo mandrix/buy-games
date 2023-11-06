@@ -223,7 +223,7 @@ class Product(models.Model):
                 return "ERROR sin info adicional"
 
     def generate_barcode(self, *args, **kwargs):
-        self.barcode = shortuuid.uuid()
+        self.barcode = shortuuid.uuid()[:12]
 
     @property
     @admin.display(description='console')
