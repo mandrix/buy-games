@@ -69,9 +69,16 @@ class ConsoleEnum(models.TextChoices):
     GameboyAdvancedSP = "gameboy-advanced-sp", "Gameboy Advanced SP"
     Gamecube = "gamecube", "Gamecube"
     DS = "ds", "DS"
+    DSLite = "ds-lite", "DS Lite"
     DSi = "dsi", "DSi"
     _3DS = "3ds", "3DS"
+    New3DS = "new-3ds", "New 3DS"
+    New3DSXL = "new-3ds-xl", "New 3DS XL"
+    New2DS = "new-2ds", "New 2DS"
+    New2DSXL = "new-2ds-xl", "New 2DS XL"
     Switch = "switch", "Nintendo Switch"
+    SwitchOLED = "switch-oled", "Nintendo Switch OLED"
+    SwitchLite = "switch-lite", "Nintendo Switch Lite"
 
 
 class WarrantyType(models.TextChoices):
