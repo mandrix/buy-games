@@ -1,6 +1,7 @@
 import datetime
 import decimal
 
+from colorfield.fields import ColorField
 from django.contrib import admin
 from django.db import models
 import django.conf as conf
@@ -212,6 +213,7 @@ class Product(models.Model):
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
     order = models.BooleanField(default=False, blank=True, null=True)
+    tags = models.ManyToManyField("Tag", related_name="products")
 
     def __str__(self):
         try:
@@ -232,7 +234,7 @@ class Product(models.Model):
             if self.console_set.first():
                 return self.console_set.first()
             elif hasattr(self.get_additional_product_info(), "console"):
-                return self.get_additional_product_info().console
+                return self.get_additional_product_info().get_console_display()
         except:
             return "ERROR no tiene tipo"
 
@@ -241,7 +243,7 @@ class Product(models.Model):
     def copies(self):
         try:
             return self.get_additional_product_info().__class__.objects.filter(
-                title=self.get_additional_product_info().title, product__sale_date__isnull=not self.sale_date).count()
+                title=self.get_additional_product_info().title, product__state=StateEnum.available).count()
         except ValueError:
             return "ERROR"
 
@@ -406,11 +408,19 @@ class Log(models.Model):
                 log.delete()
 
 
-class Expense(models.Model):  # gastos del negocio ordenados por dia (reporte)
+class Expense(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     amount = models.PositiveIntegerField()
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    color = ColorField(default='#00FF00')
 
     def __str__(self):
         return self.name

@@ -11,11 +11,11 @@ class PaymentMethodEnum(models.TextChoices):
 
 
 def factor_tasa_0():
-    return 0.81
+    return 0.77
 
 
 def factor_card():
-    return 0.9268
+    return 0.84
 
 
 def price_formatted(price):

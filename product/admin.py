@@ -1,16 +1,18 @@
 from io import BytesIO
+from itertools import cycle
 
 from django.contrib import admin
 from django.contrib.admin import StackedInline
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse
-from reportlab.graphics.barcode import code39, code128
+from django.http import HttpResponse
+from django.utils.safestring import mark_safe
+from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
-    StateEnum, Expense, Payment
+    StateEnum, Expense, Payment, Tag
 from django.utils.html import format_html
 
 
@@ -110,9 +112,9 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "__str__", "tipo", "console_type", "description", 'copies', "state", "sale_price_formatted",
         "sale_price_with_card", "sale_price_with_tasa_0",
-        'used', 'owner')
+        'used', 'owner', 'etiquetas')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'provider')
+    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'provider', 'tags')
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
@@ -170,6 +172,17 @@ class ProductAdmin(admin.ModelAdmin):
             '<img src="/static/admin/img/icon-{}.svg" alt="True">',
             "yes" if obj.sale_date else "no"
         )
+
+    def etiquetas(self, obj: Product):
+        styling = lambda color: "display: inline-block; padding: 0.5em; " \
+                                f"background-color: {color}; color: #fff; border-radius: 0.25em;"
+        tag = lambda name, color: f'<div style="{styling(color)}">{name}</div>'
+
+        inner_tags = "".join([tag(t.name, t.color) for t in obj.tags.all()])
+        html = f"<div id='product_tags'>{inner_tags}</div>",
+
+        return mark_safe(html[0])
+    etiquetas.short_description = "Etiquetas"
 
     def get_readonly_fields(self, request, obj=None):
         readonly_fields = list(self.readonly_fields)  # Start with initial readonly_fields
@@ -287,7 +300,12 @@ class ExpenseAdmin(admin.ModelAdmin):
     model = Expense
 
 
+class TagAdmin(admin.ModelAdmin):
+    model = Tag
+
+
 admin.site.register(Product, ProductAdmin)
+admin.site.register(Tag, TagAdmin)
 admin.site.register(Expense, ExpenseAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(Sale, SaleAdmin)

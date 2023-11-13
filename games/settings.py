@@ -90,6 +90,7 @@ INSTALLED_APPS += [
 # Third-party apps
 INSTALLED_APPS += [
     "rest_framework",
+    "colorfield",
 ]
 
 MIDDLEWARE = [
