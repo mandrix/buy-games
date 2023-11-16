@@ -61,7 +61,7 @@ class RequestAdmin(admin.ModelAdmin):
         smtp_password = 'dasieujszfbbvcew'
 
         remittent = 'readygamescr@gmail.com'
-        destination = "joseph.zamora64@gmail.com"
+        destination = "facturas@wfboxcr.com"
 
         message = MIMEMultipart()
         message['From'] = remittent
