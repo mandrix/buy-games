@@ -16,7 +16,7 @@ class RequestAdmin(admin.ModelAdmin):
     model = Request
     readonly_fields = ("wf_box_number", "wf_box_received_datetime", "weight", "items",
                        "modification_date", "creation_date", "email_sent")
-    list_display = ("__str__", "_status", "wf_box_number", "email_sent")
+    list_display = ("__str__", "_status", "provider", "wf_box_number", "email_sent")
     list_filter = ("status", "email_sent")
     search_fields = ("wf_box_number", "tracking_number", "item_name")
     fieldsets = (
