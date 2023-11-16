@@ -52,6 +52,14 @@ class RequestAdmin(admin.ModelAdmin):
             self.send_wfbox_alert_email(obj)
 
             return response
+        elif "_track_wfbox" in request.POST and obj.tracking_number:
+            response = HttpResponseRedirect("/admin/administration/request/")
+            if referer := request.META.get("HTTP_REFERER"):
+                response = HttpResponseRedirect(referer)
+
+            obj.track_wfbox()
+
+            return response
         return super().response_change(request, obj)
 
     def send_wfbox_alert_email(self, obj: Request):

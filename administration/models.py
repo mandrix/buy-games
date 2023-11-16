@@ -31,7 +31,7 @@ class Request(models.Model):
     def __str__(self):
         return f"{self.item_name} - {self.tracking_number}"
 
-    def save(self, *args, **kwargs):
+    def track_wfbox(self):
         headers = {
             'authority': 'intertrade.cargotrack.net',
             'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -51,16 +51,13 @@ class Request(models.Model):
             'upgrade-insecure-requests': '1',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
         }
-
         data = {
             'track': self.tracking_number,
             'action2': 'process',
         }
-
         response = requests.post('https://intertrade.cargotrack.net/m/track.asp', headers=headers, data=data)
         html = BeautifulSoup(response.content.decode())
         important_tags = html.findAll("strong")
-
         if important_tags[3].text == "NOT FOUND":
             if not self.status:
                 self.status = RequestStateEnum.not_found
@@ -78,4 +75,4 @@ class Request(models.Model):
             self.items = important_tags[7].text
             self.weight = important_tags[8].text.split()[0]
 
-        super().save(*args, **kwargs)
+        self.save()
