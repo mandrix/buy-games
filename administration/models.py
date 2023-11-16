@@ -24,6 +24,7 @@ class Request(models.Model):
     wf_box_received_datetime = models.DateTimeField(null=True, blank=True)
     weight = models.PositiveSmallIntegerField(null=True, blank=True)
     items = models.PositiveSmallIntegerField(null=True, blank=True)
+    email_sent = models.BooleanField(default=False)
 
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)

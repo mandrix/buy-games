@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
@@ -147,6 +147,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj: Product):
         if "_print_barcode" in request.POST:
+            messages.add_message(request, messages.INFO, f"Descarga exitosa de la barra de codigo")
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="barcode_with_string.pdf"'
 

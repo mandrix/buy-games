@@ -15,16 +15,16 @@ from ui.views import SendMailError
 class RequestAdmin(admin.ModelAdmin):
     model = Request
     readonly_fields = ("wf_box_number", "wf_box_received_datetime", "weight", "items",
-                       "modification_date", "creation_date")
-    list_display = ("__str__", "_status", "wf_box_number")
-    list_filter = ("status",)
+                       "modification_date", "creation_date", "email_sent")
+    list_display = ("__str__", "_status", "wf_box_number", "email_sent")
+    list_filter = ("status", "email_sent")
     search_fields = ("wf_box_number", "tracking_number", "item_name")
     fieldsets = (
         (None, {
             "fields": ("item_name", "tracking_number", "provider", "status", "creation_date", "modification_date")
         },),
         ("WFBox", {
-            "fields": ("wf_box_number", "wf_box_received_datetime", "weight", "items",)
+            "fields": ("wf_box_number", "wf_box_received_datetime", "weight", "items", "email_sent")
         },)
     )
 
@@ -47,12 +47,14 @@ class RequestAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj: Request):
         if "_correo_a_wfbox" in request.POST and obj.tracking_number:
+            messages.add_message(request, messages.INFO, f"Correo sobre {obj.tracking_number} enviado correctamente a facturas@wfboxcr.com")
             response = HttpResponseRedirect("/admin/administration/request/")
 
             self.send_wfbox_alert_email(obj)
 
             return response
         elif "_track_wfbox" in request.POST and obj.tracking_number:
+            messages.add_message(request, messages.INFO, f"Autorastreo exitoso")
             response = HttpResponseRedirect("/admin/administration/request/")
             if referer := request.META.get("HTTP_REFERER"):
                 response = HttpResponseRedirect(referer)
@@ -93,6 +95,8 @@ Buenas, llegará un paquete para RANDAL MAURICIO FERNANDEZ MARIN cédula 2060608
             server.login(smtp_user, smtp_password)
             server.sendmail(remittent, destination, message.as_string())
             print('Correo enviado correctamente')
+            obj.email_sent = True
+            obj.save()
         except Exception as e:
             raise SendMailError(str(e))
         finally:
