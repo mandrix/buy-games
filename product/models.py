@@ -220,7 +220,7 @@ class Product(models.Model):
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
     order = models.BooleanField(default=False, blank=True, null=True)
-    tags = models.ManyToManyField("Tag", related_name="products", null=True, blank=True)
+    tags = models.ManyToManyField("Tag", related_name="products", blank=True)
 
     def __str__(self):
         try:

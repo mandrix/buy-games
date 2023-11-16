@@ -84,7 +84,8 @@ INSTALLED_APPS = [
 # Custom apps
 INSTALLED_APPS += [
     "product",
-    "ui"
+    "ui",
+    "administration"
 ]
 
 # Third-party apps

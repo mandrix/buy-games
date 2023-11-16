@@ -1,83 +1,18 @@
 from io import BytesIO
-from itertools import cycle
 
 from django.contrib import admin
 from django.contrib.admin import StackedInline
-from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
+from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter
 from product.forms import SaleInlineForm
-from product.models import Product, Collectable, Console, VideoGame, Accessory, ConsoleEnum, Report, Sale, Log, \
+from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag
 from django.utils.html import format_html
-
-
-class ConsoleTitleFilter(admin.SimpleListFilter):
-    title = 'Console Title'  # Displayed filter title
-    parameter_name = 'console_title'  # URL parameter name for the filter
-
-    def lookups(self, request, model_admin):
-        # Return a list of tuples representing the filter options
-        # The first element in each tuple is the actual value to filter on,
-        # and the second element is the human-readable option name
-        return ConsoleEnum.choices
-
-    def queryset(self, request, queryset):
-        # Apply the filter to the queryset
-        value = self.value()
-        if value:
-            return queryset.filter(Q(console__title=value) | Q(videogame__console=value) | Q(accessory__console=value))
-        return queryset
-
-
-class TypeFilter(admin.SimpleListFilter):
-    title = 'Tipo'
-    parameter_name = 'tipo'
-
-    def lookups(self, request, model_admin):
-        return (
-            ('videogame', 'Videojuego'),
-            ('console', 'Consola'),
-            ('accessory', 'Accesorio'),
-            ('collectable', 'Coleccionable'),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == 'videogame':
-            return queryset.filter(videogame__isnull=False)
-        elif self.value() == 'console':
-            return queryset.filter(console__isnull=False)
-        elif self.value() == 'accessory':
-            return queryset.filter(accessory__isnull=False)
-        elif self.value() == 'collectable':
-            return queryset.filter(collectable__isnull=False)
-
-
-class SoldFilter(admin.SimpleListFilter):
-    title = 'Estado de Producto'
-    parameter_name = 'state'
-
-    def lookups(self, request, model_admin):
-        # Devuelve las opciones de filtro y sus etiquetas
-        return (
-            ('vendido', ('Vendido')),
-            ('available', ('Disponible')),
-            ('reserved', ('Apartado')),
-        )
-
-    def queryset(self, request, queryset):
-        if self.value() == 'vendido':
-            return queryset.filter(state=StateEnum.sold)
-        elif self.value() == 'available':
-            return queryset.filter(state=StateEnum.available)
-        elif self.value() == 'reserved':
-            return queryset.filter(state=StateEnum.reserved)
-        else:
-            return queryset.filter(Q(state=StateEnum.available) | Q(state=StateEnum.reserved))
 
 
 class VideoGamesInline(StackedInline):
@@ -110,7 +45,7 @@ class AccessoryInline(StackedInline):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        "__str__", "tipo", "console_type", "description", 'copies', "state", "sale_price_formatted",
+        "__str__", "tipo", "console_type", "description", 'copies', "_state", "sale_price_formatted",
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used', 'owner', 'etiquetas')
     model = Product
@@ -151,6 +86,18 @@ class ProductAdmin(admin.ModelAdmin):
             return obj.get_product_type()
         except:
             return "ERROR no tiene tipo de producto"
+
+    def _state(self, obj: Product):
+        hex_colors = {
+            StateEnum.available: "#70BF2B",
+            StateEnum.sold: "#E70012",
+            StateEnum.reserved: "#FCC10F"
+        }
+        return format_html(
+            "<div style='padding: 0.5em; background-color: {}; color: #fff; border-radius: 0.25em;'>{}</div>",
+            hex_colors[obj.state],
+            obj.get_state_display()
+        )
 
     def get_inlines(self, request, obj):
         if not obj:

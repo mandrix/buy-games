@@ -1,0 +1,8 @@
+{% extends 'admin/change_form.html' %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    <div class="submit-row">
+        <input type="submit" value="Enviar correo a wfbox" name="_correo_a_wfbox">
+    </div>
+{% endblock %}
