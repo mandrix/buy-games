@@ -59,8 +59,7 @@ class Request(models.Model):
         html = BeautifulSoup(response.content.decode())
         important_tags = html.findAll("strong")
         if important_tags[3].text == "NOT FOUND":
-            if not self.status:
-                self.status = RequestStateEnum.not_found
+            self.status = RequestStateEnum.not_found
             self.wf_box_number = None
             self.wf_box_received_datetime = None
             self.items = None
