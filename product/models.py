@@ -44,6 +44,7 @@ class ConsoleEnum(models.TextChoices):
     PlayStation3 = "ps3", "PS3"
     PlayStation4 = "ps4", "PS4"
     PlayStation5 = "ps5", "PS5"
+    PlayStation5Slim = "ps5-slim", "PS5 Slim"
     Xbox = "xbox", "Xbox"
     Xbox360 = "xbox360", "Xbox 360"
     XboxOne = "xbox-one", "Xbox One"
