@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 
 from django.db import models
@@ -76,3 +77,28 @@ class Request(models.Model):
             self.weight = important_tags[8].text.split()[0]
 
         self.save()
+
+
+class CouponTypeEnum(models.TextChoices):
+    percentage = "percentage", "Percentage %"
+    fixed = "fixed", "Fixed"
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    type = models.CharField(max_length=100, choices=CouponTypeEnum.choices, default=CouponTypeEnum.percentage)
+    amount = models.PositiveIntegerField(default=0)
+    expiration = models.DateTimeField()
+    uses = models.PositiveSmallIntegerField()
+
+
+    def __str__(self):
+        return self.code
+
+    def save(
+        self, *args, **kwargs
+    ):
+        if not self.code:
+            self.code = ''.join(random.choice('0123456789') for _ in range(12))
+
+        super().save(*args, **kwargs)

@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.contrib import messages
 
 
-from administration.models import Request, RequestStateEnum
+from administration.models import Request, RequestStateEnum, Coupon
 from ui.views import SendMailError
 
 
@@ -103,4 +103,9 @@ Buenas, llegará un paquete para RANDAL MAURICIO FERNANDEZ MARIN cédula 2060608
             server.quit()
 
 
+class CouponAdmin(admin.ModelAdmin):
+    model = Coupon
+    list_display = ("__str__", "uses", "expiration")
+
 admin.site.register(Request, RequestAdmin)
+admin.site.register(Coupon, CouponAdmin)

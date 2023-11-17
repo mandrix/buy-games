@@ -11,6 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from administration.models import Coupon
 from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
@@ -255,9 +256,11 @@ class GenerateBill(TemplateView):
 class CalculateTotalView(APIView):
     def post(self, request, format=None):
         data = request.data
+
         products_data = data.get('products', [])
         tax = data.get('tax', False)
         discounts = float(data.get('discounts', 0))
+
         total = 0
         tax_total = 0
         sub_total = 0
