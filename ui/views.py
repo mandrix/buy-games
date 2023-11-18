@@ -284,18 +284,18 @@ class CalculateTotalView(APIView):
                 else:
                     total += price
 
+        coupon_discount = None
         if coupon_code:
             coupon_code = coupon_code[0]
             amount = coupon_code.amount
 
-            amount = amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * total
-
-            discounts += amount
+            coupon_discount = amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * total
 
         response_data = {
             'subtotal': round(sub_total, 2),
             'tax': round(tax_total, 2),
-            'total': round(total - discounts, 2),
+            'total': round(total - discounts, 2) if not coupon_discount else round(total, 2),
+            'coupon_discount': coupon_discount
         }
 
         return Response(response_data)
