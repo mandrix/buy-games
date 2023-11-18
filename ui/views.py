@@ -294,7 +294,7 @@ class CalculateTotalView(APIView):
         response_data = {
             'subtotal': round(sub_total, 2),
             'tax': round(tax_total, 2),
-            'total': round(total - discounts, 2) if not coupon_discount else round(total, 2),
+            'total': round(total - discounts, 2) if not coupon_discount else round(total - coupon_discount, 2),
             'coupon_discount': coupon_discount
         }
 
