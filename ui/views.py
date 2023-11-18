@@ -289,7 +289,7 @@ class CalculateTotalView(APIView):
             coupon_code = coupon_code[0]
             amount = coupon_code.amount
 
-            coupon_discount = amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * total
+            coupon_discount = round(amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * total, 2)
 
         response_data = {
             'subtotal': round(sub_total, 2),
