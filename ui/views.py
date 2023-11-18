@@ -11,7 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from administration.models import Coupon
+from administration.models import Coupon, CouponTypeEnum
 from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
@@ -260,6 +260,7 @@ class CalculateTotalView(APIView):
         products_data = data.get('products', [])
         tax = data.get('tax', False)
         discounts = float(data.get('discounts', 0))
+        coupon_code = Coupon.objects.filter(code__exact=data.get('coupon_code'))
 
         total = 0
         tax_total = 0
@@ -282,6 +283,14 @@ class CalculateTotalView(APIView):
                     tax_total += taxed_price - price
                 else:
                     total += price
+
+        if coupon_code:
+            coupon_code = coupon_code[0]
+            amount = coupon_code.amount
+
+            amount = amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * total
+
+            discounts += amount
 
         response_data = {
             'subtotal': round(sub_total, 2),
