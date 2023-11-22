@@ -43,6 +43,11 @@ class ConsoleSerializer(serializers.ModelSerializer):
         model = Console
         fields = "__all__"
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['title'] = instance.get_title_display()
+        return representation
+
     def create(self, validated_data):
         return super().create(create_product(validated_data))
 

@@ -1,4 +1,4 @@
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, IntegerField
 from rest_framework import viewsets
 
 from rest_framework.response import Response
@@ -12,6 +12,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework import filters, status
 from django.http import JsonResponse
+from django.db.models.functions import Cast
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -71,7 +72,7 @@ class DailySalesReport(APIView):
             queryset = Sale.objects.filter(purchase_date_time__range=(start_date, end_date))
             queryset = queryset.values('purchase_date_time__date').annotate(
                 total_sales=Count('id'),
-                total_amount=Sum('total'),
+                total_amount=Cast(Sum('total'), output_field=IntegerField()),
             ).order_by('purchase_date_time__date')
 
             data = list(queryset)  # Convertir el QuerySet en una lista de diccionarios

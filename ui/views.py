@@ -226,7 +226,7 @@ class GenerateBill(TemplateView):
         formatted_price = formatted_number(part_paid)
 
         product = Product.objects.create(sale_price=price_total, sale_date=datetime.now(),
-                                         state=StateEnum.reserved, order=False)
+                                         state=StateEnum.reserved, order=False, description=item_info["name"])
 
         additional_info["additional_info"].create(title=item_info["name"], product=product)
         item.append({
