@@ -231,6 +231,8 @@ class SaleAdmin(admin.ModelAdmin):
         'creation_date_time',
         'receipt_products'
     )
+    search_fields = ("customer_name", "customer_mail", "products__videogame__title",
+                     "products__console__title", "products__accessory__title", "products__collectable__title")
 
     @staticmethod
     def format_product_string(product):
