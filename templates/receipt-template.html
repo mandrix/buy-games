@@ -128,6 +128,14 @@
                 {% endfor %}
             </table>
 
+            {% if receipt_comments %}
+                <div style="margin-top: 10px">
+                    <i>
+                        Nota: {{ receipt_comments }}
+                    </i>
+                </div>
+            {% endif %}
+
             <p class="centered">Política de devoluciones:
              <img src="{{ return_policy }}" rel="icon"  style="max-width: 100%;" />
             <p class="centered">Escanea el QR o entra a este enlace:</p>

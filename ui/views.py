@@ -62,6 +62,7 @@ class GenerateBill(TemplateView):
         context['payment_method'] = data['paymentMethod']
         context['items'] = data['items']
         context['payment_details'] = data['paymentDetails']
+        context['receipt_comments'] = data['receiptComments']
         context['return_policy'] = qrOptions[data['returnPolicy']]
         context['qr_url'] = qrLinkOptions[data['returnPolicy']]
         if data.get('order'):
