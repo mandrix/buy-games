@@ -160,6 +160,7 @@ class Accessory(models.Model):
 
 class Payment(models.Model):
     sale_price = models.DecimalField(max_digits=8, decimal_places=2)
+    net_price = models.DecimalField(max_digits=8, decimal_places=2, default=0, null=True)
     remaining = models.DecimalField(max_digits=8, decimal_places=2)
     payment_method = models.CharField(default=PaymentMethodEnum.na, max_length=100, choices=PaymentMethodEnum.choices,
                                       null=True, blank=True)
@@ -183,20 +184,20 @@ class Payment(models.Model):
     @property
     @admin.display(description='sale price', ordering='sale_price')
     def sale_price_formatted(self):
-        if self.sale_price:
-            return price_formatted(self.sale_price)
+        if self.net_price:
+            return price_formatted(self.net_price)
 
     @property
     @admin.display(description='precio datafono', ordering='sale_price')
     def sale_price_with_card(self):
-        if self.sale_price:
-            return price_formatted(commission_price(self.sale_price, factor_card()))
+        if self.net_price:
+            return price_formatted(commission_price(self.net_price, factor_card()))
 
     @property
     @admin.display(description='precio tasa 0', ordering='sale_price')
     def sale_price_with_tasa_0(self):
-        if self.sale_price:
-            return price_formatted(commission_price(self.sale_price, factor_tasa_0()))
+        if self.net_price:
+            return price_formatted(commission_price(self.net_price, factor_tasa_0()))
 
 
 class Product(models.Model):
@@ -322,12 +323,14 @@ class Product(models.Model):
 
         if not self.payment:
             payment = Payment(sale_price=self.sale_price,
+                              net_price=self.sale_price,
                               remaining=self.sale_price)  # TODO falta quitar sle_price de producto
             payment.save()
             self.payment = payment
 
         if self.state == StateEnum.available:
-            self.payment.sale_price = self.sale_price
+            self.payment.sale_price = self.sale_price  # = self.payment.net_price # TODO poner este
+            # ultimo codigo, al terminar la modifiacion de gross price
             self.payment.remaining = self.sale_price
             self.remaining = self.sale_price
             self.payment.payment_method = PaymentMethodEnum.na
@@ -366,8 +369,10 @@ class Sale(models.Model):
                                    help_text="En colones")
     taxes = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                 help_text="En colones")
-    total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
-                                help_text="En colones")
+    gross_total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                      help_text="En colones")
+    net_total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                    help_text="En colones")
     payment_details = models.TextField(blank=True, default="")
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
@@ -380,7 +385,7 @@ class Sale(models.Model):
         if not products_str:
             products_str = "Reparación"
 
-        return f"{self.report.date} - {products_str} - ₡{self.total:,}"
+        return f"{self.report.date} - {products_str} - ₡{self.gross_total:,}"
 
 
 class Log(models.Model):
