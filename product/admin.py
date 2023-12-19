@@ -49,7 +49,7 @@ class ProductAdmin(admin.ModelAdmin):
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used', 'owner', 'etiquetas')
     model = Product
-    list_filter = ('owner', SoldFilter, TypeFilter, ConsoleTitleFilter, 'creation_date', 'region', 'used', 'provider', 'tags')
+    list_filter = ('tags', SoldFilter, TypeFilter, ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', )
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
@@ -230,6 +230,8 @@ class SaleAdmin(admin.ModelAdmin):
         'creation_date_time',
         'receipt_products'
     )
+    search_fields = ("customer_name", "customer_mail", "products__videogame__title",
+                     "products__console__title", "products__accessory__title", "products__collectable__title")
 
     @staticmethod
     def format_product_string(product):

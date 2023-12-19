@@ -214,7 +214,8 @@ class Product(models.Model):
     sale_date = models.DateField(null=True, blank=True)
     owner = models.CharField(default=OwnerEnum.Business, max_length=100, choices=OwnerEnum.choices, null=True,
                              blank=True)
-    description = models.TextField(default="")
+    description = models.TextField(default="Descripción que puede ver el cliente")
+    notes = models.TextField(default="", help_text="Notas internas", blank=True, null=True)
     region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
     image = models.ImageField(upload_to='vents/photos/', null=True, blank=True)
     amount = models.PositiveIntegerField(default=1)
