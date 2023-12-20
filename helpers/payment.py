@@ -25,6 +25,7 @@ def price_formatted(price):
 def commission_price(price, factor):
     return roundup_nearest_hundred(int(price) / decimal.Decimal(factor))
 
+
 def roundup_nearest_hundred(x):
     return round(x if x % 100 == 0 else x + 100 - x % 100, 2)
 
