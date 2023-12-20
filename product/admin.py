@@ -176,7 +176,6 @@ class ProductAdmin(admin.ModelAdmin):
     tipo.short_description = 'Tipo de producto'
 
 
-
 class ConsoleAdmin(admin.ModelAdmin):
     model = Console
 
@@ -240,6 +239,7 @@ class SaleAdmin(admin.ModelAdmin):
     def receipt_products(self, obj: Sale):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
         return " ".join(products_string)
+
 
 class LogAdmin(admin.ModelAdmin):
     model = Log

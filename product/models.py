@@ -330,8 +330,8 @@ class Product(models.Model):
             self.payment = payment
 
         if self.state == StateEnum.available:
-            self.payment.sale_price = self.sale_price  # = self.payment.net_price # TODO poner este
-            # ultimo codigo, al terminar la modifiacion de gross price
+            self.payment.sale_price = self.sale_price
+            self.payment.net_price = self.sale_price
             self.payment.remaining = self.sale_price
             self.remaining = self.sale_price
             self.payment.payment_method = PaymentMethodEnum.na
