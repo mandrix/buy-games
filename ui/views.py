@@ -266,9 +266,9 @@ class CalculateTotalView(APIView):
         discounts = float(data.get('discounts', 0))
         coupon_code = Coupon.objects.filter(code__exact=data.get('coupon_code'))
 
-        total = 0
+        total = -discounts
         tax_total = 0
-        sub_total = -discounts
+        sub_total = 0
         for product_data in products_data:
             price = float(product_data.get('price', 0))
             reserved = product_data.get('reserved', False)
