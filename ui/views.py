@@ -100,7 +100,7 @@ class GenerateBill(TemplateView):
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
             warranty_type = return_policy_options[data['returnPolicy']]["name"]
-
+            net_total = float(data['discounts'])
             sale = Sale.objects.create(
                 report=report,
                 warranty_type=warranty_type,
@@ -109,7 +109,7 @@ class GenerateBill(TemplateView):
                 subtotal=data['subtotal'],
                 discount=data['discounts'],
                 taxes=data['taxes'],
-                total=data['totalAmount'],
+                gross_total=data['totalAmount'],
                 payment_details=data['paymentDetails'],
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
@@ -119,8 +119,10 @@ class GenerateBill(TemplateView):
                 product_id = item['id']
                 if product_id != self.SERVICE:
                     product = Product.objects.get(id=product_id)
+                    net_total += float(product.payment.net_price)
                     sale.products.add(product)
-
+            sale.net_total = net_total
+            sale.save()
             return sale
 
     def enviar_factura_por_correo(self, factura_html, address, return_policy):
@@ -159,7 +161,7 @@ class GenerateBill(TemplateView):
             server.quit()
 
     def create_items_list(self, data):  # aqui se enlistan los items para ser modificados debido a
-        # su compra en la BD, luego para mostrarse en una facturaq
+        # su compra en la BD, luego para mostrarse en una factura
         items = []
         items_remaining = []
         for item in data['items']:
@@ -218,6 +220,8 @@ class GenerateBill(TemplateView):
         # luego se crea un producto deacuerdo a la informacion, se asigna los valores extras como fechas, etc,
         # al crearse  los valores automaticos como payment, agarramos el objeto payment
         # le seteamos el paymentMethod y lo guardamos
+        # TODO al hacer el cambio de sale_price para tener el neto, tenemos que
+        #  hacer algo para guardar el neto en los pedidos
         item_info = data['items'][0]
         price_total = item_info['price']
         part_paid = item_info['partPaid']
@@ -263,7 +267,7 @@ class CalculateTotalView(APIView):
         discounts = float(data.get('discounts', 0))
         coupon_code = Coupon.objects.filter(code__exact=data.get('coupon_code'))
 
-        total = 0
+        total = -discounts
         tax_total = 0
         sub_total = 0
         for product_data in products_data:
@@ -290,12 +294,12 @@ class CalculateTotalView(APIView):
             coupon_code = coupon_code[0]
             amount = coupon_code.amount
 
-            coupon_discount = round(amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * total, 2)
+            coupon_discount = round(amount if coupon_code.type == CouponTypeEnum.fixed else (amount/100) * sub_total, 2)
 
         response_data = {
-            'subtotal': round(sub_total, 2),
+            'subtotal': round(sub_total, 2) if not coupon_discount else round(sub_total - coupon_discount, 2),
             'tax': round(tax_total, 2),
-            'total': round(total - discounts, 2) if not coupon_discount else round(total - coupon_discount, 2),
+            'total': round(total, 2) if not coupon_discount else round(total - coupon_discount, 2),
             'coupon_discount': coupon_discount
         }
 
@@ -352,7 +356,7 @@ def generate_excel_report(request, fecha=None):
             total_remaining += float(remaining)
             total_tienda += parte_tienda
             ws.append([product.__str__(), product.sale_price, parte_tienda, receive_price, remaining, product.owner])
-        total_sales += float(sale.total)
+        total_sales += float(sale.gross_total)
 
     ws.append(['Total de Ventas', total_sales, total_tienda, "--", total_remaining])
 
