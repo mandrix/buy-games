@@ -227,11 +227,11 @@ class SaleAdmin(admin.ModelAdmin):
     exclude = ('products',)
     readonly_fields = (
         'creation_date_time',
-        'receipt_products'
+        'receipt_products',
+        'imprimir',
     )
     search_fields = ("customer_name", "customer_mail", "products__videogame__title",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
-
     @staticmethod
     def format_product_string(product):
         return f"{str(product)} - ₡{product.sale_price:,} - {product.owner} - {product.barcode} \n"
@@ -240,6 +240,13 @@ class SaleAdmin(admin.ModelAdmin):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
         return " ".join(products_string)
 
+    def imprimir(self, obj):
+        link = format_html(
+            f'<a href="/admin/product/payment/{obj.id}/change/">Imprimir</a>'
+        )
+        return link
+
+    imprimir.allow_tags = True
 
 class LogAdmin(admin.ModelAdmin):
     model = Log

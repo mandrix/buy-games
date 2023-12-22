@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from administration.models import Coupon, CouponTypeEnum
+from helpers.business_information import business_information
 from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
@@ -47,6 +48,52 @@ class GenerateBill(TemplateView):
     template_name = "receipt-template.html"
 
     SERVICE = "S"
+
+    def get(self, request, *args, **kwargs):
+        id_sale = json.loads(request.body.decode('utf-8'))
+        sale = Sale.objects.filter(id=id_sale)
+        context = self.get_context_data(**kwargs)
+        context['store_name'] = business_information
+        context['store_address'] = business_information
+        context['store_contact'] = business_information
+        context['store_mail'] = business_information
+        context['receipt_number'] = "data['receiptNumber']"
+        context['purchase_date'] = "data['purchaseDate']"
+        context['customer_name'] = "data['customerName']"
+        context['customer_mail'] = "data['customerMail']"
+        context['payment_method'] = sale.paymentMethod
+        context['items'] = sale.items
+        context['payment_details'] = sale.paymentDetails
+        context['return_policy'] = "qrOptions[data['returnPolicy']]"
+        context['qr_url'] = "qrLinkOptions[data['returnPolicy']]"
+        if data.get('order'):
+            data["items"] = items
+        else:
+            items, items_remaining = self.create_items_list(data)
+        context['items_remaining'] = items_remaining
+        context['items'] = items
+        context['subtotal'] = formatted_number(data['subtotal'])
+        if float(data['taxes']):
+            context['taxes'] = formatted_number(data['taxes'])
+        else:
+            context['taxes'] = 0
+        context['discounts'] = formatted_number(data['discounts'])
+        context['total_amount'] = formatted_number(data['totalAmount'])
+
+        rendered_template = render_to_string(self.template_name, context)
+
+        response = HttpResponse(rendered_template, content_type='text/html')
+
+        self.create_sale(data)
+
+        try:
+            self.enviar_factura_por_correo(rendered_template, data['customerMail'], data['returnPolicy'])
+        except SendMailError as e:
+            logging.error(f'Error al enviar el correo: {e}')
+
+        response['Content-Disposition'] = 'inline; filename="bill.html"'
+        response['Cache-Control'] = 'no-cache'
+        return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.body.decode('utf-8'))
