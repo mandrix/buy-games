@@ -100,7 +100,7 @@ class GenerateBill(TemplateView):
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
             warranty_type = return_policy_options[data['returnPolicy']]["name"]
-            net_total = float(data['discounts'])
+            net_total = - float(data['discounts'])
             sale = Sale.objects.create(
                 report=report,
                 warranty_type=warranty_type,
