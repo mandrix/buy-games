@@ -8,11 +8,15 @@ from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
+from helpers.business_information import business_information
+from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag
 from django.utils.html import format_html
+from django.template.loader import render_to_string
+from helpers.qr import qrOptions, qrLinkOptions
 
 
 class VideoGamesInline(StackedInline):
@@ -227,10 +231,12 @@ class SaleAdmin(admin.ModelAdmin):
     exclude = ('products',)
     readonly_fields = (
         'creation_date_time',
-        'receipt_products'
+        'receipt_products',
     )
     search_fields = ("customer_name", "customer_mail", "products__videogame__title",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
+
+    change_form_template = "overrides/btn_sale.html"
 
     @staticmethod
     def format_product_string(product):
@@ -239,6 +245,73 @@ class SaleAdmin(admin.ModelAdmin):
     def receipt_products(self, obj: Sale):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
         return " ".join(products_string)
+
+    def response_change(self, request, obj: Sale):
+        if "_print_receipt" in request.POST:
+            context = {'store_name': business_information["store_name"],
+                       'store_address': business_information["store_address"],
+                       'store_contact': business_information["store_contact"],
+                       'store_mail': business_information["store_mail"],
+                       'receipt_number': "", 'purchase_date': obj.purchase_date_time,
+                       'customer_name': obj.customer_name, 'customer_mail': obj.customer_mail,
+                       'payment_method': obj.payment_method,
+                       'payment_details': obj.payment_details, 'receipt_comments': obj.payment_details,
+                       'return_policy': qrOptions[1], 'qr_url': qrLinkOptions[1],
+                       "discounts": formatted_number(obj.discount), "total_amount": formatted_number(obj.gross_total)
+                       }
+
+            product = obj.products.all()[0]
+            if product.state == StateEnum.reserved:
+                items = [{
+                    'id': product.id,
+                    'name': product.__str__(),
+                    'price': formatted_number(product.payment.sale_price - product.payment.remaining),
+                    'status': "APARTADO"
+                }]
+
+                items_remaining = [{
+                    'id': product.id,
+                    'name': product.__str__(),
+                    'remaining': formatted_number(product.payment.remaining)
+                }]
+
+                context['items_remaining'] = items_remaining
+            else:
+                items = []
+                for item in obj.products.all():
+                    formatted_price = formatted_number(item.payment.sale_price)
+                    items.append({
+                        'id': item.id,
+                        'name': item.__str__(),
+                        'price': formatted_price
+                    })
+
+            context['items'] = items
+            context['subtotal'] = formatted_number(obj.subtotal)
+            if float(obj.taxes):
+                context['taxes'] = formatted_number(obj.taxes)
+            else:
+                context['taxes'] = 0
+            rendered_template = render_to_string("receipt-template.html", context)
+
+            response = HttpResponse(rendered_template, content_type='text/html')
+
+            response['Content-Disposition'] = 'inline; filename="bill.html"'
+            response['Cache-Control'] = 'no-cache'
+            admin_url = f"https://readygamescr.com/admin/product/sale/{obj.id}/change/"
+            js_script = f"""
+                <form action="{admin_url}" method="GET" id="openAdminForm">
+                    <input type="submit" style="display:none;">
+                </form>
+                <script type="text/javascript">
+                    document.getElementById('openAdminForm').submit();
+                    window.print()
+                </script>
+            """
+            response.content = response.content.decode('utf-8').replace('</body>', js_script + '</body>').encode('utf-8')
+            return response
+
+        return super().response_change(request, obj)
 
 
 class LogAdmin(admin.ModelAdmin):
