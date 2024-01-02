@@ -68,7 +68,7 @@ class RequestAdmin(admin.ModelAdmin):
         return super().response_change(request, obj)
 
     def send_wfbox_alert_email(self, obj: Request):
-        if not all([obj.tracking_number, obj.item_name, obj.items]):
+        if not all([obj.tracking_number, obj.item_name, obj.status != RequestStateEnum.received]):
             return False
 
 
