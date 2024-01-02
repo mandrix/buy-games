@@ -46,7 +46,7 @@ class RequestAdmin(admin.ModelAdmin):
         )
 
     def response_change(self, request, obj: Request):
-        if "_correo_a_wfbox" in request.POST and obj.tracking_number:
+        if "_correo_a_wfbox" in request.POST:
             response = HttpResponseRedirect("/admin/administration/request/")
 
             if self.send_wfbox_alert_email(obj):
