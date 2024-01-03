@@ -58,12 +58,17 @@ class RequestAdmin(admin.ModelAdmin):
 
             return response
         elif "_track_wfbox" in request.POST and obj.tracking_number:
-            messages.add_message(request, messages.INFO, f"Autorastreo exitoso")
             response = HttpResponseRedirect("/admin/administration/request/")
             if referer := request.META.get("HTTP_REFERER"):
                 response = HttpResponseRedirect(referer)
 
-            obj.track_wfbox()
+            status = obj.track_wfbox()
+            if status == RequestStateEnum.received:
+                messages.add_message(request, messages.INFO, f"Autorastreo exitoso, {obj.item_name} esta en transito con WFBox.")
+            elif status == RequestStateEnum.received:
+                messages.add_message(request, messages.INFO, f"Autorastreo exitoso, {obj.item_name} a llegado.")
+            else:
+                messages.add_message(request, messages.INFO, f"Autorastreo fallo, {obj.item_name} no a llegado, el tracking esta mal o WFBox no a actualizado su sistema.")
 
             return response
         return super().response_change(request, obj)

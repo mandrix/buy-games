@@ -77,6 +77,7 @@ class Request(models.Model):
             self.weight = important_tags[8].text.split()[0]
 
         self.save()
+        return self.status
 
 
 class CouponTypeEnum(models.TextChoices):
