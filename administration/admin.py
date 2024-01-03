@@ -68,7 +68,7 @@ class RequestAdmin(admin.ModelAdmin):
             elif status == RequestStateEnum.received:
                 messages.add_message(request, messages.INFO, f"Autorastreo exitoso, {obj.item_name} a llegado.")
             else:
-                messages.add_message(request, messages.INFO, f"Autorastreo fallo, {obj.item_name} no a llegado, el tracking esta mal o WFBox no a actualizado su sistema.")
+                messages.add_message(request, messages.WARNING, f"Autorastreo fallo, {obj.item_name} no a llegado, el tracking esta mal o WFBox no a actualizado su sistema.")
 
             return response
         return super().response_change(request, obj)
