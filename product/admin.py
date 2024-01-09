@@ -1,7 +1,9 @@
+from functools import reduce
 from io import BytesIO
 
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
+from django.db.models.expressions import NoneType
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -13,7 +15,7 @@ from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
-    StateEnum, Expense, Payment, Tag
+    StateEnum, Expense, Payment, Tag, OwnerEnum
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
@@ -214,15 +216,35 @@ class SaleInline(admin.TabularInline):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('date', 'total')
+    list_display = ('date', 'total', 'total_business', 'total_mauricio', 'total_joseph')
     inlines = [SaleInline]
 
     readonly_fields = ("total",)
 
     def total(self, report: Report):
-        if not report:
-            return 0
+        if not report: return 0
         return f"₡{sum([sale.gross_total for sale in report.sale_set.all()]):,}"
+
+    def _calculate_total_for(self, report: Report, owner: OwnerEnum):
+        if not report: return 0
+        field_keyword = 'payment__net_price'
+
+        list_of_all_products = [
+            list(sale.products.filter(owner__exact=owner).values(field_keyword)) for sale in report.sale_set.all()
+        ]
+        list_of_all_products = reduce(lambda a,b: a+b, list_of_all_products)
+        list_of_all_products = [total.get(field_keyword) if total.get(field_keyword) else 0 for total in list_of_all_products]
+
+        return f"₡{sum(list_of_all_products):,}"
+
+    def total_business(self, report: Report):
+        return self._calculate_total_for(report, OwnerEnum.Business)
+
+    def total_mauricio(self, report: Report):
+        return self._calculate_total_for(report, OwnerEnum.Mauricio)
+
+    def total_joseph(self, report: Report):
+        return self._calculate_total_for(report, OwnerEnum.Joseph)
 
 
 class SaleAdmin(admin.ModelAdmin):
