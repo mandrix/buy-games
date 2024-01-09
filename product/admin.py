@@ -268,9 +268,10 @@ class SaleAdmin(admin.ModelAdmin):
         'creation_date_time',
         'receipt_products',
     )
-    list_display = ("__str__", "customer_mail", "customer_name")
+    list_display = ("__str__", "customer_mail", "customer_name", "sale_type")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
+    list_filter = ("sale_type",)
 
     change_form_template = "overrides/btn_sale.html"
 
