@@ -72,7 +72,8 @@ class DailySalesReport(APIView):
             queryset = Sale.objects.filter(purchase_date_time__range=(start_date, end_date))
             queryset = queryset.values('purchase_date_time__date').annotate(
                 total_sales=Count('id'),
-                total_amount=Cast(Sum('total'), output_field=IntegerField()),
+                gross_total=Cast(Sum('gross_total'), output_field=IntegerField()),
+                net_total=Cast(Sum('net_total'), output_field=IntegerField()),
             ).order_by('purchase_date_time__date')
 
             data = list(queryset)  # Convertir el QuerySet en una lista de diccionarios
