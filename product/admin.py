@@ -248,7 +248,7 @@ class ReportAdmin(admin.ModelAdmin):
             list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
 
 
-        return f"₡{sum(list_of_all_products):.2f}"
+        return f"₡{sum(list_of_all_products):,.2f}"
 
     def total_business(self, report: Report):
         return self._calculate_total_for(report, OwnerEnum.Business)
