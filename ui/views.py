@@ -127,7 +127,7 @@ class GenerateBill(TemplateView):
                     payment = product.payment
                     if item.get('reserved'):
                         sale.type = SaleTypeEnum.Reserve
-                        payment.net_price = payment.sale_price - payment.remaining - Decimal(item['price'])
+                        payment.net_price = Decimal(item['price'])
                         payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
