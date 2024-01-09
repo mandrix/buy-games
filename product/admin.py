@@ -67,7 +67,6 @@ class ProductAdmin(admin.ModelAdmin):
         "payment_link"
     )
     exclude = ('remaining', 'payment')
-    ordering = ("-modification_date",)
 
     change_form_template = "overrides/change_form.html"
 
