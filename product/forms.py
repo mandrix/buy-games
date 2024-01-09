@@ -21,9 +21,8 @@ class SaleInlineForm(forms.ModelForm):
             # Set the custom value based on the parent object (obj)
             self.initial['receipt_products'] = self._receipt_products(self.instance)
 
-    @staticmethod
-    def format_product_string(product):
-        return f"{str(product)} - ₡{product.payment.net_price} - {product.owner} - {product.barcode} - ID: {product.id} \n"
+    def format_product_string(self, product):
+        return f"{str(product)} - ₡{product.payment.net_price if product.payment else self.instance.net_total} - {product.owner} - {product.barcode} - ID: {product.id} \n"
 
     def _receipt_products(self, obj: Sale):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
