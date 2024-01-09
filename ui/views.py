@@ -131,6 +131,8 @@ class GenerateBill(TemplateView):
                         payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
+                        payment.net_price = Decimal(item['price'])
+                        payment.save()
                     else:
                         sale.type = SaleTypeEnum.Purchase
 
