@@ -2,6 +2,8 @@ import json
 
 import logging
 from datetime import datetime
+from decimal import Decimal
+
 from openpyxl import Workbook
 
 from django.http import HttpResponse
@@ -125,7 +127,7 @@ class GenerateBill(TemplateView):
                     payment = product.payment
                     if item.get('reserved'):
                         sale.type = SaleTypeEnum.Reserve
-                        payment.net_price = payment.sale_price - payment.net_price - item['price']
+                        payment.net_price = payment.sale_price - payment.net_price - Decimal(item['price'])
                         payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
@@ -135,7 +137,7 @@ class GenerateBill(TemplateView):
                     net_total += float(payment.net_price)
 
                 elif product_id == self.SERVICE:
-                    net_total += item['price']
+                    net_total += Decimal(item['price'])
                     sale.type = SaleTypeEnum.Repair
 
             sale.net_total = net_total
