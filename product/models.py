@@ -391,8 +391,10 @@ class Sale(models.Model):
         if not self.report:
             return ""
         products_str = ", ".join(product.description[:30] for product in self.products.all()[:2])
-        if not products_str:
-            products_str = "Reparación"
+        if self.type == SaleTypeEnum.Repair:
+            products_str = self.payment_details[:30]
+        elif not products_str:
+            products_str = "ERROR"
 
         return f"{self.report.date} - {products_str} - ₡{self.gross_total:,}"
 
