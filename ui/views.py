@@ -16,7 +16,8 @@ from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
-from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGame, Collectable, Console, Accessory
+from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGame, Collectable, Console, Accessory, \
+    SaleTypeEnum
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -121,6 +122,18 @@ class GenerateBill(TemplateView):
                     product = Product.objects.get(id=product_id)
                     net_total += float(product.payment.net_price)
                     sale.products.add(product)
+
+                    if item.get('reserved'):
+                        sale.type = SaleTypeEnum.Reserve
+                    elif data.get('order'):
+                        sale.type = SaleTypeEnum.Request
+                    else:
+                        sale.type = SaleTypeEnum.Purchase
+
+                elif product_id == self.SERVICE:
+                    net_total += item['price']
+                    sale.type = SaleTypeEnum.Repair
+
             sale.net_total = net_total
             sale.save()
             return sale

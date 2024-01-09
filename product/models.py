@@ -358,6 +358,13 @@ class Report(models.Model):
         return self.date.strftime('%d de %B de %Y')
 
 
+class SaleTypeEnum(models.TextChoices):
+    Repair = "repair", "Repair"
+    Request = "request", "Request"
+    Reserve = "reserve", "Reserve"
+    Purchase = "purchase", "Purchase"
+
+
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
@@ -378,6 +385,7 @@ class Sale(models.Model):
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
+    type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
 
     def __str__(self):
         if not self.report:
