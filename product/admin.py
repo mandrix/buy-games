@@ -232,11 +232,13 @@ class ReportAdmin(admin.ModelAdmin):
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
 
         all_sales = report.sale_set.all()
+        print(111111,all_sales)
         list_of_all_products = [
             list(
                 sale.products.filter(owner__exact=owner).values(field_keyword)
-            ) if sale.products.count() else {field_keyword: sale.net_total if owner == OwnerEnum.Business else 0} for sale in all_sales
+            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for sale in all_sales
         ]
+        print(list_of_all_products)
         list_of_all_products = reduce(lambda a,b: a+b, list_of_all_products) if len(list_of_all_products) else [[{field_keyword: 0}]]
         list_of_all_products = [float(total.get(field_keyword))*remaining_percentage if total.get(field_keyword) else 0 for total in list_of_all_products]
 
