@@ -285,7 +285,7 @@ class SaleAdmin(admin.ModelAdmin):
 
     @staticmethod
     def format_product_string(product):
-        return f"{str(product)} - ₡{product.sale_price:,} - {product.owner} - {product.barcode} \n"
+        return f"{str(product)} - ₡{product.sale_price:,} - {product.owner} - {product.barcode} - ID: {product.id} \n"
 
     def receipt_products(self, obj: Sale):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
