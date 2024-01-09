@@ -23,7 +23,7 @@ class SaleInlineForm(forms.ModelForm):
 
     @staticmethod
     def format_product_string(product):
-        return f"{str(product)} - ₡{product.sale_price} - {product.owner} - {product.barcode} \n"
+        return f"{str(product)} - ₡{product.payment.net_price} - {product.owner} - {product.barcode} - ID: {product.id} \n"
 
     def _receipt_products(self, obj: Sale):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
