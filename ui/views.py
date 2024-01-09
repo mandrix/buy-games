@@ -69,11 +69,14 @@ class GenerateBill(TemplateView):
         context['receipt_comments'] = data['receiptComments']
         context['return_policy'] = qrOptions[data['returnPolicy']]
         context['qr_url'] = qrLinkOptions[data['returnPolicy']]
+
         if data.get('order'):
             items, items_remaining = self.create_order(data)
             data["items"] = items
+            self.create_sale(data)
         else:
-            items, items_remaining = self.create_items_list(data)
+            sale = self.create_sale(data)
+            items, items_remaining = self.create_items_list(sale, data)
         context['items_remaining'] = items_remaining
         context['items'] = items
         context['subtotal'] = formatted_number(data['subtotal'])
@@ -87,8 +90,6 @@ class GenerateBill(TemplateView):
         rendered_template = render_to_string(self.template_name, context)
 
         response = HttpResponse(rendered_template, content_type='text/html')
-
-        self.create_sale(data)
 
         try:
             self.enviar_factura_por_correo(rendered_template, data['customerMail'], data['returnPolicy'])
@@ -184,21 +185,24 @@ class GenerateBill(TemplateView):
         finally:
             server.quit()
 
-    def create_items_list(self, data):  # aqui se enlistan los items para ser modificados debido a
+    def create_items_list(self, sale, data):  # aqui se enlistan los items para ser modificados debido a
         # su compra en la BD, luego para mostrarse en una factura
         items = []
         items_remaining = []
         for item in data['items']:
             formatted_price = formatted_number(item['price'])  # rework por
             # la nueva tabla
+            id_ = item['id']
             items.append({
-                'id': item['id'],
+                'id': id_,
                 'name': item['name'],
                 'price': formatted_price,
                 'status': "APARTADO" if item.get('reserved') else ""
             })
-            if item['id'] != self.SERVICE:
-                product = Product.objects.get(id=item['id'])
+            if id_ != self.SERVICE:
+                product = Product.objects.get(id=id_)
+                if product in sale.products.all():
+                    product = Product.objects.filter(~Q(id=id_) & Q(barcode=product.barcode)).first()
                 product.sale_date = datetime.now()
                 payment = product.payment
                 reserved = item.get('reserved')
@@ -211,7 +215,7 @@ class GenerateBill(TemplateView):
                 payment.remaining = max(0, payment.remaining - int(item['price']) if reserved else 0)
                 if payment.remaining:
                     items_remaining.append({
-                        'id': item['id'],
+                        'id': id_,
                         'name': item['name'],
                         'remaining': formatted_number(payment.remaining)
                     }
