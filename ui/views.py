@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from decimal import Decimal
 
+from django.db.models import Q
 from openpyxl import Workbook
 
 from django.http import HttpResponse
@@ -122,6 +123,8 @@ class GenerateBill(TemplateView):
                 product_id = item['id']
                 if product_id != self.SERVICE:
                     product = Product.objects.get(id=product_id)
+                    if product in sale.products.all():
+                        product = Product.objects.filter(~Q(id=product_id) & Q(barcode=product.barcode)).first()
                     sale.products.add(product)
 
                     payment = product.payment
