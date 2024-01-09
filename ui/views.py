@@ -143,7 +143,7 @@ class GenerateBill(TemplateView):
                     net_total += float(payment.net_price)
 
                 elif product_id == self.SERVICE:
-                    net_total += Decimal(item['price'])
+                    net_total += item['price']
                     sale.type = SaleTypeEnum.Repair
 
             sale.net_total = net_total
