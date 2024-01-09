@@ -4,7 +4,6 @@ from io import BytesIO
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
 from django.db.models import Q
-from django.db.models.expressions import NoneType
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128

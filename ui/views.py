@@ -120,15 +120,19 @@ class GenerateBill(TemplateView):
                 product_id = item['id']
                 if product_id != self.SERVICE:
                     product = Product.objects.get(id=product_id)
-                    net_total += float(product.payment.net_price)
                     sale.products.add(product)
 
+                    payment = product.payment
                     if item.get('reserved'):
                         sale.type = SaleTypeEnum.Reserve
+                        payment.net_price = payment.sale_price - payment.net_price - item['price']
+                        payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
                     else:
                         sale.type = SaleTypeEnum.Purchase
+
+                    net_total += float(payment.net_price)
 
                 elif product_id == self.SERVICE:
                     net_total += item['price']
