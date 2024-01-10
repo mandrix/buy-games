@@ -119,32 +119,29 @@ class GenerateBill(TemplateView):
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
             )
-
+            sale_type = SaleTypeEnum.Purchase
             for item in data['items']:
                 product_id = item['id']
                 if product_id != self.SERVICE:
                     product = Product.objects.get(id=product_id)
-
                     sale.products.add(product)
-
                     payment = product.payment
+
                     if item.get('reserved'):
-                        sale.type = SaleTypeEnum.Reserve
+                        sale_type = SaleTypeEnum.Reserve
                         payment.net_price = Decimal(item['price'])
                         payment.save()
                     elif data.get('order'):
-                        sale.type = SaleTypeEnum.Request
+                        sale_type = SaleTypeEnum.Request
                         payment.net_price = Decimal(item['price'])
                         payment.save()
-                    else:
-                        sale.type = SaleTypeEnum.Purchase
-
                     net_total += float(payment.net_price)
 
                 elif product_id == self.SERVICE:
                     net_total += item['price']
-                    sale.type = SaleTypeEnum.Repair
+                    sale_type = SaleTypeEnum.Repair
 
+            sale.type = sale_type
             sale.net_total = net_total
             sale.save()
             return sale
