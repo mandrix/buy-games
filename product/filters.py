@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.db.models import Q
+from django.db.models import Q, F
 from product.models import ConsoleEnum, StateEnum
 
 
@@ -66,3 +66,20 @@ class SoldFilter(admin.SimpleListFilter):
         else:
             return queryset.filter(Q(state=StateEnum.available) | Q(state=StateEnum.reserved))
 
+
+class BelowThreshHoldFilter(admin.SimpleListFilter):
+    title = 'Bajo el limite de Productos'
+    parameter_name = 'notify'
+
+    def lookups(self, request, model_admin):
+        # Devuelve las opciones de filtro y sus etiquetas
+        return (
+            ('to_notify', 'A Notificar'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'to_notify':
+            all_products = queryset.all()
+            filtered_products = [product.id for product in all_products if product.amount_to_notify and  product.amount_to_notify <= product.copies]
+            return all_products.filter(id__in=filtered_products)
+        return queryset.all()

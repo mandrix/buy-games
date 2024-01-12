@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 
 from helpers.business_information import business_information
 from helpers.payment import formatted_number
-from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter
+from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, OwnerEnum
@@ -55,7 +55,8 @@ class ProductAdmin(admin.ModelAdmin):
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used', 'owner', 'etiquetas')
     model = Product
-    list_filter = ('tags', SoldFilter, TypeFilter, ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', )
+    list_filter = ('tags', SoldFilter, TypeFilter, BelowThreshHoldFilter,
+                   ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', )
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
@@ -69,6 +70,13 @@ class ProductAdmin(admin.ModelAdmin):
     exclude = ('remaining', 'payment')
 
     change_form_template = "overrides/change_form.html"
+    change_list_template = "overrides/change_list.html"
+
+    class Media:
+        css = {
+            'all': ('css/admin_styles.css',)
+        }
+        js = ('js/admin_scripts.js',)
 
     def get_exclude(self, request, obj=None):
         exclude = list(self.exclude)

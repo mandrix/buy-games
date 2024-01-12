@@ -75,7 +75,7 @@ class ConsoleEnum(models.TextChoices):
     _3DS = "3ds", "3DS"
     New3DS = "new-3ds", "New 3DS"
     New3DSXL = "new-3ds-xl", "New 3DS XL"
-    New2DS = "new-2ds", "New 2DS"
+    _2DS = "2ds", "2DS"
     New2DSXL = "new-2ds-xl", "New 2DS XL"
     Switch = "switch", "Nintendo Switch"
     SwitchOLED = "switch-oled", "Nintendo Switch OLED"
@@ -216,14 +216,22 @@ class Product(models.Model):
                              blank=True)
     description = models.TextField(help_text="Descripción que puede ver el cliente")
     notes = models.TextField(default="", help_text="Notas internas", blank=True, null=True)
+
     region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
     image = models.ImageField(upload_to='vents/photos/', null=True, blank=True)
-    amount = models.PositiveIntegerField(default=1)
+
+    amount = models.PositiveIntegerField(default=1, help_text="Se generan copias si pones mas que uno")
+    amount_to_notify = models.PositiveIntegerField(null=True, blank=True)
+
     used = models.BooleanField(default=True)
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
+
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
     order = models.BooleanField(default=False, blank=True, null=True)
+
     tags = models.ManyToManyField("Tag", related_name="products", blank=True)
+
+
 
     def __str__(self):
         try:
