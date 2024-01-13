@@ -124,18 +124,17 @@ class GenerateBill(TemplateView):
                 product_id = item['id']
                 if product_id != self.SERVICE:
                     product = Product.objects.get(id=product_id)
-                    if product in sale.products.all():
-                        product = Product.objects.filter(~Q(id=product_id) & Q(barcode=product.barcode)).first()
+
                     sale.products.add(product)
 
                     payment = product.payment
                     if item.get('reserved'):
                         sale.type = SaleTypeEnum.Reserve
-                        payment.net_price = Decimal(item['price'])
+                        payment.net_price = float(item['price'])
                         payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
-                        payment.net_price = Decimal(item['price'])
+                        payment.net_price = float(item['price'])
                         payment.save()
                     else:
                         sale.type = SaleTypeEnum.Purchase
@@ -201,8 +200,6 @@ class GenerateBill(TemplateView):
             })
             if id_ != self.SERVICE:
                 product = Product.objects.get(id=id_)
-                if product in sale.products.all():
-                    product = Product.objects.filter(~Q(id=id_) & Q(barcode=product.barcode)).first()
                 product.sale_date = datetime.now()
                 payment = product.payment
                 reserved = item.get('reserved')
