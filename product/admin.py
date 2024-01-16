@@ -234,20 +234,23 @@ class ReportAdmin(admin.ModelAdmin):
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
 
         field_keyword = 'payment__net_price'
-        total_query = Sum(F('products__' + field_keyword) * remaining_percentage, output_field=FloatField())
+        total_query = Sum(F('products__' + field_keyword) * remaining_percentage, output_field=models.FloatField())
 
         all_sales = report.sale_set.annotate(
             total=total_query,
-            other_owners_total=Sum(F('products__' + field_keyword) * 0.1, output_field=FloatField(),
-                                   filter=~Q(products__owner=owner))
+            other_owners_total=Sum(F('products__' + field_keyword) * 0.1, output_field=models.FloatField(),
+                                   filter=~Q(products__owner=owner) & Q(products__net_price__isnull=False))
         )
 
-        list_of_all_products = [sale.total if sale.products.count() else 0 for sale in all_sales]
-        list_of_other_owners_products = [sale.other_owners_total if sale.products.count() else 0 for sale in all_sales]
+        list_of_all_products = [sale.total if sale.products.count() and sale.total is not None else 0 for sale in
+                                all_sales]
+        list_of_other_owners_products = [
+            sale.other_owners_total if sale.products.count() and sale.other_owners_total is not None else 0 for sale in
+            all_sales]
 
         list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
 
-        return f"₡%{sum(list_of_all_products):,.2f}"
+        return f"₡{sum(list_of_all_products):,.2f}"
 
     def total_business(self, report: Report):
         return self._calculate_total_for(report, OwnerEnum.Business)
