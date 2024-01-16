@@ -234,11 +234,11 @@ class ReportAdmin(admin.ModelAdmin):
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
 
         field_keyword = 'payment__net_price'
-        total_query = Sum(F('products__' + field_keyword) * remaining_percentage, output_field=models.FloatField())
+        total_query = Sum(F('products__' + field_keyword) * remaining_percentage, output_field=FloatField())
 
         all_sales = report.sale_set.annotate(
             total=total_query,
-            other_owners_total=Sum(F('products__' + field_keyword) * 0.1, output_field=models.FloatField(),
+            other_owners_total=Sum(F('products__' + field_keyword) * 0.1, output_field=FloatField(),
                                    filter=~Q(products__owner=owner) & Q(products__net_price__isnull=False))
         )
 
