@@ -3,7 +3,8 @@ from io import BytesIO
 
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
-from django.db.models import Q
+from django.db.models import F, Sum, Case, When
+from django.db import models
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -228,35 +229,26 @@ class ReportAdmin(admin.ModelAdmin):
         return f"₡{sum([sale.net_total for sale in report.sale_set.all()]):,}"
 
     def _calculate_total_for(self, report: Report, owner: OwnerEnum):
-        if not report: return 0
-        field_keyword = 'payment__net_price'
-        remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
+        if not report:
+            return 0
 
-        all_sales = report.sale_set.all()
+        remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
+        field_keyword = 'payment__net_price'
+
+        total_query = Sum(
+            F('products__' + field_keyword) * Case(
+                When(products__owner=owner, then=remaining_percentage),
+                default=0.1,
+                output_field=models.FloatField()
+            ),
+            output_field=models.FloatField()
+        )
+
+        all_sales = report.sale_set.all().annotate(total=total_query)
 
         list_of_all_products = [
-            list(
-                sale.products.filter(owner__exact=owner).values(field_keyword)
-            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for sale in all_sales
+            sale.total if sale.total is not None else 0 for sale in all_sales
         ]
-
-        list_of_all_products = reduce(lambda a,b: a+b, list_of_all_products) if len(list_of_all_products) else [{field_keyword: 0}]
-        list_of_all_products = [float(total.get(field_keyword))*remaining_percentage if total.get(field_keyword) else 0 for total in list_of_all_products]
-
-        if owner == OwnerEnum.Business:
-
-            list_of_other_owners_products = [
-                list(sale.products.filter(~Q(owner__exact=owner)).values(field_keyword)) for sale in all_sales
-            ]
-            list_of_other_owners_products = reduce(lambda a,b: a+b, list_of_other_owners_products) if len(list_of_other_owners_products) else [{field_keyword: 0}]
-            list_of_other_owners_products = [
-                float(total.get(field_keyword))*0.1 if total.get(field_keyword) else 0 for total in list_of_other_owners_products
-            ]
-            list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
-
-
-            # Add repairs and requests
-
 
         return f"₡{sum(list_of_all_products):,.2f}"
 
