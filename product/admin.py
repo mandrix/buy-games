@@ -239,7 +239,7 @@ class ReportAdmin(admin.ModelAdmin):
         all_sales = report.sale_set.annotate(
             total=total_query,
             other_owners_total=Sum(F('products__' + field_keyword) * 0.1, output_field=FloatField(),
-                                   filter=~Q(products__owner=owner) & Q(products__net_price__isnull=False))
+                                   filter=~Q(products__owner=owner) & Q(products__payment__net_price__isnull=False))
         )
 
         list_of_all_products = [sale.total if sale.products.count() and sale.total is not None else 0 for sale in
