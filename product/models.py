@@ -314,6 +314,7 @@ class Product(models.Model):
         amount = self.amount
         self.amount = 1
         self.save()
+        current_tags = self.tags.all()
         for _ in range(amount - 1):
             copy = self
 
@@ -322,6 +323,9 @@ class Product(models.Model):
             copy.pk = None
             copy.payment = None
             copy.amount = 1
+            copy.save()
+
+            copy.tags.set(current_tags)
             copy.save()
 
             additional_info.pk = None
