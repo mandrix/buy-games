@@ -80,6 +80,6 @@ class BelowThreshHoldFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'to_notify':
             all_products = queryset.all()
-            filtered_products = [product.id for product in all_products if product.amount_to_notify and  product.amount_to_notify <= product.copies]
+            filtered_products = [product.id for product in all_products if product.amount_to_notify and  product.amount_to_notify >= product.copies]
             return all_products.filter(id__in=filtered_products)
         return queryset.all()
