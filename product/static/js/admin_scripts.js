@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Scroll to the bottom of the page when the button is clicked
     function scrollToBottom() {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        document.getElementById("changelist-filter").scrollIntoView({ behavior: 'smooth' });
     }
 
     // Attach event listeners
