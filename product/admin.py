@@ -55,8 +55,8 @@ class ProductAdmin(admin.ModelAdmin):
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used_display', 'owner', 'etiquetas')
     model = Product
-    list_filter = ('tags', SoldFilter, TypeFilter, BelowThreshHoldFilter,
-                   ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', )
+    list_filter = (SoldFilter, TypeFilter, BelowThreshHoldFilter,
+                   ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags', )
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
