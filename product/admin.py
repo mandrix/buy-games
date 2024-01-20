@@ -15,7 +15,7 @@ from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
-    StateEnum, Expense, Payment, Tag, OwnerEnum
+    StateEnum, Expense, Payment, Tag, OwnerEnum, SaleTypeEnum
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
@@ -324,31 +324,39 @@ class SaleAdmin(admin.ModelAdmin):
                        "discounts": formatted_number(obj.discount), "total_amount": formatted_number(obj.gross_total)
                        }
 
-            product = obj.products.all()[0]
-            if product.state == StateEnum.reserved:
-                items = [{
-                    'id': product.id,
-                    'name': product.__str__(),
-                    'price': formatted_number(product.payment.sale_price - product.payment.remaining),
-                    'status': "APARTADO"
-                }]
-
-                items_remaining = [{
-                    'id': product.id,
-                    'name': product.__str__(),
-                    'remaining': formatted_number(product.payment.remaining)
-                }]
-
-                context['items_remaining'] = items_remaining
+            items = []
+            if obj.type == SaleTypeEnum.Repair:
+                formatted_price = formatted_number(obj.gross_total)
+                items.append({
+                    'id': "S",
+                    'name': "---Reparaciòn---",
+                    'price': formatted_price
+                })
             else:
-                items = []
-                for item in obj.products.all():
-                    formatted_price = formatted_number(item.payment.sale_price)
+                product = obj.products.all()[0]
+                if product.state == StateEnum.reserved:
                     items.append({
-                        'id': item.id,
-                        'name': item.__str__(),
-                        'price': formatted_price
+                        'id': product.id,
+                        'name': product.__str__(),
+                        'price': formatted_number(product.payment.sale_price - product.payment.remaining),
+                        'status': "APARTADO"
                     })
+
+                    items_remaining = [{
+                        'id': product.id,
+                        'name': product.__str__(),
+                        'remaining': formatted_number(product.payment.remaining)
+                    }]
+
+                    context['items_remaining'] = items_remaining
+                else:
+                    for item in obj.products.all():
+                        formatted_price = formatted_number(item.payment.sale_price)
+                        items.append({
+                            'id': item.id,
+                            'name': item.__str__(),
+                            'price': formatted_price
+                        })
 
             context['items'] = items
             context['subtotal'] = formatted_number(obj.subtotal)
