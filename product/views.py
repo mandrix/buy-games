@@ -150,7 +150,7 @@ class GenerateExcelOfProducts(APIView):
 
         products = products.filter(barcode__in=product_barcodes.values('barcode'))
         rows = [
-            [str(product), product.sale_price, str(product.console_type), product.get_product_type()] for product in products
+            [str(product), product.sale_price, product.description, str(product.console_type), product.get_product_type()] for product in products
         ]
 
         wb = Workbook()
@@ -160,8 +160,9 @@ class GenerateExcelOfProducts(APIView):
         sheet.title = "Productos"
         sheet['A1'] = "Nombre"
         sheet['B1'] = "Precio"
-        sheet['C1'] = "Consola"
-        sheet['D1'] = "Tipo"
+        sheet['C1'] = "Descripción"
+        sheet['D1'] = "Consola"
+        sheet['E1'] = "Tipo"
 
         # Make titles bold
         for cell in sheet['1:1']:
@@ -172,6 +173,7 @@ class GenerateExcelOfProducts(APIView):
             sheet[f"B{row_num+2}"] = f"₡{row[1]:,.2f}"
             sheet[f"C{row_num+2}"] = row[2]
             sheet[f"D{row_num+2}"] = row[3]
+            sheet[f"E{row_num+2}"] = row[4]
 
             # Set the column width based on content length
             for column in sheet.columns:
