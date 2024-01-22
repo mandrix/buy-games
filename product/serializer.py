@@ -63,22 +63,25 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    videogame_set = VideoGameSerializer(many=True)
-    console_set = ConsoleSerializer(many=True)
-    collectable_set = CollectableSerializer(many=True)
-    accessory_set = AccessorySerializer(many=True)
-    type = SerializerMethodField()
-    payment = PaymentSerializer(required=True)
+    category = SerializerMethodField()
+    price = SerializerMethodField()
+    name = SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ["payment", "barcode", "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
+        fields = ["barcode", "category", "name", "price", "description"]
 
-    def get_type(self, obj: Product):
+    def get_category(self, obj: Product):
         try:
             return obj.get_product_type()
         except:
             return "N/A"
+
+    def get_price(self, obj: Product):
+        return obj.sale_price
+
+    def get_name(self, obj: Product):
+        return str(obj)
 
 
 class ProductSerializerToShow(serializers.ModelSerializer):
