@@ -1,6 +1,7 @@
 from tempfile import NamedTemporaryFile
 
 from django.db.models import Sum, Count, IntegerField, Q
+from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 from rest_framework import viewsets
@@ -149,7 +150,7 @@ class GenerateExcelOfProducts(APIView):
 
         products = products.filter(barcode__in=product_barcodes.values('barcode'))
         rows = [
-            [str(product), product.description, product.sale_price, str(product.console_type), product.get_product_type()] for product in products
+            [str(product), product.sale_price, str(product.console_type), product.get_product_type()] for product in products
         ]
 
         wb = Workbook()
@@ -158,17 +159,19 @@ class GenerateExcelOfProducts(APIView):
         sheet = wb.active
         sheet.title = "Productos"
         sheet['A1'] = "Nombre"
-        sheet['B1'] = "Descripción"
-        sheet['C1'] = "Precio"
-        sheet['D1'] = "Consola"
-        sheet['E1'] = "Tipo"
+        sheet['B1'] = "Precio"
+        sheet['C1'] = "Consola"
+        sheet['D1'] = "Tipo"
+
+        # Make titles bold
+        for cell in sheet['1:1']:
+            cell.font = Font(bold=True)
 
         for row_num, row in enumerate(rows):
             sheet[f"A{row_num+2}"] = row[0]
-            sheet[f"B{row_num+2}"] = row[1]
-            sheet[f"C{row_num+2}"] = f"₡{row[2]:,.2f}"
+            sheet[f"B{row_num+2}"] = f"₡{row[1]:,.2f}"
+            sheet[f"C{row_num+2}"] = row[2]
             sheet[f"D{row_num+2}"] = row[3]
-            sheet[f"E{row_num+2}"] = row[4]
 
             # Set the column width based on content length
             for column in sheet.columns:
@@ -192,7 +195,14 @@ class GenerateExcelOfProducts(APIView):
 
         # Create an HttpResponse with the Excel file
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = f'attachment; filename=productos.xlsx'
+
+        # Get today's date
+        today_date = datetime.now()
+
+        # Format the date as a string in "DD-MM-YYYY" format
+        formatted_date = today_date.strftime("%d-%m-%Y\ %H:%M")
+
+        response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}.xlsx'
         response.write(new_file_object)
 
         return response
