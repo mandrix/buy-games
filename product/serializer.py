@@ -77,7 +77,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ["payment", "barcode", "name", "price", "description",
                   "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
 
-    def get_category(self, obj: Product):
+    def get_type(self, obj: Product):
         try:
             return obj.get_product_type()
         except:
