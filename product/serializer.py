@@ -63,9 +63,14 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    category = SerializerMethodField()
     price = SerializerMethodField()
     name = SerializerMethodField()
+    videogame_set = VideoGameSerializer(many=True)
+    console_set = ConsoleSerializer(many=True)
+    collectable_set = CollectableSerializer(many=True)
+    accessory_set = AccessorySerializer(many=True)
+    type = SerializerMethodField()
+    payment = PaymentSerializer(required=True)
 
     class Meta:
         model = Product
