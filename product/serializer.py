@@ -74,7 +74,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ["barcode", "category", "name", "price", "description"]
+        fields = ["payment", "barcode", "name", "price", "description",
+                  "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
 
     def get_category(self, obj: Product):
         try:
