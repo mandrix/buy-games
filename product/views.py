@@ -1,5 +1,6 @@
 from django.db.models import Sum, Count, IntegerField
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
 from rest_framework.response import Response
 from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale
@@ -15,10 +16,29 @@ from django.http import JsonResponse
 from django.db.models.functions import Cast
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.filter(state=StateEnum.available)
     serializer_class = ProductSerializer
+    pagination_class = StandardResultsSetPagination
     permission_classes = []
+
+    def get_queryset(self):
+        """
+        Optionally restricts the returned purchases to a given user,
+        by filtering against a `username` query parameter in the URL.
+        """
+        tags = self.request.query_params.get('tags')
+        if not tags:
+            return self.queryset
+
+        tags = tags.split(",")
+        return self.queryset.filter(tags__name__in=tags)
 
     def retrieve(self, request, *args, **kwargs):
         self.queryset = Product.objects.filter(state__in=[StateEnum.available, StateEnum.reserved])
