@@ -5,6 +5,8 @@ from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
 from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.urls import path
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter

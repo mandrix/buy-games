@@ -34,15 +34,19 @@ class TypeFilter(admin.SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() == 'videogame':
-            return queryset.filter(videogame__isnull=False)
-        elif self.value() == 'console':
-            return queryset.filter(console__isnull=False)
-        elif self.value() == 'accessory':
-            return queryset.filter(accessory__isnull=False)
-        elif self.value() == 'collectable':
-            return queryset.filter(collectable__isnull=False)
+        return self.get_products_by_type(self.value(), queryset)
 
+
+    @staticmethod
+    def get_products_by_type(product_type: str, queryset):
+        if product_type == 'videogame':
+            return queryset.filter(videogame__isnull=False)
+        elif product_type == 'console':
+            return queryset.filter(console__isnull=False)
+        elif product_type == 'accessory':
+            return queryset.filter(accessory__isnull=False)
+        elif product_type == 'collectable':
+            return queryset.filter(collectable__isnull=False)
 
 class SoldFilter(admin.SimpleListFilter):
     title = 'Estado de Producto'

@@ -1,18 +1,23 @@
-from django.db.models import Sum, Count, IntegerField
+from tempfile import NamedTemporaryFile
+
+from django.db.models import Sum, Count, IntegerField, Q
+from openpyxl.utils import get_column_letter
+from openpyxl.workbook import Workbook
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 
 from rest_framework.response import Response
+
+from product.filters import TypeFilter
 from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
     ReportSerializer
-from django_filters import rest_framework as django_filters
 from datetime import datetime
 
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework import filters, status
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models.functions import Cast
 
 
@@ -118,3 +123,76 @@ class ReportViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(date=date_param)
 
         return queryset.annotate(total_products=Sum('sale__products__sale_price'))
+
+
+class GenerateExcelOfProducts(APIView):
+
+    def get(self, request):
+        products = Product.objects.filter(state=StateEnum.available)
+
+        console = request.query_params.get("console_title")
+        product_type = request.query_params.get("type")
+        used = request.query_params.get("used")
+
+        if console:
+            products = products.filter(
+                Q(console__title=console) | Q(videogame__console=console) | Q(accessory__console=console)
+            )
+
+        if product_type:
+            products = TypeFilter.get_products_by_type(product_type, products)
+
+        if used and used.isnumeric():
+            products = products.filter(used=int(used))
+
+        product_barcodes = Product.objects.values('barcode').distinct()
+
+        products = products.filter(barcode__in=product_barcodes.values('barcode'))
+        rows = [
+            [str(product), product.description, product.sale_price, str(product.console_type), product.get_product_type()] for product in products
+        ]
+
+        wb = Workbook()
+
+        # Add data to the Excel workbook (replace this with your actual data)
+        sheet = wb.active
+        sheet.title = "Productos"
+        sheet['A1'] = "Nombre"
+        sheet['B1'] = "Descripción"
+        sheet['C1'] = "Precio"
+        sheet['D1'] = "Consola"
+        sheet['E1'] = "Tipo"
+
+        for row_num, row in enumerate(rows):
+            sheet[f"A{row_num+2}"] = row[0]
+            sheet[f"B{row_num+2}"] = row[1]
+            sheet[f"C{row_num+2}"] = f"₡{row[2]:,.2f}"
+            sheet[f"D{row_num+2}"] = row[3]
+            sheet[f"E{row_num+2}"] = row[4]
+
+            # Set the column width based on content length
+            for column in sheet.columns:
+                max_length = 0
+                column = [cell for cell in column]
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(cell.value)
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
+
+        with NamedTemporaryFile() as tmp:
+            tmp.close()  # with statement opened tmp, close it so wb.save can open it
+            wb.save(tmp.name)
+            with open(tmp.name, 'rb') as f:
+                f.seek(0)  # probably not needed anymore
+                new_file_object = f.read()
+
+        # Create an HttpResponse with the Excel file
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=productos.xlsx'
+        response.write(new_file_object)
+
+        return response
