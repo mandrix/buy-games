@@ -134,7 +134,7 @@ class GenerateBill(TemplateView):
                         payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
-                        payment.net_price = float(item['price'])
+                        payment.net_price = float(data['totalAmount'])
                         payment.save()
                     else:
                         sale.type = SaleTypeEnum.Purchase
