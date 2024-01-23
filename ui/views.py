@@ -106,6 +106,7 @@ class GenerateBill(TemplateView):
             report, created = Report.objects.get_or_create(date=today)
             warranty_type = return_policy_options[data['returnPolicy']]["name"]
             net_total = - float(data['discounts'])
+            payment_details = data['paymentDetails'] + (" " + data['customerPhone'] if data['customerPhone'] else "")
             sale = Sale.objects.create(
                 report=report,
                 warranty_type=warranty_type,
@@ -115,7 +116,7 @@ class GenerateBill(TemplateView):
                 discount=data['discounts'],
                 taxes=data['taxes'],
                 gross_total=data['totalAmount'],
-                payment_details=data['paymentDetails'],
+                payment_details=payment_details,
                 receipt_comments=data['receiptComments'],
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
