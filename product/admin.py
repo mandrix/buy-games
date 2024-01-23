@@ -321,7 +321,8 @@ class SaleAdmin(admin.ModelAdmin):
                        'receipt_number': "", 'purchase_date': obj.purchase_date_time,
                        'customer_name': obj.customer_name, 'customer_mail': obj.customer_mail,
                        'payment_method': obj.payment_method,
-                       'payment_details': obj.payment_details, 'receipt_comments': obj.payment_details,
+                       'payment_details': obj.payment_details,
+                       'receipt_comments': obj.receipt_comments,
                        'return_policy': qrOptions[1], 'qr_url': qrLinkOptions[1],
                        "discounts": formatted_number(obj.discount), "total_amount": formatted_number(obj.gross_total)
                        }

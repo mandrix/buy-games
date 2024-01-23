@@ -116,6 +116,7 @@ class GenerateBill(TemplateView):
                 taxes=data['taxes'],
                 gross_total=data['totalAmount'],
                 payment_details=data['paymentDetails'],
+                receipt_comments=data['receiptComments'],
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
             )
