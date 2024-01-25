@@ -3,7 +3,6 @@ import tempfile
 from functools import reduce
 from io import BytesIO
 from tempfile import NamedTemporaryFile
-import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 
 from django.db.models import Sum, Count, IntegerField, Q
