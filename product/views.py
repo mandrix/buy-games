@@ -264,8 +264,8 @@ class GenerateImageOfProducts(APIView):
 
         with open(temp_csv.name, "r") as temp_csv:
             csv_reader = csv.reader(temp_csv)
-            data = list(csv_reader)
-            data_matrix = GenerateImageOfProducts.chunk_list(data, 60)
+            csv_data = list(csv_reader)
+            data_matrix = GenerateImageOfProducts.chunk_list(csv_data, 60)
 
             # Set font properties
             font_size = 12
@@ -306,7 +306,7 @@ class GenerateImageOfProducts(APIView):
 
                 images.append(image_bytes)
 
-                if len(data) <= 60:
+                if len(csv_data) <= 60:
                     response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
                     response.write(image_bytes.getvalue())
 
