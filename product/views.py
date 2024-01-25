@@ -250,7 +250,7 @@ class GenerateImageOfProducts(APIView):
         today_date = datetime.now()
 
         # Format the date as a string in "DD-MM-YYYY" format
-        formatted_date = today_date.strftime("%d-%m-%Y\ %H:%M")
+        formatted_date = today_date.strftime("%d-%m-%Y_%H:%M")
 
         # Create a temporary CSV file
         with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.csv') as temp_csv:
@@ -275,11 +275,12 @@ class GenerateImageOfProducts(APIView):
             # Calculate image size based on the number of rows and columns
             row_height = 20
             column_width = 150
-            image_width = len(csv_data[0]) * column_width
-            image_height = (len(csv_data) + 1) * row_height  # +1 for header
 
             images = []
             for data in data_matrix:
+                image_width = len(csv_data[0]) * column_width
+                image_height = (len(csv_data) + 1) * row_height  # +1 for header
+
                 # Create a new image
                 image = Image.new('RGB', (image_width, image_height), color='white')
                 draw = ImageDraw.Draw(image)
