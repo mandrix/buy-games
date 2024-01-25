@@ -235,12 +235,14 @@ class Product(models.Model):
 
     def __str__(self):
         try:
-            return self.get_additional_product_info().get_title_display()
+            display = self.get_additional_product_info().get_title_display()
         except:
             try:
-                return self.get_additional_product_info().title
+                display = self.get_additional_product_info().title
             except:
                 return "ERROR sin info adicional"
+
+        return " ".join(word.capitalize() for word in display.lower().split())
 
     def generate_barcode(self, *args, **kwargs):
         self.barcode = ''.join(random.choice('0123456789') for _ in range(12))
