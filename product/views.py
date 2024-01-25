@@ -1,5 +1,6 @@
 import csv
 import tempfile
+import zipfile
 from functools import reduce
 from io import BytesIO
 from tempfile import NamedTemporaryFile
@@ -225,6 +226,20 @@ class GenerateExcelOfProducts(APIView):
 
 class GenerateImageOfProducts(APIView):
 
+    @staticmethod
+    def chunk_list(input_list, chunk_size):
+        """
+        Split a list into chunks of a specified size.
+
+        Parameters:
+        - input_list: The list to be chunked.
+        - chunk_size: The size of each chunk.
+
+        Returns:
+        A list of chunks, where each chunk is a sublist of the input_list.
+        """
+        return [input_list[i:i + chunk_size] for i in range(0, len(input_list), chunk_size)]
+
     def get(self, request):
         products, wb, console = GenerateExcelOfProducts.get_products_and_create_temp_file(request)
 
@@ -250,6 +265,7 @@ class GenerateImageOfProducts(APIView):
         with open(temp_csv.name, "r") as temp_csv:
             csv_reader = csv.reader(temp_csv)
             data = list(csv_reader)
+            data_matrix = GenerateImageOfProducts.chunk_list(data, 60)
 
             # Set font properties
             font_size = 12
@@ -262,24 +278,49 @@ class GenerateImageOfProducts(APIView):
             image_width = len(data[0]) * column_width
             image_height = (len(data) + 1) * row_height  # +1 for header
 
-            # Create a new image
-            image = Image.new('RGB', (image_width, image_height), color='white')
-            draw = ImageDraw.Draw(image)
+            images = []
+            for data in data_matrix:
+                # Create a new image
+                image = Image.new('RGB', (image_width, image_height), color='white')
+                draw = ImageDraw.Draw(image)
 
-            # Draw headers
-            for i, header in enumerate(data[0]):
-                draw.text((i * column_width, 0), header, font=font, fill='black')
+                # Draw headers
+                for i, header in enumerate(data[0]):
+                    draw.text((i * column_width, 0), header, font=font, fill='black')
 
-            # Draw data rows
-            for row_num, row_data in enumerate(data[1:], start=1):
-                for col_num, cell_data in enumerate(row_data):
-                    draw.text((col_num * column_width, row_num * row_height), cell_data, font=font, fill='black')
+                # Draw data rows
+                for row_num, row_data in enumerate(data[1:], start=1):
+                    prev_x = 0
+                    for col_num, cell_data in enumerate(row_data):
+                        draw.text((col_num * column_width + prev_x, row_num * row_height), cell_data, font=font, fill='black')
+                        prev_x = col_num * column_width + 30
 
-            # Save the image as PNG in memory (BytesIO)
-            image_bytes = BytesIO()
-            image.save(image_bytes, format='PNG')
+                # Save the image as PNG in memory (BytesIO)
+                image_bytes = BytesIO()
+                image.save(image_bytes, format='PNG')
+                image_bytes.seek(0)
 
-        response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
-        response.write(image_bytes.getvalue())
+                # Save BytesIO image as a temporary file
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
+                    temp_file.write(image_bytes.read())
+
+                images.append(image_bytes)
+
+                if len(data) <= 60:
+                    response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
+                    response.write(image_bytes.getvalue())
+
+                    return response
+
+        def zip_files(files):
+            outfile = BytesIO()
+            with zipfile.ZipFile(outfile, 'w') as zf:
+                for n, f in enumerate(files):
+                    zf.writestr(f"productos_{formatted_date}_{console}_{n}.png", f.getvalue())
+            return outfile.getvalue()
+
+        zipped_file = zip_files(images)
+        response = HttpResponse(zipped_file, content_type='application/octet-stream')
+        response['Content-Disposition'] = 'attachment; filename=productos.zip'
 
         return response
