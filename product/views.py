@@ -1,4 +1,10 @@
+import csv
+import tempfile
+from functools import reduce
+from io import BytesIO
 from tempfile import NamedTemporaryFile
+import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw, ImageFont
 
 from django.db.models import Sum, Count, IntegerField, Q
 from openpyxl.styles import Font
@@ -129,32 +135,56 @@ class ReportViewSet(viewsets.ModelViewSet):
 class GenerateExcelOfProducts(APIView):
 
     def get(self, request):
+        new_file_object, _, console = self.get_products_and_create_temp_file(request)
+
+        # Create an HttpResponse with the Excel file
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+        # Get today's date
+        today_date = datetime.now()
+
+        # Format the date as a string in "DD-MM-YYYY" format
+        formatted_date = today_date.strftime("%d-%m-%Y\ %H:%M")
+
+        response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console if console else ""}.xlsx'
+        response.write(new_file_object)
+
+        return response
+
+    @staticmethod
+    def get_products_and_create_temp_file(request):
         products = Product.objects.filter(state=StateEnum.available)
 
         console = request.query_params.get("console_title")
         product_type = request.query_params.get("type")
         used = request.query_params.get("used")
+        product_name = request.query_params.get("name")
 
         if console:
             products = products.filter(
                 Q(console__title=console) | Q(videogame__console=console) | Q(accessory__console=console)
             )
-
         if product_type:
             products = TypeFilter.get_products_by_type(product_type, products)
-
         if used and used.isnumeric():
             products = products.filter(used=int(used))
+        if product_name:
+            # List of fields to search in
+            search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
+                             "description"]
+
+            # Construct the OR condition using list comprehensions
+            or_condition = reduce(lambda q, field: q | Q(**{f"{field}__icontains": product_name}), search_fields, Q())
+            # Apply the filter to your queryset
+            products = products.filter(or_condition)
 
         product_barcodes = Product.objects.values('barcode').distinct()
-
         products = products.filter(barcode__in=product_barcodes.values('barcode'))
         rows = [
-            [str(product), product.sale_price, product.description, str(product.console_type), product.get_product_type()] for product in products
+            [str(product), product.sale_price, product.description, str(product.console_type),
+             product.get_product_type()] for product in products
         ]
-
         wb = Workbook()
-
         # Add data to the Excel workbook (replace this with your actual data)
         sheet = wb.active
         sheet.title = "Productos"
@@ -163,17 +193,15 @@ class GenerateExcelOfProducts(APIView):
         sheet['C1'] = "Descripción"
         sheet['D1'] = "Consola"
         sheet['E1'] = "Tipo"
-
         # Make titles bold
         for cell in sheet['1:1']:
             cell.font = Font(bold=True)
-
         for row_num, row in enumerate(rows):
-            sheet[f"A{row_num+2}"] = row[0]
-            sheet[f"B{row_num+2}"] = f"₡{row[1]:,.2f}"
-            sheet[f"C{row_num+2}"] = row[2]
-            sheet[f"D{row_num+2}"] = row[3]
-            sheet[f"E{row_num+2}"] = row[4]
+            sheet[f"A{row_num + 2}"] = row[0]
+            sheet[f"B{row_num + 2}"] = f"₡{row[1]:,.2f}"
+            sheet[f"C{row_num + 2}"] = row[2]
+            sheet[f"D{row_num + 2}"] = row[3]
+            sheet[f"E{row_num + 2}"] = row[4]
 
             # Set the column width based on content length
             for column in sheet.columns:
@@ -187,16 +215,22 @@ class GenerateExcelOfProducts(APIView):
                         pass
                 adjusted_width = (max_length + 2)
                 sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
-
         with NamedTemporaryFile() as tmp:
             tmp.close()  # with statement opened tmp, close it so wb.save can open it
             wb.save(tmp.name)
             with open(tmp.name, 'rb') as f:
                 f.seek(0)  # probably not needed anymore
                 new_file_object = f.read()
+        return new_file_object, wb, console
+
+
+class GenerateImageOfProducts(APIView):
+
+    def get(self, request):
+        products, wb, console = GenerateExcelOfProducts.get_products_and_create_temp_file(request)
 
         # Create an HttpResponse with the Excel file
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(content_type='image/png')
 
         # Get today's date
         today_date = datetime.now()
@@ -204,7 +238,49 @@ class GenerateExcelOfProducts(APIView):
         # Format the date as a string in "DD-MM-YYYY" format
         formatted_date = today_date.strftime("%d-%m-%Y\ %H:%M")
 
-        response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}.xlsx'
-        response.write(new_file_object)
+        # Create a temporary CSV file
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.csv') as temp_csv:
+            csv_writer = csv.writer(temp_csv)
+
+            # Iterate through all sheets in the workbook
+            for sheet in wb.sheetnames:
+                current_sheet = wb[sheet]
+                for row in current_sheet.iter_rows(values_only=True):
+                    csv_writer.writerow(row)
+
+        with open(temp_csv.name, "r") as temp_csv:
+            csv_reader = csv.reader(temp_csv)
+            data = list(csv_reader)
+
+            # Set font properties
+            font_size = 12
+            font_path = './Arial.ttf'  # Replace with the path to a TrueType font file
+            font = ImageFont.truetype(font_path, font_size)
+
+            # Calculate image size based on the number of rows and columns
+            row_height = 20
+            column_width = 150
+            image_width = len(data[0]) * column_width
+            image_height = (len(data) + 1) * row_height  # +1 for header
+
+            # Create a new image
+            image = Image.new('RGB', (image_width, image_height), color='white')
+            draw = ImageDraw.Draw(image)
+
+            # Draw headers
+            for i, header in enumerate(data[0]):
+                draw.text((i * column_width, 0), header, font=font, fill='black')
+
+            # Draw data rows
+            for row_num, row_data in enumerate(data[1:], start=1):
+                for col_num, cell_data in enumerate(row_data):
+                    draw.text((col_num * column_width, row_num * row_height), cell_data, font=font, fill='black')
+
+            # Save the image as PNG in memory (BytesIO)
+            image_bytes = BytesIO()
+            image.save(image_bytes, format='PNG')
+
+        response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
+        response.write(image_bytes.getvalue())
 
         return response

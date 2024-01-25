@@ -47,11 +47,16 @@
         <ul class="object-tools">
           {% block object-tools-items %}
             {% change_list_object_tools %}
-            {% if request.GET.console_title or request.GET.tipo or request.GET.used__exact %}
+            {% if request.GET.console_title or request.GET.tipo or request.GET.used__exact or request.GET.q %}
               <li>
-                <a href="{% url 'products-excel' %}?console_title={{ request.GET.console_title }}&type={{ request.GET.tipo }}&used={{ request.GET.used__exact }}" class="addlink">
-                  📑Excel {{  request.GET.console_title  }}
+                <a href="{% url 'products-excel' %}?name={{ request.GET.q }}&console_title={{ request.GET.console_title }}&type={{ request.GET.tipo }}&used={{ request.GET.used__exact }}" class="addlink">
+                  📑Excel
                 </a>
+              </li>
+              <li>
+                  <a href="{% url 'products-image' %}?name={{ request.GET.q }}&console_title={{ request.GET.console_title }}&type={{ request.GET.tipo }}&used={{ request.GET.used__exact }}" class="addlink">
+                        📷Image
+                  </a>
               </li>
             {% endif %}
           {% endblock %}
