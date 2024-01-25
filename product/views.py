@@ -275,8 +275,8 @@ class GenerateImageOfProducts(APIView):
             # Calculate image size based on the number of rows and columns
             row_height = 20
             column_width = 150
-            image_width = len(data[0]) * column_width
-            image_height = (len(data) + 1) * row_height  # +1 for header
+            image_width = len(csv_data[0]) * column_width
+            image_height = (len(csv_data) + 1) * row_height  # +1 for header
 
             images = []
             for data in data_matrix:
