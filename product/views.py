@@ -46,11 +46,31 @@ class ProductViewSet(viewsets.ModelViewSet):
         by filtering against a `username` query parameter in the URL.
         """
         tags = self.request.query_params.get('tags')
-        if not tags:
+        consoles = self.request.query_params.get('consoles')
+        product_types = self.request.query_params.get('type')
+        if not any([tags,consoles,product_types]):
             return self.queryset
+        if tags:
+            tags = tags.split(",")
+            self.queryset = self.queryset.filter(tags__name__in=tags)
 
-        tags = tags.split(",")
-        return self.queryset.filter(tags__name__in=tags)
+        if consoles:
+            consoles = consoles.split(",")
+            self.queryset = self.queryset.filter(Q(console__title__in=consoles) |
+                                                 Q(videogame__console__in=consoles) |
+                                                 Q(accessory__console__in=consoles))
+
+        if product_types:
+            product_types = product_types.split(",")
+            if "videogame" in product_types:
+                self.queryset = self.queryset.filter(videogame__isnull=False)
+            if "console" in product_types:
+                self.queryset = self.queryset.filter(console__isnull=False)
+            if "accessory" in product_types:
+                self.queryset = self.queryset.filter(accessory__isnull=False)
+            if "collectable" in product_types:
+                self.queryset = self.queryset.filter(collectable__isnull=False)
+        return self.queryset
 
     def retrieve(self, request, *args, **kwargs):
         self.queryset = Product.objects.filter(state__in=[StateEnum.available, StateEnum.reserved])
