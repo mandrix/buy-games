@@ -317,7 +317,7 @@ class GenerateImageOfProducts(APIView):
                                    row_num * row_height)
                         draw.text(
                             position,
-                            cell_data,
+                            cell_data if len(cell_data) < 37 else cell_data[:36]+"...",
                             font=font,
                             fill='black'
                         )
