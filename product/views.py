@@ -152,7 +152,7 @@ class GenerateExcelOfProducts(APIView):
         return response
 
     @staticmethod
-    def get_products_and_create_temp_file(request):
+    def get_products_and_create_temp_file(request, type="excel"):
         products = Product.objects.filter(state=StateEnum.available)
 
         console = request.query_params.get("console_title")
@@ -181,8 +181,7 @@ class GenerateExcelOfProducts(APIView):
         product_barcodes = Product.objects.values('barcode').distinct()
         products = products.filter(barcode__in=product_barcodes.values('barcode'))
         rows = [
-            [str(product), product.sale_price, product.description, str(product.console_type),
-             product.get_product_type()] for product in products
+            [str(product), product.sale_price, product.description, str(product.console_type)] for product in products
         ]
         wb = Workbook()
         # Add data to the Excel workbook (replace this with your actual data)
@@ -192,16 +191,14 @@ class GenerateExcelOfProducts(APIView):
         sheet['B1'] = "Precio"
         sheet['C1'] = "Descripción"
         sheet['D1'] = "Consola"
-        sheet['E1'] = "Tipo"
         # Make titles bold
         for cell in sheet['1:1']:
             cell.font = Font(bold=True)
         for row_num, row in enumerate(rows):
             sheet[f"A{row_num + 2}"] = row[0]
-            sheet[f"B{row_num + 2}"] = f"₡{row[1]:,.2f}"
+            sheet[f"B{row_num + 2}"] = f"₡{row[1]:,.2f}" if type == "excel" else f"{row[1]:,.2f}"
             sheet[f"C{row_num + 2}"] = row[2]
             sheet[f"D{row_num + 2}"] = row[3]
-            sheet[f"E{row_num + 2}"] = row[4]
 
             # Set the column width based on content length
             for column in sheet.columns:
@@ -227,7 +224,7 @@ class GenerateExcelOfProducts(APIView):
 class GenerateImageOfProducts(APIView):
 
     @staticmethod
-    def chunk_list(input_list, chunk_size):
+    def chunk_list(input_list, chunk_size) -> list[list[list[str]]]:
         """
         Split a list into chunks of a specified size.
 
@@ -241,7 +238,7 @@ class GenerateImageOfProducts(APIView):
         return [input_list[i:i + chunk_size] for i in range(0, len(input_list), chunk_size)]
 
     def get(self, request):
-        products, wb, console = GenerateExcelOfProducts.get_products_and_create_temp_file(request)
+        products, wb, console = GenerateExcelOfProducts.get_products_and_create_temp_file(request, "image")
 
         # Create an HttpResponse with the Excel file
         response = HttpResponse(content_type='image/png')
@@ -250,7 +247,7 @@ class GenerateImageOfProducts(APIView):
         today_date = datetime.now()
 
         # Format the date as a string in "DD-MM-YYYY" format
-        formatted_date = today_date.strftime("%d-%m-%Y_%H:%M")
+        formatted_date = today_date.strftime("%d-%m-%Y_%H-%M")
 
         # Create a temporary CSV file
         with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.csv') as temp_csv:
@@ -265,53 +262,82 @@ class GenerateImageOfProducts(APIView):
         with open(temp_csv.name, "r") as temp_csv:
             csv_reader = csv.reader(temp_csv)
             csv_data = list(csv_reader)
-            data_matrix = GenerateImageOfProducts.chunk_list(csv_data, 60)
 
-            # Set font properties
-            font_size = 12
-            font_path = './Arial.ttf'  # Replace with the path to a TrueType font file
-            font = ImageFont.truetype(font_path, font_size)
+            chunk_size = 5  # How many rows per image
+            needs_chunking = len(csv_data) >= chunk_size  # If true, will be zipped
+
+            data_matrix = GenerateImageOfProducts.chunk_list(csv_data, chunk_size)
+
+            font, bold_font = GenerateImageOfProducts.fonts()
 
             # Calculate image size based on the number of rows and columns
             row_height = 20
             column_width = 150
 
             images = []
+            headers = data_matrix[0].pop(0)
             for data in data_matrix:
                 image_width = len(csv_data[0]) * column_width
-                image_height = (len(csv_data) + 1) * row_height  # +1 for header
+                image_height = len(csv_data) * (chunk_size if needs_chunking else row_height) + 35  # +35 for header and spacing
 
                 # Create a new image
-                image = Image.new('RGB', (image_width, image_height), color='white')
+                image = Image.new('RGB', (image_width, image_height),
+                                  color='white')
                 draw = ImageDraw.Draw(image)
 
+                name_pos = 0
+                name_max_length = len(
+                    reduce(
+                        lambda _prev_row, _row: _row if len(_row[name_pos]) > len(_prev_row[name_pos]) else _prev_row,
+                        data)[name_pos]
+                )
+                description_pos = 2
+                description_max_length = len(
+                    reduce(
+                        lambda _prev_row, _row: _row if len(_row[description_pos]) > len(_prev_row[description_pos]) else _prev_row,
+                        data)[description_pos]
+                )
+
+
                 # Draw headers
-                for i, header in enumerate(data[0]):
-                    draw.text((i * column_width, 0), header, font=font, fill='black')
+                for col_num, header in enumerate(headers):
+                    padding = name_max_length if col_num > name_pos else 0
+                    padding += description_max_length if col_num > description_pos else 0
+                    draw.text((col_num * column_width + padding, 0),
+                              header, font=bold_font, fill='black')
 
                 # Draw data rows
-                for row_num, row_data in enumerate(data[1:], start=1):
-                    prev_x = 0
+                for row_num, row_data in enumerate(data, start=1):
                     for col_num, cell_data in enumerate(row_data):
-                        draw.text((col_num * column_width + prev_x, row_num * row_height), cell_data, font=font, fill='black')
-                        prev_x = col_num * column_width + 30
+
+                        padding = name_max_length if col_num > name_pos else 0
+                        padding += description_max_length if col_num > description_pos else 0
+
+                        position =(col_num * column_width + padding,
+                                   row_num * row_height)
+                        draw.text(
+                            position,
+                            cell_data,
+                            font=font,
+                            fill='black'
+                        )
 
                 # Save the image as PNG in memory (BytesIO)
                 image_bytes = BytesIO()
                 image.save(image_bytes, format='PNG')
                 image_bytes.seek(0)
 
+                if not needs_chunking:
+                    response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
+                    response.write(image_bytes.getvalue())
+
+                    return response
+
                 # Save BytesIO image as a temporary file
                 with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
                     temp_file.write(image_bytes.read())
 
                 images.append(image_bytes)
-
-                if len(csv_data) <= 60:
-                    response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
-                    response.write(image_bytes.getvalue())
-
-                    return response
 
         def zip_files(files):
             outfile = BytesIO()
@@ -325,3 +351,16 @@ class GenerateImageOfProducts(APIView):
         response['Content-Disposition'] = 'attachment; filename=productos.zip'
 
         return response
+
+
+    @staticmethod
+    def fonts():
+        # Set font properties
+        font_size = 12
+        font_path = './fonts/Arial.ttf'  # Replace with the path to a TrueType font file
+        font = ImageFont.truetype(font_path, font_size)
+        # Set bold font properties
+        bold_font_size = 15
+        bold_font_path = './fonts/ArialBold.ttf'  # Replace with the path to a TrueType font file
+        bold_font = ImageFont.truetype(bold_font_path, bold_font_size)
+        return font, bold_font
