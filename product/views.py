@@ -263,7 +263,7 @@ class GenerateImageOfProducts(APIView):
             csv_reader = csv.reader(temp_csv)
             csv_data = list(csv_reader)
 
-            chunk_size = 5  # How many rows per image
+            chunk_size = 60  # How many rows per image
             needs_chunking = len(csv_data) >= chunk_size  # If true, will be zipped
 
             data_matrix = GenerateImageOfProducts.chunk_list(csv_data, chunk_size)
