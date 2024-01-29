@@ -272,13 +272,13 @@ class GenerateImageOfProducts(APIView):
 
             # Calculate image size based on the number of rows and columns
             row_height = 20
-            column_width = 150
+            column_width = 180
 
             images = []
             headers = data_matrix[0].pop(0)
             for data in data_matrix:
-                image_width = len(csv_data[0]) * column_width
-                image_height = len(csv_data) * (chunk_size if needs_chunking else row_height) + 35  # +35 for header and spacing
+                image_width = len(data[0]) * column_width
+                image_height = len(data) * row_height
 
                 # Create a new image
                 image = Image.new('RGB', (image_width, image_height),
@@ -310,14 +310,14 @@ class GenerateImageOfProducts(APIView):
                 for row_num, row_data in enumerate(data, start=1):
                     for col_num, cell_data in enumerate(row_data):
 
-                        padding = name_max_length if col_num > name_pos else 0
+                        padding = name_max_length if col_num > name_pos else 2
                         padding += description_max_length if col_num > description_pos else 0
 
                         position =(col_num * column_width + padding,
                                    row_num * row_height)
                         draw.text(
                             position,
-                            cell_data if len(cell_data) < 37 else cell_data[:36]+"...",
+                            cell_data if len(cell_data) < 34 else cell_data[:33]+"...",
                             font=font,
                             fill='black'
                         )
