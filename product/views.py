@@ -331,7 +331,7 @@ class GenerateImageOfProducts(APIView):
                 image_bytes.seek(0)
 
                 if not needs_chunking:
-                    response['Content-Disposition'] = f'attachment; filename=productos\ {formatted_date}\ {console}.png'
+                    response['Content-Disposition'] = f'attachment; filename={console}\ productos\ {formatted_date}.png'
                     response.write(image_bytes.getvalue())
 
                     return response
@@ -346,12 +346,12 @@ class GenerateImageOfProducts(APIView):
             outfile = BytesIO()
             with zipfile.ZipFile(outfile, 'w') as zf:
                 for n, f in enumerate(files):
-                    zf.writestr(f"productos_{formatted_date}_{console}_{n}.png", f.getvalue())
+                    zf.writestr(f"{console}_productos_{formatted_date}_{n}.png", f.getvalue())
             return outfile.getvalue()
 
         zipped_file = zip_files(images)
         response = HttpResponse(zipped_file, content_type='application/octet-stream')
-        response['Content-Disposition'] = 'attachment; filename=productos.zip'
+        response['Content-Disposition'] = f'attachment; filename={console}\ productos\ {formatted_date}.zip'
 
         return response
 
