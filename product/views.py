@@ -178,8 +178,11 @@ class GenerateExcelOfProducts(APIView):
             # Apply the filter to your queryset
             products = products.filter(or_condition)
 
-        product_barcodes = Product.objects.values('barcode').distinct()
-        products = products.filter(barcode__in=product_barcodes.values('barcode'))
+        # Remove duplicates by barcode
+        product_barcodes = [_product.get('barcode') for _product in products.values('barcode').distinct()]
+        product_barcodes_ids = [products.filter(barcode=barcode).first().id for barcode in product_barcodes]
+        products = products.filter(id__in=product_barcodes_ids)
+
         rows = [
             [str(product), product.sale_price, product.description, str(product.console_type)] for product in products
         ]
@@ -278,7 +281,7 @@ class GenerateImageOfProducts(APIView):
             headers = data_matrix[0].pop(0)
             for data in data_matrix:
                 image_width = len(data[0]) * column_width
-                image_height = len(data) * row_height
+                image_height = len(data) * row_height + 15
 
                 # Create a new image
                 image = Image.new('RGB', (image_width, image_height),
