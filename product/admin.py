@@ -1,10 +1,7 @@
-from datetime import date
-from functools import reduce
 from io import BytesIO
 
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
-from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -16,7 +13,7 @@ from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
-    StateEnum, Expense, Payment, Tag, OwnerEnum, SaleTypeEnum
+    StateEnum, Expense, Payment, Tag, SaleTypeEnum
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
@@ -240,11 +237,28 @@ class SaleInline(admin.TabularInline):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('date', 'total', 'total_business', 'total_mauricio', 'total_joseph')
+    list_display = ('date', 'display_total', 'display_total_business', 'display_total_mauricio', 'display_total_joseph')
     ordering = ("-date",)
     inlines = [SaleInline]
-
     readonly_fields = ("total",)
+
+    def display_total(self, obj):
+        return obj.calculate_total()
+
+    display_total.short_description = 'Total'
+
+    def display_total_business(self, obj):
+        return obj.calculated_total_business
+
+    display_total_business.short_description = 'Total Business'
+
+    def display_total_mauricio(self, obj):
+        return obj.calculated_total_mauricio
+
+    display_total_mauricio.short_description = 'Total Mauricio'
+
+    def display_total_joseph(self, obj):
+        return obj.calculated_total_joseph
 
 
 class SaleAdmin(admin.ModelAdmin):

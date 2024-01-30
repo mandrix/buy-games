@@ -1,6 +1,5 @@
 import datetime
-import decimal
-from datetime import date
+from datetime import date, timedelta
 from functools import reduce
 
 from colorfield.fields import ColorField
@@ -14,7 +13,7 @@ import random
 from django.db.models import Q
 
 from games.utils.storage_backends import PrivateMediaStorage
-from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
+from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
 
 
 class RegionEnum(models.TextChoices):
@@ -192,19 +191,19 @@ class Payment(models.Model):
     @admin.display(description='sale price', ordering='sale_price')
     def sale_price_formatted(self):
         if self.net_price:
-            return price_formatted(self.net_price)
+            return formatted_number(self.net_price)
 
     @property
     @admin.display(description='precio datafono', ordering='sale_price')
     def sale_price_with_card(self):
         if self.net_price:
-            return price_formatted(commission_price(self.net_price, factor_card()))
+            return formatted_number(commission_price(self.net_price, factor_card()))
 
     @property
     @admin.display(description='precio tasa 0', ordering='sale_price')
     def sale_price_with_tasa_0(self):
         if self.net_price:
-            return price_formatted(commission_price(self.net_price, factor_tasa_0()))
+            return formatted_number(commission_price(self.net_price, factor_tasa_0()))
 
 def food_path(instance, filename):
     return '{0}/{1}'.format(instance.category.name, filename)
@@ -388,13 +387,16 @@ class Report(models.Model):
         return self.date.strftime('%d de %B de %Y')
 
     def calculate_total(self):
-        if self.date == datetime.date.today():
-            return price_formatted(sum([sale.net_total for sale in self.sale_set.all()]))
-        return price_formatted(self.total)
+        yesterday = date.today() - timedelta(days=1)
 
-    def _calculate_total_for(self, owner: OwnerEnum):
-        if self.date != date.today():
-            return price_formatted(self.total if self.total else "₡0.00")
+
+        total_value = sum([sale.net_total for sale in self.sale_set.all()])
+        self.total = total_value
+        self.save()
+        return formatted_number(total_value)
+
+    def _calculate_total_for(self, owner: OwnerEnum, params):
+        yesterday = date.today() - timedelta(days=1)
 
         field_keyword = 'payment__net_price'
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
@@ -421,20 +423,25 @@ class Report(models.Model):
             list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
 
             # Add repairs and requests
-
-        return price_formatted(sum(list_of_all_products))
-
-    @property
-    def total_business(self):
-        return self._calculate_total_for(OwnerEnum.Business)
+        total_value = sum(list_of_all_products)
+        setattr(self, params['field'], total_value)
+        self.save()
+        return formatted_number(total_value)
 
     @property
-    def total_mauricio(self):
-        return self._calculate_total_for(OwnerEnum.Mauricio)
+    def calculated_total_business(self):
+        params = {'total': self.total_business, 'field': 'total_business'}
+        return self._calculate_total_for(OwnerEnum.Business, params)
 
     @property
-    def total_joseph(self):
-        return self._calculate_total_for(OwnerEnum.Joseph)
+    def calculated_total_mauricio(self):
+        params = {'total': self.total_mauricio, 'field': 'total_mauricio'}
+        return self._calculate_total_for(OwnerEnum.Mauricio, params)
+
+    @property
+    def calculated_total_joseph(self):
+        params = {'total': self.total_joseph, 'field': 'total_joseph'}
+        return self._calculate_total_for(OwnerEnum.Joseph, params)
 
 
 class SaleTypeEnum(models.TextChoices):

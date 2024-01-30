@@ -18,10 +18,6 @@ def factor_card():
     return 0.84
 
 
-def price_formatted(price):
-    return f'{price:,}₡'
-
-
 def commission_price(price, factor):
     return roundup_nearest_hundred(int(price) / decimal.Decimal(factor))
 
