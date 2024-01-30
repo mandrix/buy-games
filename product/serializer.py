@@ -118,7 +118,10 @@ class ProductSerializer(serializers.ModelSerializer):
         return str(obj)
 
     def get_console(self, obj: Product):
-        console_code = obj.get_additional_product_info().title if type(obj.get_additional_product_info()) == Console else obj.get_additional_product_info().console
+        if type(obj.get_additional_product_info()) == Collectable:
+            console_code = ""
+        else:
+            console_code = obj.get_additional_product_info().title if type(obj.get_additional_product_info()) == Console else obj.get_additional_product_info().console
         return {"console": str(obj.console_type), "console-code": console_code}
 
     def get_tags(self, obj: Product):
