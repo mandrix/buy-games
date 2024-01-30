@@ -128,7 +128,14 @@ class ProductSerializer(serializers.ModelSerializer):
         return [str(tag) for tag in obj.tags.all()]
 
     def get_image(self, obj: Product):
-        full_url = static("default.jpg")
+        request = self.context.get('request', None)
+        scheme = 'https://'
+
+        current_site = get_current_site(request) if request else None
+        domain = current_site.domain if current_site else ''
+
+
+        full_url = f'{scheme}{domain}{static("default.jpg")}'
         if obj.image:
             full_url = obj.image.url
         return full_url
