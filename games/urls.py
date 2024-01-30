@@ -30,8 +30,8 @@ admin.site.site_header = "Ready Games Admin"
 admin.site.site_title = "Ready Games Admin"
 admin.site.index_title = "Welcome to Ready Games Admin"
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# if settings.DEBUG:
+    # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.LOCAL_SERVE_STATIC_FILES:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
