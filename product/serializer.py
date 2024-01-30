@@ -95,7 +95,7 @@ class ProductSerializer(serializers.ModelSerializer):
     accessory_set = AccessorySerializer(many=True)
     type = SerializerMethodField()
     payment = PaymentSerializer(required=True)
-    image = FullURLField()
+    image = SerializerMethodField()
     console = SerializerMethodField()
     tags = TagsSerializer(many=True)
 
@@ -126,6 +126,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_tags(self, obj: Product):
         return [str(tag) for tag in obj.tags.all()]
+
+    def get_image(self, obj: Product):
+        full_url = static("default.jpg")
+        if obj.image:
+            full_url = obj.image.url
+        return full_url
+
 
 
 class ProductSerializerToShow(serializers.ModelSerializer):
