@@ -103,7 +103,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ["payment", "barcode", "name", "price", "description", "videogame_set",
                   "console_set", "accessory_set", "collectable_set", "type", "image", "id",
-                  "console", "tags"]
+                  "console", "tags", "used"]
 
     def get_type(self, obj: Product):
         try:
