@@ -118,7 +118,8 @@ class ProductSerializer(serializers.ModelSerializer):
         return str(obj)
 
     def get_console(self, obj: Product):
-        return str(obj.console_type)
+        console_code = obj.console_type.title if hasattr(obj.console_type, "title") else obj.get_additional_product_info().console
+        return {"console": str(obj.console_type), "console-code": console_code}
 
     def get_tags(self, obj: Product):
         return [str(tag) for tag in obj.tags.all()]
