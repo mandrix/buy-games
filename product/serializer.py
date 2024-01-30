@@ -1,3 +1,4 @@
+from django.contrib.sites.shortcuts import get_current_site
 from rest_framework import serializers
 from rest_framework.fields import CharField, SerializerMethodField, URLField
 
@@ -61,6 +62,19 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment_info = instance.check_payment()
         return payment_info
 
+class FullURLField(serializers.URLField):
+    def to_representation(self, value):
+        request = self.context.get('request', None)
+        if request and request.is_secure():
+            scheme = 'https://'
+        else:
+            scheme = 'http://'
+
+        current_site = get_current_site(request) if request else None
+        domain = current_site.domain if current_site else ''
+
+        full_url = f'{scheme}{domain}/media/{value}'
+        return super().to_representation(full_url)
 
 class ProductSerializer(serializers.ModelSerializer):
     price = SerializerMethodField()
@@ -71,7 +85,7 @@ class ProductSerializer(serializers.ModelSerializer):
     accessory_set = AccessorySerializer(many=True)
     type = SerializerMethodField()
     payment = PaymentSerializer(required=True)
-    image = URLField()
+    image = FullURLField()
 
     class Meta:
         model = Product
