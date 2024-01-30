@@ -4,7 +4,9 @@ from datetime import date
 from functools import reduce
 
 from colorfield.fields import ColorField
+from django.conf import settings
 from django.contrib import admin
+from django.core.files.storage import DefaultStorage
 from django.db import models
 import django.conf as conf
 import random
@@ -204,6 +206,8 @@ class Payment(models.Model):
         if self.net_price:
             return price_formatted(commission_price(self.net_price, factor_tasa_0()))
 
+def food_path(instance, filename):
+    return '{0}/{1}'.format(instance.category.name, filename)
 
 class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
@@ -224,7 +228,7 @@ class Product(models.Model):
 
     region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
     image = models.ImageField(upload_to='products/photos/', null=True,
-                              blank=True, storage=PrivateMediaStorage())
+                              blank=True, storage=DefaultStorage() if not settings.S3_ENABLED else PrivateMediaStorage())
 
     amount = models.PositiveIntegerField(default=1, help_text="Se generan copias si pones mas que uno")
     amount_to_notify = models.PositiveIntegerField(null=True, blank=True)
