@@ -65,10 +65,7 @@ class PaymentSerializer(serializers.ModelSerializer):
 class FullURLField(serializers.URLField):
     def to_representation(self, value):
         request = self.context.get('request', None)
-        if request and request.is_secure():
-            scheme = 'https://'
-        else:
-            scheme = 'http://'
+        scheme = 'https://'
 
         current_site = get_current_site(request) if request else None
         domain = current_site.domain if current_site else ''
