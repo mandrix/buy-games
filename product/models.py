@@ -1,11 +1,15 @@
 import datetime
 import decimal
+from datetime import date
+from functools import reduce
 
 from colorfield.fields import ColorField
 from django.contrib import admin
 from django.db import models
 import django.conf as conf
 import random
+
+from django.db.models import Q
 
 from games.utils.storage_backends import PrivateMediaStorage
 from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
@@ -233,8 +237,6 @@ class Product(models.Model):
 
     tags = models.ManyToManyField("Tag", related_name="products", blank=True)
 
-
-
     def __str__(self):
         try:
             display = self.get_additional_product_info().get_title_display()
@@ -369,9 +371,66 @@ class Product(models.Model):
 
 class Report(models.Model):
     date = models.DateField()
+    total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                help_text="En colones")
+    total_business = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                         help_text="En colones")
+    total_mauricio = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                         help_text="En colones")
+    total_joseph = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+                                       help_text="En colones")
 
     def __str__(self):
         return self.date.strftime('%d de %B de %Y')
+
+    def calculate_total(self):
+        if self.date == datetime.date.today():
+            return price_formatted(sum([sale.net_total for sale in self.sale_set.all()]))
+        return price_formatted(self.total)
+
+    def _calculate_total_for(self, owner: OwnerEnum):
+        if self.date != date.today():
+            return price_formatted(self.total if self.total else "₡0.00")
+
+        field_keyword = 'payment__net_price'
+        remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
+
+        all_sales = self.sale_set.all()
+
+        list_of_all_products = [
+            list(
+                sale.products.filter(owner__exact=owner).values(field_keyword)
+            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for sale in all_sales
+        ]
+
+        list_of_all_products = reduce(lambda a, b: a + b, list_of_all_products) if len(list_of_all_products) else [{field_keyword: 0}]
+        list_of_all_products = [float(total.get(field_keyword)) * remaining_percentage if total.get(field_keyword) else 0 for total in list_of_all_products]
+
+        if owner == OwnerEnum.Business:
+            list_of_other_owners_products = [
+                list(sale.products.filter(~Q(owner__exact=owner)).values(field_keyword)) for sale in all_sales
+            ]
+            list_of_other_owners_products = reduce(lambda a, b: a + b, list_of_other_owners_products) if len(list_of_other_owners_products) else [{field_keyword: 0}]
+            list_of_other_owners_products = [
+                float(total.get(field_keyword)) * 0.1 if total.get(field_keyword) else 0 for total in list_of_other_owners_products
+            ]
+            list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
+
+            # Add repairs and requests
+
+        return price_formatted(sum(list_of_all_products))
+
+    @property
+    def total_business(self):
+        return self._calculate_total_for(OwnerEnum.Business)
+
+    @property
+    def total_mauricio(self):
+        return self._calculate_total_for(OwnerEnum.Mauricio)
+
+    @property
+    def total_joseph(self):
+        return self._calculate_total_for(OwnerEnum.Joseph)
 
 
 class SaleTypeEnum(models.TextChoices):
