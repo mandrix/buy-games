@@ -13,3 +13,14 @@ class PublicMediaStorage(S3Boto3Storage):
     location = settings.PUBLIC_MEDIA_LOCATION
     default_acl = settings.PUBLIC_MEDIA_DEFAULT_ACL
     file_overwrite = False
+
+
+class PrivateMediaStorage(S3Boto3Storage):
+    """
+    Used to store & serve dynamic media files using access keys
+	and short-lived expirations to ensure more privacy control
+    """
+    location = settings.PRIVATE_MEDIA_LOCATION
+    default_acl = settings.PRIVATE_MEDIA_DEFAULT_ACL
+    file_overwrite = False
+    custom_domain = False

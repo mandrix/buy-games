@@ -236,6 +236,10 @@ if S3_ENABLED:
         MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/'
         DEFAULT_FILE_STORAGE = 'games.utils.storage_backends.PublicMediaStorage'
 
+        PRIVATE_MEDIA_DEFAULT_ACL = 'private'
+        PRIVATE_MEDIA_LOCATION = 'media/private'
+        PRIVATE_FILE_STORAGE = 'games.utils.storage_backends.PrivateMediaStorage'
+
 if IS_HEROKU_APP:
     django_heroku.settings(locals())
     options = DATABASES['default'].get('OPTIONS', {})

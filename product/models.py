@@ -7,6 +7,7 @@ from django.db import models
 import django.conf as conf
 import random
 
+from games.utils.storage_backends import PrivateMediaStorage
 from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
 
 
@@ -218,7 +219,8 @@ class Product(models.Model):
     notes = models.TextField(default="", help_text="Notas internas", blank=True, null=True)
 
     region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
-    image = models.ImageField(upload_to='products/photos/', null=True, blank=True)
+    image = models.ImageField(upload_to='products/photos/', null=True,
+                              blank=True, storage=PrivateMediaStorage())
 
     amount = models.PositiveIntegerField(default=1, help_text="Se generan copias si pones mas que uno")
     amount_to_notify = models.PositiveIntegerField(null=True, blank=True)
