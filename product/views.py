@@ -50,13 +50,13 @@ class ProductViewSet(viewsets.ModelViewSet):
         product_types = self.request.query_params.get('type')
         search_query = self.request.query_params.get('q')
 
-        if not any([tags,consoles,product_types]):
+        if not any([tags,consoles,product_types,search_query]):
             return self.queryset
 
         if search_query:
-            self.queryset = self.queryset.filter(Q(videogame__title__contains=search_query), Q(barcode__exact=search_query),
-                                                 Q(console__title__contains=search_query), Q(accessory__title__contains=search_query),
-                                                 Q(collectable__title__contains=search_query), Q(description__contains=search_query))
+            self.queryset = self.queryset.filter(Q(videogame__title__icontains=search_query) | Q(barcode__exact=search_query) |
+                                                 Q(console__title__icontains=search_query) | Q(accessory__title__icontains=search_query) |
+                                                 Q(collectable__title__icontains=search_query) | Q(description__icontains=search_query))
 
         if tags:
             tags = tags.split(",")
