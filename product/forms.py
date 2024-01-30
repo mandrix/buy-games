@@ -1,6 +1,8 @@
 from django import forms
+from django.utils.html import format_html
 
-from product.models import Sale
+from product.models import Sale, Product
+
 
 class ProductsField(forms.Field):
     pass

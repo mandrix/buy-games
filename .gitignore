@@ -1,4 +1,6 @@
 db.sqlite3
+collected-media
+collected-static
 
 # Django #
 *.log

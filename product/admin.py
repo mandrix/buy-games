@@ -5,8 +5,6 @@ from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
 from django.db.models import Q
 from django.http import HttpResponse
-from django.shortcuts import redirect
-from django.urls import path
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter
@@ -55,7 +53,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = (
         "__str__", "tipo", "console_type", "description", 'copies', "_state", "sale_price_formatted",
         "sale_price_with_card", "sale_price_with_tasa_0",
-        'used_display', 'owner', 'etiquetas')
+        'used_display', 'owner', 'etiquetas', 'image')
     model = Product
     list_filter = (SoldFilter, TypeFilter, BelowThreshHoldFilter,
                    ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags', )
@@ -64,6 +62,7 @@ class ProductAdmin(admin.ModelAdmin):
                      "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
     readonly_fields = (
+        "product_image",
         "id",
         "creation_date",
         "modification_date",
@@ -88,6 +87,11 @@ class ProductAdmin(admin.ModelAdmin):
             'all': ('css/admin_styles.css',)
         }
         js = ('js/admin_scripts.js',)
+
+    def product_image(self, obj):
+        return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
+
+    product_image.short_description = 'Product Image'
 
     def get_exclude(self, request, obj=None):
         exclude = list(self.exclude)
