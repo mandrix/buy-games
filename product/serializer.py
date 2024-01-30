@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
+from django.templatetags.static import static
 from rest_framework import serializers
 from rest_framework.fields import CharField, SerializerMethodField, URLField
 
@@ -65,12 +67,15 @@ class PaymentSerializer(serializers.ModelSerializer):
 class FullURLField(serializers.URLField):
     def to_representation(self, value):
         request = self.context.get('request', None)
-        scheme = 'https://'
+        scheme = 'https://' if not settings.DEBUG else 'http://'
 
         current_site = get_current_site(request) if request else None
         domain = current_site.domain if current_site else ''
 
+
         full_url = f'{scheme}{domain}/media/{value}'
+        if not value:
+            full_url = f'{scheme}{domain}{static("default.jpg")}'
         return super().to_representation(full_url)
 
 class ProductSerializer(serializers.ModelSerializer):
