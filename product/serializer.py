@@ -4,7 +4,7 @@ from django.templatetags.static import static
 from rest_framework import serializers
 from rest_framework.fields import CharField, SerializerMethodField, URLField
 
-from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment
+from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment, Tag
 
 
 def create_product(validated_data):
@@ -64,6 +64,13 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment_info = instance.check_payment()
         return payment_info
 
+
+class TagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = "__all__"
+
+
 class FullURLField(serializers.URLField):
     def to_representation(self, value):
         request = self.context.get('request', None)
@@ -90,12 +97,13 @@ class ProductSerializer(serializers.ModelSerializer):
     payment = PaymentSerializer(required=True)
     image = FullURLField()
     console = SerializerMethodField()
+    tags = TagsSerializer(many=True)
 
     class Meta:
         model = Product
         fields = ["payment", "barcode", "name", "price", "description", "videogame_set",
                   "console_set", "accessory_set", "collectable_set", "type", "image", "id",
-                  "console"]
+                  "console", "tags"]
 
     def get_type(self, obj: Product):
         try:
@@ -111,6 +119,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_console(self, obj: Product):
         return str(obj.console_type)
+
+    def get_tags(self, obj: Product):
+        return [str(tag) for tag in obj.tags.all()]
 
 
 class ProductSerializerToShow(serializers.ModelSerializer):
