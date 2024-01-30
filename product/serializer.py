@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.fields import CharField, SerializerMethodField
+from rest_framework.fields import CharField, SerializerMethodField, URLField
 
 from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment
 
@@ -71,11 +71,12 @@ class ProductSerializer(serializers.ModelSerializer):
     accessory_set = AccessorySerializer(many=True)
     type = SerializerMethodField()
     payment = PaymentSerializer(required=True)
+    image = URLField()
 
     class Meta:
         model = Product
-        fields = ["payment", "barcode", "name", "price", "description",
-                  "videogame_set", "console_set", "accessory_set", "collectable_set", "type"]
+        fields = ["payment", "barcode", "name", "price", "description", "videogame_set",
+                  "console_set", "accessory_set", "collectable_set", "type", "image"]
 
     def get_type(self, obj: Product):
         try:
