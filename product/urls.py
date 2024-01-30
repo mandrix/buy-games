@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 
 from rest_framework.routers import DefaultRouter
@@ -19,3 +21,9 @@ urlpatterns = [
     path('sales/', DailySalesReport.as_view(), name='daily-sales-report'),
 ]
 urlpatterns += router.urls
+
+if settings.LOCAL_SERVE_STATIC_FILES:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+if settings.LOCAL_SERVE_MEDIA_FILES:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
