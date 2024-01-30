@@ -79,6 +79,7 @@ class FullURLField(serializers.URLField):
         return super().to_representation(full_url)
 
 class ProductSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
     price = SerializerMethodField()
     name = SerializerMethodField()
     videogame_set = VideoGameSerializer(many=True)
