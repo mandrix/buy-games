@@ -89,11 +89,13 @@ class ProductSerializer(serializers.ModelSerializer):
     type = SerializerMethodField()
     payment = PaymentSerializer(required=True)
     image = FullURLField()
+    console = SerializerMethodField()
 
     class Meta:
         model = Product
         fields = ["payment", "barcode", "name", "price", "description", "videogame_set",
-                  "console_set", "accessory_set", "collectable_set", "type", "image", "id"]
+                  "console_set", "accessory_set", "collectable_set", "type", "image", "id",
+                  "console"]
 
     def get_type(self, obj: Product):
         try:
@@ -106,6 +108,9 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj: Product):
         return str(obj)
+
+    def get_console(self, obj: Product):
+        return str(obj.console_type)
 
 
 class ProductSerializerToShow(serializers.ModelSerializer):
