@@ -209,11 +209,11 @@ def food_path(instance, filename):
     return '{0}/{1}'.format(instance.category.name, filename)
 
 class Product(models.Model):
-    sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    sale_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
-    provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
+    provider_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, help_text="En colones")
     provider = models.CharField(max_length=200, null=True, blank=True, choices=ProviderEnum.choices)
-    remaining = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    remaining = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     barcode = models.CharField(max_length=22, null=True, blank=True, unique=False)
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -374,13 +374,13 @@ class Product(models.Model):
 
 class Report(models.Model):
     date = models.DateField()
-    total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    total = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
                                 help_text="En colones")
-    total_business = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    total_business = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
                                          help_text="En colones")
-    total_mauricio = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    total_mauricio = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
                                          help_text="En colones")
-    total_joseph = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    total_joseph = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
                                        help_text="En colones")
 
     def __str__(self):
@@ -457,15 +457,15 @@ class Sale(models.Model):
     warranty_type = models.CharField(max_length=100)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=100)
-    subtotal = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    subtotal = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                    help_text="En colones")
-    discount = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    discount = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                    help_text="En colones")
     taxes = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                 help_text="En colones")
-    gross_total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    gross_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                       help_text="En colones")
-    net_total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    net_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     payment_details = models.TextField(blank=True, default="")
     receipt_comments = models.TextField(blank=True, default="")
