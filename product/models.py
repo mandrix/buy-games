@@ -389,7 +389,8 @@ class Report(models.Model):
     def calculate_total(self):
         yesterday = date.today() - timedelta(days=1)
 
-
+        if self.date < yesterday:
+            return formatted_number(self.total)
         total_value = sum([sale.net_total for sale in self.sale_set.all()])
         self.total = total_value
         self.save()
@@ -397,6 +398,9 @@ class Report(models.Model):
 
     def _calculate_total_for(self, owner: OwnerEnum, params):
         yesterday = date.today() - timedelta(days=1)
+
+        if self.date < yesterday:
+            return formatted_number(params['total'] if params['total'] else 0)
 
         field_keyword = 'payment__net_price'
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
