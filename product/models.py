@@ -202,9 +202,6 @@ class Payment(models.Model):
         if self.net_price:
             return price_formatted(commission_price(self.net_price, factor_tasa_0()))
 
-def food_path(instance, filename):
-    return '{0}/{1}'.format(instance.category.name, filename)
-
 class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
