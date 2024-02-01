@@ -1,5 +1,6 @@
 import datetime
-import decimal
+from datetime import date, timedelta
+from functools import reduce
 
 from colorfield.fields import ColorField
 from django.conf import settings
@@ -9,8 +10,10 @@ from django.db import models
 import django.conf as conf
 import random
 
+from django.db.models import Q
+
 from games.utils.storage_backends import PrivateMediaStorage
-from helpers.payment import price_formatted, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
+from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
 
 
 class RegionEnum(models.TextChoices):
@@ -188,26 +191,26 @@ class Payment(models.Model):
     @admin.display(description='sale price', ordering='sale_price')
     def sale_price_formatted(self):
         if self.net_price:
-            return price_formatted(self.net_price)
+            return formatted_number(self.net_price)
 
     @property
     @admin.display(description='precio datafono', ordering='sale_price')
     def sale_price_with_card(self):
         if self.net_price:
-            return price_formatted(commission_price(self.net_price, factor_card()))
+            return formatted_number(commission_price(self.net_price, factor_card()))
 
     @property
     @admin.display(description='precio tasa 0', ordering='sale_price')
     def sale_price_with_tasa_0(self):
         if self.net_price:
-            return price_formatted(commission_price(self.net_price, factor_tasa_0()))
+            return formatted_number(commission_price(self.net_price, factor_tasa_0()))
 
 class Product(models.Model):
-    sale_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    sale_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
-    provider_price = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, help_text="En colones")
+    provider_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, help_text="En colones")
     provider = models.CharField(max_length=200, null=True, blank=True, choices=ProviderEnum.choices)
-    remaining = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    remaining = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     barcode = models.CharField(max_length=22, null=True, blank=True, unique=False)
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -233,8 +236,6 @@ class Product(models.Model):
     order = models.BooleanField(default=False, blank=True, null=True)
 
     tags = models.ManyToManyField("Tag", related_name="products", blank=True)
-
-
 
     def __str__(self):
         try:
@@ -370,9 +371,78 @@ class Product(models.Model):
 
 class Report(models.Model):
     date = models.DateField()
+    total = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
+                                help_text="En colones")
+    total_business = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
+                                         help_text="En colones")
+    total_mauricio = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
+                                         help_text="En colones")
+    total_joseph = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
+                                       help_text="En colones")
 
     def __str__(self):
         return self.date.strftime('%d de %B de %Y')
+
+    def calculate_total(self):
+        yesterday = date.today() - timedelta(days=1)
+
+        if self.date < yesterday:
+            return formatted_number(self.total)
+        total_value = sum([sale.net_total for sale in self.sale_set.all()])
+        self.total = total_value
+        self.save()
+        return formatted_number(total_value)
+
+    def _calculate_total_for(self, owner: OwnerEnum, params):
+        yesterday = date.today() - timedelta(days=1)
+
+        if self.date < yesterday:
+            return formatted_number(params['total'] if params['total'] else 0)
+
+        field_keyword = 'payment__net_price'
+        remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
+
+        all_sales = self.sale_set.all()
+
+        list_of_all_products = [
+            list(
+                sale.products.filter(owner__exact=owner).values(field_keyword)
+            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for sale in all_sales
+        ]
+
+        list_of_all_products = reduce(lambda a, b: a + b, list_of_all_products) if len(list_of_all_products) else [{field_keyword: 0}]
+        list_of_all_products = [float(total.get(field_keyword)) * remaining_percentage if total.get(field_keyword) else 0 for total in list_of_all_products]
+
+        if owner == OwnerEnum.Business:
+            list_of_other_owners_products = [
+                list(sale.products.filter(~Q(owner__exact=owner)).values(field_keyword)) for sale in all_sales
+            ]
+            list_of_other_owners_products = reduce(lambda a, b: a + b, list_of_other_owners_products) if len(list_of_other_owners_products) else [{field_keyword: 0}]
+            list_of_other_owners_products = [
+                float(total.get(field_keyword)) * 0.1 if total.get(field_keyword) else 0 for total in list_of_other_owners_products
+            ]
+            list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
+
+            # Add repairs and requests
+        total_value = sum(list_of_all_products)
+        setattr(self, params['field'], total_value)
+        self.save()
+        return formatted_number(total_value)
+
+    @property
+    def calculated_total_business(self):
+        params = {'total': self.total_business, 'field': 'total_business'}
+        return self._calculate_total_for(OwnerEnum.Business, params)
+
+    @property
+    def calculated_total_mauricio(self):
+        params = {'total': self.total_mauricio, 'field': 'total_mauricio'}
+        return self._calculate_total_for(OwnerEnum.Mauricio, params)
+
+    @property
+    def calculated_total_joseph(self):
+        params = {'total': self.total_joseph, 'field': 'total_joseph'}
+        return self._calculate_total_for(OwnerEnum.Joseph, params)
 
 
 class SaleTypeEnum(models.TextChoices):
@@ -388,15 +458,15 @@ class Sale(models.Model):
     warranty_type = models.CharField(max_length=100)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=100)
-    subtotal = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    subtotal = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                    help_text="En colones")
-    discount = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    discount = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                    help_text="En colones")
     taxes = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
                                 help_text="En colones")
-    gross_total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    gross_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                       help_text="En colones")
-    net_total = models.DecimalField(default=0.0, max_digits=8, decimal_places=2, null=True, blank=True,
+    net_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     payment_details = models.TextField(blank=True, default="")
     receipt_comments = models.TextField(blank=True, default="")

@@ -1,9 +1,7 @@
-from functools import reduce
 from io import BytesIO
 
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
-from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -15,7 +13,7 @@ from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
-    StateEnum, Expense, Payment, Tag, OwnerEnum, SaleTypeEnum
+    StateEnum, Expense, Payment, Tag, SaleTypeEnum
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
@@ -239,57 +237,28 @@ class SaleInline(admin.TabularInline):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('date', 'total', 'total_business', 'total_mauricio', 'total_joseph')
+    list_display = ('date', 'display_total', 'display_total_business', 'display_total_mauricio', 'display_total_joseph')
     ordering = ("-date",)
     inlines = [SaleInline]
-
     readonly_fields = ("total",)
 
-    def total(self, report: Report):
-        if not report: return 0
-        return f"₡{sum([sale.net_total for sale in report.sale_set.all()]):,}"
+    def display_total(self, obj):
+        return obj.calculate_total()
 
-    def _calculate_total_for(self, report: Report, owner: OwnerEnum):
-        if not report: return 0
-        field_keyword = 'payment__net_price'
-        remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
+    display_total.short_description = 'Total'
 
-        all_sales = report.sale_set.all()
+    def display_total_business(self, obj):
+        return obj.calculated_total_business
 
-        list_of_all_products = [
-            list(
-                sale.products.filter(owner__exact=owner).values(field_keyword)
-            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for sale in all_sales
-        ]
+    display_total_business.short_description = 'Total Business'
 
-        list_of_all_products = reduce(lambda a,b: a+b, list_of_all_products) if len(list_of_all_products) else [{field_keyword: 0}]
-        list_of_all_products = [float(total.get(field_keyword))*remaining_percentage if total.get(field_keyword) else 0 for total in list_of_all_products]
+    def display_total_mauricio(self, obj):
+        return obj.calculated_total_mauricio
 
-        if owner == OwnerEnum.Business:
+    display_total_mauricio.short_description = 'Total Mauricio'
 
-            list_of_other_owners_products = [
-                list(sale.products.filter(~Q(owner__exact=owner)).values(field_keyword)) for sale in all_sales
-            ]
-            list_of_other_owners_products = reduce(lambda a,b: a+b, list_of_other_owners_products) if len(list_of_other_owners_products) else [{field_keyword: 0}]
-            list_of_other_owners_products = [
-                float(total.get(field_keyword))*0.1 if total.get(field_keyword) else 0 for total in list_of_other_owners_products
-            ]
-            list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
-
-
-            # Add repairs and requests
-
-
-        return f"₡{sum(list_of_all_products):,.2f}"
-
-    def total_business(self, report: Report):
-        return self._calculate_total_for(report, OwnerEnum.Business)
-
-    def total_mauricio(self, report: Report):
-        return self._calculate_total_for(report, OwnerEnum.Mauricio)
-
-    def total_joseph(self, report: Report):
-        return self._calculate_total_for(report, OwnerEnum.Joseph)
+    def display_total_joseph(self, obj):
+        return obj.calculated_total_joseph
 
 
 class SaleAdmin(admin.ModelAdmin):
