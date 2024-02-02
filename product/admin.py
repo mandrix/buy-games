@@ -18,6 +18,8 @@ from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
 
+from fuzzywuzzy import process
+
 
 class VideoGamesInline(StackedInline):
     model = VideoGame
@@ -70,6 +72,17 @@ class ProductAdmin(admin.ModelAdmin):
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
+
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
+
+        if search_term:
+            option = [product.description for product in Product.objects.all()]
+            result = process.extract(search_term, option, limit=5)
+            similar = [res[0] for res in result]
+            queryset = Product.objects.filter(description__in=similar)
+
+        return queryset, use_distinct
 
     def used_display(self, obj):
         color = 'orange' if obj.used else 'blue'

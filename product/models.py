@@ -208,6 +208,7 @@ class Payment(models.Model):
 def food_path(instance, filename):
     return '{0}/{1}'.format(instance.category.name, filename)
 
+
 class Product(models.Model):
     sale_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")

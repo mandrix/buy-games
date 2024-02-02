@@ -15,6 +15,7 @@ django-ipware==5.0.0
 django-storages==1.14.2
 djangorestframework==3.14.0
 drf-writable-nested==0.7.0
+fuzzywuzzy==0.18.0
 h11==0.14.0
 openpyxl==3.1.2
 Pillow==9.5.0
