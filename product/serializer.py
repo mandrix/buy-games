@@ -82,7 +82,7 @@ class FullURLField(serializers.URLField):
 
         full_url = f'{scheme}{domain}/media/{value}'
         if not value:
-            full_url = f'{scheme}{domain}{static("default.jpg")}'
+            full_url = f'{scheme}{domain}{static("assets/common/default.jpg")}'
         return super().to_representation(full_url)
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -135,7 +135,7 @@ class ProductSerializer(serializers.ModelSerializer):
         domain = current_site.domain if current_site else ''
 
 
-        full_url = f'{scheme}{domain}{static("default.jpg")}'
+        full_url = f'{scheme}{domain}{static("assets/common/default.jpg")}'
         if obj.image:
             full_url = obj.image.url
         return full_url
