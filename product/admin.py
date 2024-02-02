@@ -18,6 +18,8 @@ from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
 
+from fuzzywuzzy import process
+
 
 class VideoGamesInline(StackedInline):
     model = VideoGame
@@ -70,6 +72,8 @@ class ProductAdmin(admin.ModelAdmin):
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
+
+
 
     def used_display(self, obj):
         color = 'orange' if obj.used else 'blue'
