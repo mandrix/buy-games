@@ -184,7 +184,7 @@ class GenerateExcelOfProducts(APIView):
         products = Product.objects.filter(state=StateEnum.available)
 
         console = request.query_params.get("console_title")
-        product_type = request.query_params.get("type")
+        product_type = request.query_params.get("types")
         used = request.query_params.get("used")
         product_name = request.query_params.get("name")
 
