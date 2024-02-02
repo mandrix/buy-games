@@ -47,7 +47,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         """
         tags = self.request.query_params.get('tags')
         consoles = self.request.query_params.get('consoles')
-        product_types = self.request.query_params.get('type')
+        product_types = self.request.query_params.get('types')
         search_query = self.request.query_params.get('q')
 
         if not any([tags,consoles,product_types,search_query]):
@@ -184,7 +184,7 @@ class GenerateExcelOfProducts(APIView):
         products = Product.objects.filter(state=StateEnum.available)
 
         console = request.query_params.get("console_title")
-        product_type = request.query_params.get("types")
+        product_type = request.query_params.get("type")
         used = request.query_params.get("used")
         product_name = request.query_params.get("name")
 
