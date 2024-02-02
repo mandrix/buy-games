@@ -39,6 +39,10 @@ env = environ.Env(
 )
 environ.Env.read_env()
 USE_POSTGRES = env("USE_POSTGRES")
+DB_NAME = env("DB_NAME")
+DB_USER = env("DB_USER")
+DB_PASSWORD = env("DB_PASSWORD")
+POSTGRES_IP = env("POSTGRES_IP")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -154,6 +158,25 @@ if IS_HEROKU_APP:
     }
 
     DATABASES['default']['CONN_MAX_AGE'] = 0
+elif USE_POSTGRES:
+    DATABASES = {
+        'default': {
+
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+
+            'NAME': DB_NAME,
+
+            'USER': DB_USER,
+
+            'PASSWORD': DB_PASSWORD,
+
+            'HOST': POSTGRES_IP,
+
+            'PORT': 5432,
+
+            }
+    }
+
 else:
     # When running locally in development or in CI, a sqlite database file will be used instead
     # to simplify initial setup. Longer term it's recommended to use Postgres locally too.

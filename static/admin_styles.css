@@ -1,0 +1,34 @@
+body {
+    background-image: url('/static/bg.jpg');
+    background-repeat: repeat;
+    background-size: cover;
+}
+
+:root {
+    --alpha: 0.8;
+
+    --secondary: #0086d4;
+    --primary: #015794 !important;
+    --primary-fg: rgba(247, 247, 247, var(--alpha)) !important;
+    --body-fg: rgba(238, 238, 238, var(--alpha)) !important;
+    --body-bg: rgba(18, 18, 18, var(--alpha)) !important;
+    --body-quiet-color: rgba(224, 224, 224, var(--alpha)) !important;
+    --body-loud-color: rgba(255, 255, 255, var(--alpha)) !important;
+    --breadcrumbs-link-fg: rgba(224, 224, 224, var(--alpha)) !important;
+    --breadcrumbs-bg: var(--primary) !important;
+    --link-fg: rgba(129, 212, 250, var(--alpha)) !important;
+    --link-hover-color: rgba(74, 193, 247, var(--alpha)) !important;
+    --link-selected-fg: rgba(111, 148, 198, var(--alpha)) !important;
+    --hairline-color: rgba(39, 39, 39, var(--alpha)) !important;
+    --border-color: rgba(53, 53, 53, var(--alpha)) !important;
+    --error-fg: rgba(227, 95, 95, var(--alpha)) !important;
+    --message-success-bg: rgba(0, 107, 27, var(--alpha)) !important;
+    --message-warning-bg: rgba(88, 51, 5, var(--alpha)) !important;
+    --message-error-bg: rgba(87, 8, 8, var(--alpha)) !important;
+    --darkened-bg: rgba(33, 33, 33, var(--alpha)) !important;
+    --selected-bg: rgba(27, 27, 27, var(--alpha)) !important;
+    --selected-row: rgba(0, 54, 58, var(--alpha)) !important;
+    --close-button-bg: rgba(51, 51, 51, var(--alpha)) !important;
+    --close-button-hover-bg: rgba(102, 102, 102, var(--alpha)) !important;
+}
+
