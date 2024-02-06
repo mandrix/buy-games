@@ -284,7 +284,7 @@ class SaleAdmin(admin.ModelAdmin):
     list_display = ("__str__", "customer_mail", "customer_name", "type")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
-    list_filter = ("type",)
+    list_filter = ("type", "shipping", "platform")
     ordering = ("-creation_date_time",)
 
     change_form_template = "overrides/btn_sale.html"
