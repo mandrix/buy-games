@@ -75,7 +75,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
-
+        queryset = Product.objects.filter(state=StateEnum.available)
         if search_term:
             options = [product.description for product in queryset]
             results = process.extract(search_term, options, limit=5)
