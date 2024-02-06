@@ -97,7 +97,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
 
-        text_to_search = self.request.query_params.get('text', '')
+        text_to_search = self.request.query_params.get('q', '')
         queryset = Product.objects.filter(state=StateEnum.available)
         if text_to_search:
             options = [product.description for product in queryset]
