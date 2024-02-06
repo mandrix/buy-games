@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 from PIL import Image, ImageDraw, ImageFont
 
 from django.db.models import Sum, Count, IntegerField, Q
+from fuzzywuzzy import process
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
@@ -93,6 +94,20 @@ class ProductViewSet(viewsets.ModelViewSet):
                 instance = self.queryset.filter(barcode=pk).first()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+    def list(self, request, *args, **kwargs):
+
+        text_to_search = self.request.query_params.get('text', '')
+        queryset = Product.objects.filter(state=StateEnum.available)
+        if text_to_search:
+            options = [product.description for product in queryset]
+            results = process.extract(text_to_search, options, limit=5)
+            similar_products = [res[0] for res in results]
+            similar_products_queryset = queryset.filter(description__in=similar_products)
+            serializer = self.get_serializer(similar_products_queryset, many=True)
+            return Response({'products': serializer.data})
+        else:
+            return Response({'error': 'A text parameter is required'})
 
 
 class CollectableViewSet(viewsets.ModelViewSet):
@@ -395,3 +410,5 @@ class GenerateImageOfProducts(APIView):
         bold_font_path = './fonts/ArialBold.ttf'  # Replace with the path to a TrueType font file
         bold_font = ImageFont.truetype(bold_font_path, bold_font_size)
         return font, bold_font
+
+
