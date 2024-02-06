@@ -73,18 +73,15 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
-    """
     def get_search_results(self, request, queryset, search_term):
-        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
-        queryset = Product.objects.filter(state=StateEnum.available)
+        queryset, use_distinct = super().get_search_results(request, queryset, "")
         if search_term:
             options = [product.description for product in queryset]
             results = process.extract(search_term, options, limit=5)
-            similar = [res[0] for res in results]
-            queryset |= queryset.filter(description__in=similar)
+            similar = [res[0] for res in results if res[1] > 10]
+            queryset = queryset.filter(description__in=similar)
 
         return queryset, use_distinct
-    """
 
     def used_display(self, obj):
         color = 'orange' if obj.used else 'blue'
