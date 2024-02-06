@@ -112,6 +112,7 @@ class GenerateBill(TemplateView):
                 warranty_type=warranty_type,
                 purchase_date_time=data['purchaseDate'],
                 payment_method=data['paymentMethod'],
+                platform=data['platform'],
                 subtotal=data['subtotal'],
                 discount=data['discounts'],
                 taxes=data['taxes'],
@@ -120,6 +121,7 @@ class GenerateBill(TemplateView):
                 receipt_comments=data['receiptComments'],
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
+                shipping=data['shipping'],
             )
 
             for item in data['items']:
