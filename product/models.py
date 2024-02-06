@@ -456,6 +456,15 @@ class SaleTypeEnum(models.TextChoices):
     Purchase = "purchase", "Purchase"
 
 
+class PlatformEnum(models.TextChoices):
+    Store = "store", "Store"
+    Whatsapp = "whatsapp", "Whatsapp"
+    Instagram = "instagram", "Instagram"
+    Facebook = "facebook", "Facebook"
+    Event = "event", "Event"
+    Other = "other", "Other"
+
+
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
@@ -478,6 +487,8 @@ class Sale(models.Model):
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
     type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
+    shipping = models.BooleanField(default=False, help_text="Si es por envio")
+    platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
 
     def __str__(self):
         if not self.report:
