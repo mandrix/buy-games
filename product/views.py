@@ -58,7 +58,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             options_dict = {product.description.lower(): product.description for product in self.queryset}
             search_query_lower = search_query.lower()
             results = process.extract(search_query_lower, options_dict.keys(), limit=len(options_dict))
-            similar_products = [res for res in results if res[1] > 40]
+            similar_products = [res for res in results if res[1] > 55]
             filtered_results = [options_dict[res[0]] for res in similar_products]
             self.queryset = self.queryset.filter(Q(videogame__title__icontains=search_query) | Q(barcode__exact=search_query) |
                                                  Q(console__title__icontains=search_query) | Q(accessory__title__icontains=search_query) |
