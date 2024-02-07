@@ -95,21 +95,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    def list(self, request, *args, **kwargs):
-
-        text_to_search = self.request.query_params.get('q', '')
-        queryset = Product.objects.filter(state=StateEnum.available)
-        if text_to_search:
-            options = [product.description for product in queryset]
-            results = process.extract(text_to_search, options)
-            similar_products = [res[0] for res in results]
-            similar_products_queryset = queryset.filter(description__in=similar_products)
-            serializer = self.get_serializer(similar_products_queryset, many=True)
-            return Response({'products': serializer.data})
-        else:
-            serializer = self.get_serializer(queryset, many=True)
-            return Response({'products': serializer.data})
-
 
 class CollectableViewSet(viewsets.ModelViewSet):
     queryset = Collectable.objects.filter()
