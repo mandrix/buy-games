@@ -56,11 +56,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         if search_query:
             options = [product.description.lower() for product in self.queryset]
-            results = process.extract(search_query.lower(), options)
+            results = process.extract(search_query.lower()), options)
             similar_products = [res[0] for res in results]
             self.queryset = self.queryset.filter(Q(videogame__title__icontains=search_query) | Q(barcode__exact=search_query) |
                                                  Q(console__title__icontains=search_query) | Q(accessory__title__icontains=search_query) |
-                                                 Q(collectable__title__icontains=search_query) | Q(description__in=similar_products))
+                                                 Q(collectable__title__icontains=search_query) | Q(description__icontains__in=similar_products))
         if tags:
             tags = tags.split(",")
             self.queryset = self.queryset.filter(tags__name__in=tags)
