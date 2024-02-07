@@ -73,6 +73,17 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, "")
+        if search_term:
+            options_dict = {product.description.lower(): product.description for product in queryset}
+            search_query_lower = search_term.lower()
+            results = process.extract(search_query_lower, options_dict.keys(), limit=len(options_dict))
+            similar_products = [res for res in results if res[1] > 55]
+            filtered_results = [options_dict[res[0]] for res in similar_products]
+            queryset = queryset.filter(description__in=filtered_results)
+
+        return queryset, use_distinct
 
 
     def used_display(self, obj):

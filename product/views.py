@@ -260,7 +260,7 @@ class GenerateExcelOfProducts(APIView):
 class GenerateImageOfProducts(APIView):
 
     @staticmethod
-    def chunk_list(input_list, chunk_size) -> list[list[list[str]]]:
+    def chunk_list(input_list, chunk_size):
         """
         Split a list into chunks of a specified size.
 
