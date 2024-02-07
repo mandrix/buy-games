@@ -77,8 +77,8 @@ class ProductAdmin(admin.ModelAdmin):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
         if search_term:
             options = [product.description for product in queryset]
-            results = process.extract(search_term, options, limit=5)
-            similar = [res[0] for res in results if res[1] > 10]
+            results = process.extract(search_term, options)
+            similar = [res[0] for res in results if res[1] > 70]
             queryset = queryset.filter(description__in=similar)
 
         return queryset, use_distinct
