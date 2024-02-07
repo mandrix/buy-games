@@ -107,7 +107,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(similar_products_queryset, many=True)
             return Response({'products': serializer.data})
         else:
-            return Response({'error': 'A text parameter is required'})
+            serializer = self.get_serializer(queryset, many=True)
+            return Response({'products': serializer.data})
 
 
 class CollectableViewSet(viewsets.ModelViewSet):
