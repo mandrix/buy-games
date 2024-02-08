@@ -250,7 +250,7 @@ class Product(models.Model):
             except:
                 return "ERROR sin info adicional"
 
-        return " ".join(word.capitalize() for word in display.lower().split())
+        return display
 
     def generate_barcode(self, *args, **kwargs):
         self.barcode = ''.join(random.choice('0123456789') for _ in range(12))
