@@ -9,5 +9,6 @@ router = DefaultRouter()
 urlpatterns = [
     path("coupon/<str:code>/", CouponViewSet.as_view({"get": "retrieve"})),
     path("client/<str:email>/", ClientViewSet.as_view({"get": "retrieve"})),
+    path("clients/", ClientViewSet.as_view({"post": "list_of_clients"})),
 ]
 urlpatterns += router.urls

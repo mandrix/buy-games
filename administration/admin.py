@@ -129,3 +129,4 @@ class ClientAdmin(admin.ModelAdmin):
 
 admin.site.register(Request, RequestAdmin)
 admin.site.register(Coupon, CouponAdmin)
+admin.site.register(Client, ClientAdmin)
