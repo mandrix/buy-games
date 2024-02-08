@@ -110,3 +110,7 @@ class Client(models.Model):
     phone_number = models.CharField(max_length=100)
     _id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     email = models.EmailField(unique=True)
+
+
+    def __str__(self):
+        return f"{self.full_name} - {self.email}"

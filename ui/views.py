@@ -158,8 +158,8 @@ class GenerateBill(TemplateView):
 
     @staticmethod
     def get_or_create_client(data):
-        return
-        if client := Client.objects.filter(data['customerMail']).first():
+        client = Client.objects.filter(data['customerMail']).first()
+        if client:
             return client
 
         return Client.objects.create(

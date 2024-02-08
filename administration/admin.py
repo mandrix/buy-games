@@ -9,6 +9,7 @@ from django.contrib import messages
 
 
 from administration.models import Request, RequestStateEnum, Coupon, Client
+from product.models import Sale
 from ui.views import SendMailError
 
 
@@ -126,6 +127,13 @@ class ClientAdmin(admin.ModelAdmin):
     model = Client
     list_display = ("full_name", "_id", "email", "phone_number")
     search_fields = ("full_name", "_id", "email", "phone_number")
+    readonly_fields = ("purchases", "total_spent")
+
+    def purchases(self, obj: Client):
+        return obj.purchases.count()
+
+    def total_spent(self, obj: Client):
+        return f"{[purchase.gross_total for purchase in obj.purchases],.2f}"
 
 admin.site.register(Request, RequestAdmin)
 admin.site.register(Coupon, CouponAdmin)
