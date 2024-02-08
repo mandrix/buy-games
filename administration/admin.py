@@ -125,7 +125,7 @@ class CouponAdmin(admin.ModelAdmin):
 
 class ClientAdmin(admin.ModelAdmin):
     model = Client
-    list_display = ("full_name", "_id", "email", "phone_number")
+    list_display = ("__str__", "_id", "phone_number")
     search_fields = ("full_name", "_id", "email", "phone_number")
     readonly_fields = ("purchases", "total_spent")
 
