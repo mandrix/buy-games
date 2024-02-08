@@ -133,7 +133,7 @@ class ClientAdmin(admin.ModelAdmin):
         return obj.purchases.count()
 
     def total_spent(self, obj: Client):
-        return f"{sum([purchase.gross_total for purchase in obj.purchases]):,.2f}"
+        return f"{sum([purchase.gross_total for purchase in obj.purchases.all()]):,.2f}"
 
 admin.site.register(Request, RequestAdmin)
 admin.site.register(Coupon, CouponAdmin)
