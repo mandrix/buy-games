@@ -14,7 +14,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from administration.models import Coupon, CouponTypeEnum
+from administration.models import Coupon, CouponTypeEnum, Client
 from helpers.payment import formatted_number, choices_payment
 from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
@@ -106,7 +106,7 @@ class GenerateBill(TemplateView):
             report, created = Report.objects.get_or_create(date=today)
             warranty_type = return_policy_options[data['returnPolicy']]["name"]
             net_total = - float(data['discounts'])
-            payment_details = data['paymentDetails'] + (" " + data['customerPhone'] if data['customerPhone'] else "")
+            payment_details = data['paymentDetails']
             sale = Sale.objects.create(
                 report=report,
                 warranty_type=warranty_type,
@@ -122,7 +122,10 @@ class GenerateBill(TemplateView):
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
                 shipping=data['shipping'],
+                client=GenerateBill.get_or_create_client(data)
             )
+
+
 
             for item in data['items']:
                 product_id = item['id']
@@ -152,6 +155,18 @@ class GenerateBill(TemplateView):
             sale.net_total = net_total
             sale.save()
             return sale
+
+    @staticmethod
+    def get_or_create_client(data):
+        if client := Client.objects.filter(data['customerMail']).first():
+            return client
+
+        return Client.objects.create(
+            full_name=data['customerName'],
+            email=data['customerMail'],
+            _id=data.get('id'),
+            phone_number=data['customerPhone']
+        )
 
     def enviar_factura_por_correo(self, factura_html, address, return_policy):
         smtp_server = 'smtp.gmail.com'

@@ -103,3 +103,10 @@ class Coupon(models.Model):
             self.code = ''.join(random.choice('0123456789') for _ in range(12))
 
         super().save(*args, **kwargs)
+
+
+class Client(models.Model):
+    full_name = models.CharField(max_length=200)
+    phone_number = models.CharField(max_length=100)
+    _id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    email = models.EmailField(unique=True)

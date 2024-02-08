@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.contrib import messages
 
 
-from administration.models import Request, RequestStateEnum, Coupon
+from administration.models import Request, RequestStateEnum, Coupon, Client
 from ui.views import SendMailError
 
 
@@ -120,6 +120,12 @@ Gracias.
 class CouponAdmin(admin.ModelAdmin):
     model = Coupon
     list_display = ("__str__", "uses", "expiration")
+
+
+class ClientAdmin(admin.ModelAdmin):
+    model = Client
+    list_display = ("full_name", "_id", "email", "phone_number")
+    search_fields = ("full_name", "_id", "email", "phone_number")
 
 admin.site.register(Request, RequestAdmin)
 admin.site.register(Coupon, CouponAdmin)

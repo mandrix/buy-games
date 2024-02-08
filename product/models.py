@@ -489,6 +489,7 @@ class Sale(models.Model):
     type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
     shipping = models.BooleanField(default=False, help_text="Si es por envio")
     platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
+    client = models.ForeignKey('administration.Client', on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         if not self.report:
