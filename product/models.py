@@ -386,6 +386,8 @@ class Product(models.Model):
                 for i in queryset:
                     i.image.save(f"{title}.jpg", ContentFile(file_content), save=False)
                     i.save()
+        else:
+            print(dir, title, "errror")
 
     def pro_img(self):
         query = Product.objects.filter(state=StateEnum.available)
