@@ -366,7 +366,7 @@ class Product(models.Model):
 
     def limpiar_nombre_archivo(self, nombre):
         caracteres_especiales = {'/': '_', '\\': '_', ':': '_', '*': '_', '?': '_', '"': '_', '<': '_', '>': '_',
-                                 '|': '_'}
+                                 '|': '_', ' ': '_'}
 
         for caracter, reemplazo in caracteres_especiales.items():
             nombre = nombre.replace(caracter, reemplazo)
@@ -387,8 +387,8 @@ class Product(models.Model):
         else:
             console = adi.console
         directorio = f"./p/{console}"
-
-        file_path = os.path.join(directorio, title)
+        file_name = title + ".jpeg"
+        file_path = os.path.join(directorio, file_name)
         if os.path.isfile(file_path):
             with open(file_path, 'rb') as file:
                 file_content = file.read()
