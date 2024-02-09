@@ -401,7 +401,9 @@ class Product(models.Model):
     def pro_img(self):
         query = Product.objects.filter(pk__in=[5562,5561,5560,5559,5558])
         for i in query:
-            copies = i.similar_products()
+            adi_copies = i.similar_products()
+            copies_pk = [i.product for i in adi_copies]
+            copies = Product.objects.filter(pk__in=copies_pk)
             i.guardar_archivo(copies)
 
     def save(self, *args, **kwargs):
