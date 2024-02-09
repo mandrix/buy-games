@@ -75,21 +75,22 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
-    """
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
         if search_term:
             options_dict = defaultdict(list)
+
             for product in queryset:
                 key = unidecode(product.description.lower())
                 options_dict[key].append(product.description)
 
             search_query_lower = unidecode(search_term.lower())
-            results = options_dict[search_query_lower]
-            queryset = queryset.filter(description__in=results)
+            filtered_results = [desc for key, descs in options_dict.items() if search_query_lower in key for desc in
+                                descs]
+
+            queryset = queryset.filter(description__in=filtered_results)
 
         return queryset, use_distinct
-    """
 
     def used_display(self, obj):
         color = 'orange' if obj.used else 'blue'

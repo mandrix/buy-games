@@ -57,10 +57,21 @@ class ProductViewSet(viewsets.ModelViewSet):
             return self.queryset
 
         if search_query:
+            options_dict = defaultdict(list)
+
+            for product in self.queryset:
+                key = unidecode(product.description.lower())
+                options_dict[key].append(product.description)
+
+            search_query_lower = unidecode(search_query.lower())
+            filtered_results = [desc for key, descs in options_dict.items() if search_query_lower in key for desc in
+                                descs]
+
             self.queryset = self.queryset.filter(
                 Q(videogame__title__icontains=search_query) | Q(barcode__exact=search_query) |
                 Q(console__title__icontains=search_query) | Q(accessory__title__icontains=search_query) |
-                Q(collectable__title__icontains=search_query) | Q(description__in=search_query))
+                Q(collectable__title__icontains=search_query) | Q(description__in=filtered_results))
+
         if tags:
             tags = tags.split(",")
             self.queryset = self.queryset.filter(tags__name__in=tags)
