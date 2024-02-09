@@ -363,13 +363,22 @@ class Product(models.Model):
             additional_info.product = copy
             additional_info.save()
 
+    def limpiar_nombre_archivo(self, nombre):
+        caracteres_especiales = {'/': '_', '\\': '_', ':': '_', '*': '_', '?': '_', '"': '_', '<': '_', '>': '_',
+                                 '|': '_'}
+
+        for caracter, reemplazo in caracteres_especiales.items():
+            nombre = nombre.replace(caracter, reemplazo)
+
+        return nombre
+
     def guardar_archivo(self, queryset):
         if self.image:
             print("fifa")
             return
 
         adi = self.get_additional_product_info()
-        title = adi.title
+        title = self.limpiar_nombre_archivo(adi.title)
         if adi.__class__ == Console:
             console = adi.title()
         elif adi.__class__ == Collectable:
