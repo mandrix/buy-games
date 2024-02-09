@@ -91,7 +91,7 @@ class ProductAdmin(admin.ModelAdmin):
 
             queryset = queryset.filter(description__in=filtered_results)
 
-        queryset = exclude_copies(queryset)
+        # queryset = exclude_copies(queryset)
         return queryset, use_distinct
 
     def used_display(self, obj):
