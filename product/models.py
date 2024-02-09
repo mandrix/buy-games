@@ -377,7 +377,7 @@ class Product(models.Model):
         else:
             console = adi.console
         dir = f"./p/{console}/"
-        file_name = title + ".jpeg"
+        file_name = title + ".jpg"
         file_path = os.path.join(dir, file_name)
         if os.path.isfile(file_path):
             print(dir, title)
