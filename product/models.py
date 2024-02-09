@@ -371,7 +371,7 @@ class Product(models.Model):
         adi = self.get_additional_product_info()
         title = adi.title
         if adi.__class__ == Console:
-            console = adi.title()
+            console = adi.title
         elif adi.__class__ == Collectable:
             console = "collec"
         else:
