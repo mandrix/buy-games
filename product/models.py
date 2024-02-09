@@ -1,3 +1,4 @@
+import os
 import datetime
 from collections import defaultdict
 from datetime import date, timedelta
@@ -362,8 +363,19 @@ class Product(models.Model):
             additional_info.product = copy
             additional_info.save()
 
-    def save(self, *args, **kwargs):
+    def procesar_archivos(self):
+        directorio = "/home/alejandro/Desktop/feadygames"
+        archivos = os.listdir(directorio)
+        for filename in archivos:
+            file_path = os.path.join(directorio, filename)
 
+            if os.path.isfile(file_path):
+                with open(file_path, 'rb') as file:
+                    self.image.save(filename, file, save=False)
+                    self.save()
+        super().save()
+
+    def save(self, *args, **kwargs):
         if not self.payment:
             payment = Payment(sale_price=self.sale_price,
                               net_price=self.sale_price,
@@ -378,7 +390,6 @@ class Product(models.Model):
             self.remaining = self.sale_price
             self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
-
         if not self.barcode:
             self.generate_barcode()
         else:
