@@ -395,6 +395,8 @@ class Product(models.Model):
                 for i in queryset:
                     i.image.save(f"{title}.jpg", ContentFile(file_content), save=False)
                     i.save()
+        else:
+            print(directorio, title)
 
     def pro_img(self):
         query = Product.objects.filter(pk__in=[5562,5561,5560,5559,5558])
