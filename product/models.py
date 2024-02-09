@@ -7,6 +7,7 @@ from functools import reduce
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib import admin
+from django.core.files.base import ContentFile
 from django.core.files.storage import DefaultStorage
 from django.db import models
 import django.conf as conf
@@ -392,7 +393,7 @@ class Product(models.Model):
             with open(file_path, 'rb') as file:
                 file_content = file.read()
                 for i in queryset:
-                    i.image = file_content
+                    i.image.save(f"{title}.jpg", ContentFile(file_content), save=False)
                     i.save()
 
     def pro_img(self):
