@@ -1,3 +1,4 @@
+from collections import defaultdict
 from io import BytesIO
 
 from django.contrib import admin, messages
@@ -7,6 +8,7 @@ from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from unidecode import unidecode
 
 from helpers.business_information import business_information
 from helpers.payment import formatted_number
@@ -73,6 +75,19 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
+    def get_search_results(self, request, queryset, search_term):
+        queryset, use_distinct = super().get_search_results(request, queryset, "")
+        if search_term:
+            options_dict = defaultdict(list)
+            for product in queryset:
+                key = unidecode(product.description.lower())
+                options_dict[key].append(product.description)
+
+            search_query_lower = unidecode(search_term.lower())
+            results = options_dict[search_query_lower]
+            queryset = queryset.filter(description__in=results)
+
+        return queryset, use_distinct
 
     def used_display(self, obj):
         color = 'orange' if obj.used else 'blue'
