@@ -271,9 +271,21 @@ class Product(models.Model):
     @property
     @admin.display(description='copies')
     def copies(self):
+
+        options_dict = defaultdict(list)
+        queryset_additional_info = self.get_additional_product_info().__class__.objects
+        search_term = self.get_additional_product_info().title
+        for additional in queryset_additional_info.all():
+            key = unidecode(additional.title.lower())
+            options_dict[key].append(additional.title)
+
+        search_query_lower = unidecode(search_term.lower())
+        filtered_results = [desc for key, descs in options_dict.items() if search_query_lower in key for desc in
+                            descs]
+
         try:
             return self.get_additional_product_info().__class__.objects.filter(
-                title=self.get_additional_product_info().title, product__state=StateEnum.available).count()
+                title__in=filtered_results, product__state=StateEnum.available).count()
         except ValueError:
             return "ERROR"
 
