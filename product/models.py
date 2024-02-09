@@ -364,7 +364,7 @@ class Product(models.Model):
             additional_info.save()
 
     def procesar_archivos(self):
-        directorio = "/home/alejandro/Desktop/feadygames"
+        directorio = "./photos"
         archivos = os.listdir(directorio)
         for filename in archivos:
             file_path = os.path.join(directorio, filename)
