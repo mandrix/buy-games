@@ -365,6 +365,7 @@ class Product(models.Model):
 
     def guardar_archivo(self, queryset):
         if self.image:
+            print("fifa")
             return
 
         adi = self.get_additional_product_info()
