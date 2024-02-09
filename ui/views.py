@@ -117,7 +117,7 @@ class GenerateBill(TemplateView):
                 discount=data['discounts'],
                 taxes=data['taxes'],
                 gross_total=data['totalAmount'],
-                payment_details=payment_details,
+                payment_details=f"{payment_details} - {data.get('customerPhone')}",
                 receipt_comments=data['receiptComments'],
                 customer_name=data['customerName'],
                 customer_mail=data['customerMail'],
