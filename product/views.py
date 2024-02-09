@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from unidecode import unidecode
 from collections import defaultdict
 
+from helpers.admin import exclude_copies
 from product.filters import TypeFilter
 from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
@@ -52,7 +53,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         consoles = self.request.query_params.get('consoles')
         product_types = self.request.query_params.get('types')
         search_query = self.request.query_params.get('q')
-
+        self.queryset = exclude_copies(self.queryset)
         if not any([tags,consoles,product_types,search_query]):
             return self.queryset
 
@@ -71,7 +72,6 @@ class ProductViewSet(viewsets.ModelViewSet):
                 Q(videogame__title__icontains=search_query) | Q(barcode__exact=search_query) |
                 Q(console__title__icontains=search_query) | Q(accessory__title__icontains=search_query) |
                 Q(collectable__title__icontains=search_query) | Q(description__in=filtered_results))
-
         if tags:
             tags = tags.split(",")
             self.queryset = self.queryset.filter(tags__name__in=tags)

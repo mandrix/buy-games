@@ -10,6 +10,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from unidecode import unidecode
 
+from helpers.admin import exclude_copies
 from helpers.business_information import business_information
 from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter
@@ -90,6 +91,7 @@ class ProductAdmin(admin.ModelAdmin):
 
             queryset = queryset.filter(description__in=filtered_results)
 
+        queryset = exclude_copies(queryset)
         return queryset, use_distinct
 
     def used_display(self, obj):

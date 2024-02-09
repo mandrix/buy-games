@@ -389,11 +389,11 @@ class Product(models.Model):
 
     def pro_img(self):
         query = Product.objects.filter(state=StateEnum.available)
-        for i in query:
-            adi_copies = i.similar_products()
-            copies_pk = [i.product.pk for i in adi_copies]
+        for product in query:
+            adi_copies = product.similar_products()
+            copies_pk = [adi.product.pk for adi in adi_copies]
             copies = Product.objects.filter(pk__in=copies_pk)
-            i.save_img(copies)
+            product.save_img(copies)
 
     def save(self, *args, **kwargs):
         if not self.payment:
