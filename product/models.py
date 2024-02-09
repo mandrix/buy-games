@@ -364,18 +364,8 @@ class Product(models.Model):
             additional_info.product = copy
             additional_info.save()
 
-    def limpiar_nombre_archivo(self, nombre):
-        caracteres_especiales = {'/': '_', '\\': '_', ':': '_', '*': '_', '?': '_', '"': '_', '<': '_', '>': '_',
-                                 '|': '_', ' ': '_'}
-
-        for caracter, reemplazo in caracteres_especiales.items():
-            nombre = nombre.replace(caracter, reemplazo)
-
-        return nombre
-
-    def guardar_archivo(self, queryset):
+    def save_img(self, queryset):
         if self.image:
-            print("fifa")
             return
 
         adi = self.get_additional_product_info()
@@ -386,25 +376,24 @@ class Product(models.Model):
             console = "collec"
         else:
             console = adi.console
-        directorio = f"./p/{console}/"
+        dir = f"./p/{console}/"
         file_name = title + ".jpeg"
-        file_path = os.path.join(directorio, file_name)
+        file_path = os.path.join(dir, file_name)
         if os.path.isfile(file_path):
+            print(dir, title)
             with open(file_path, 'rb') as file:
                 file_content = file.read()
                 for i in queryset:
                     i.image.save(f"{title}.jpg", ContentFile(file_content), save=False)
                     i.save()
-        else:
-            print(directorio, title)
 
     def pro_img(self):
-        query = Product.objects.filter(pk__in=[5562,5561,5560,5559,5558])
+        query = Product.objects.filter(state=StateEnum.available)
         for i in query:
             adi_copies = i.similar_products()
             copies_pk = [i.product.pk for i in adi_copies]
             copies = Product.objects.filter(pk__in=copies_pk)
-            i.guardar_archivo(copies)
+            i.save_img(copies)
 
     def save(self, *args, **kwargs):
         if not self.payment:
