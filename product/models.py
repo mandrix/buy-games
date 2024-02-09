@@ -379,14 +379,14 @@ class Product(models.Model):
             return
 
         adi = self.get_additional_product_info()
-        title = self.limpiar_nombre_archivo(adi.title)
+        title = adi.title
         if adi.__class__ == Console:
             console = adi.title()
         elif adi.__class__ == Collectable:
             console = "collec"
         else:
             console = adi.console
-        directorio = f"./p/{console}"
+        directorio = f"./p/{console}/"
         file_name = title + ".jpeg"
         file_path = os.path.join(directorio, file_name)
         if os.path.isfile(file_path):
