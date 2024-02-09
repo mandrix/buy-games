@@ -363,17 +363,33 @@ class Product(models.Model):
             additional_info.product = copy
             additional_info.save()
 
-    def procesar_archivos(self):
-        directorio = "./photos"
-        archivos = os.listdir(directorio)
-        for filename in archivos:
-            file_path = os.path.join(directorio, filename)
+    def guardar_archivo(self, queryset):
+        if self.image:
+            return
 
-            if os.path.isfile(file_path):
-                with open(file_path, 'rb') as file:
-                    self.image.save(filename, file, save=False)
-                    self.save()
-        super().save()
+        adi = self.get_additional_product_info()
+        title = adi.title
+        if adi.__class__ == Console:
+            console = adi.title()
+        elif adi.__class__ == Collectable:
+            console = "collec"
+        else:
+            console = adi.console
+        directorio = f"./p/{console}"
+
+        file_path = os.path.join(directorio, title)
+        if os.path.isfile(file_path):
+            with open(file_path, 'rb') as file:
+                file_content = file.read()
+                for i in queryset:
+                    i.image = file_content
+                    i.save()
+
+    def pro_img(self):
+        query = Product.objects.filter(pk__in=[5562,5561,5560,5559,5558])
+        for i in query:
+            copies = i.similar_products()
+            i.guardar_archivo(copies)
 
     def save(self, *args, **kwargs):
         if not self.payment:
