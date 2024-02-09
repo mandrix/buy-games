@@ -75,6 +75,7 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
+    """
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
         if search_term:
@@ -88,6 +89,7 @@ class ProductAdmin(admin.ModelAdmin):
             queryset = queryset.filter(description__in=results)
 
         return queryset, use_distinct
+    """
 
     def used_display(self, obj):
         color = 'orange' if obj.used else 'blue'
