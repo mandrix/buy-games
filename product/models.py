@@ -268,10 +268,7 @@ class Product(models.Model):
         except:
             return "ERROR no tiene tipo"
 
-    @property
-    @admin.display(description='copies')
-    def copies(self):
-
+    def similar_products(self):
         options_dict = defaultdict(list)
         queryset_additional_info = self.get_additional_product_info().__class__.objects
         search_term = self.get_additional_product_info().title
@@ -285,9 +282,18 @@ class Product(models.Model):
 
         try:
             return self.get_additional_product_info().__class__.objects.filter(
-                title__in=filtered_results, product__state=StateEnum.available).count()
+                title__in=filtered_results, product__state=StateEnum.available)
         except ValueError:
             return "ERROR"
+
+    @property
+    @admin.display(description='copies')
+    def copies(self):
+        similar_products_result = self.similar_products()
+
+        if type(similar_products_result) != str:
+            return similar_products_result.count()
+        return similar_products_result
 
     @property
     @admin.display(description='sale price', ordering='sale_price')
