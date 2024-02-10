@@ -384,8 +384,10 @@ class Product(models.Model):
             with open(file_path, 'rb') as file:
                 file_content = file.read()
                 for i in queryset:
+                    print(1,"")
                     i.image.save(f"{title}.jpg", ContentFile(file_content), save=False)
                     i.save()
+                print("")
 
     def pro_img(self):
         query = Product.objects.filter(state=StateEnum.available)
