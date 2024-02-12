@@ -3,6 +3,7 @@ from io import BytesIO
 
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
+from django.db.models import Q
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -89,7 +90,10 @@ class ProductAdmin(admin.ModelAdmin):
             filtered_results = [desc for key, descs in options_dict.items() if search_query_lower in key for desc in
                                 descs]
 
-            queryset = queryset.filter(description__in=filtered_results)
+            queryset = queryset.filter(
+                Q(videogame__title__icontains=search_term) | Q(barcode__exact=search_term) |
+                Q(console__title__icontains=search_term) | Q(accessory__title__icontains=search_term) |
+                Q(collectable__title__icontains=search_term) | Q(description__in=filtered_results))
 
         # queryset = exclude_copies(queryset)
         return queryset, use_distinct
