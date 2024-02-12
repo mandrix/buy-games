@@ -95,7 +95,7 @@ class ProductAdmin(admin.ModelAdmin):
                 Q(console__title__icontains=search_term) | Q(accessory__title__icontains=search_term) |
                 Q(collectable__title__icontains=search_term) | Q(description__in=filtered_results))
 
-        # queryset = exclude_copies(queryset)
+            # queryset = exclude_copies(queryset)
         return queryset, use_distinct
 
     def used_display(self, obj):
