@@ -156,6 +156,14 @@ class SaleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SaleBillSerializer(serializers.ModelSerializer):
+    products = ProductSerializerToShow(many=True, read_only=True)
+
+    class Meta:
+        model = Sale
+        exclude = ['warranty_type', 'payment_method']
+
+
 class ReportSerializer(serializers.ModelSerializer):
     sales = SaleSerializer(many=True, read_only=True, source='sale_set')
 

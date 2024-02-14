@@ -24,6 +24,8 @@ from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGam
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
+from product.serializer import SaleBillSerializer
+
 
 class ReturnPolicyView(TemplateView):
     template_name = "return-policy.html"
@@ -53,22 +55,13 @@ class GenerateBill(TemplateView):
     SERVICE = "S"
 
     def post(self, request, *args, **kwargs):
+        serializer = SaleBillSerializer(data=json.loads(request.body.decode('utf-8')))
+        serializer.is_valid(raise_exception=True)
+        sale_instance = serializer.save()
+
         data = json.loads(request.body.decode('utf-8'))
+
         context = self.get_context_data(**kwargs)
-        context['store_name'] = data['storeName']
-        context['store_address'] = data['storeAddress']
-        context['store_contact'] = data['storeContact']
-        context['store_mail'] = data['storeMail']
-        context['receipt_number'] = data['receiptNumber']
-        context['purchase_date'] = data['purchaseDate']
-        context['customer_name'] = data['customerName']
-        context['customer_mail'] = data['customerMail']
-        context['payment_method'] = data['paymentMethod']
-        context['items'] = data['items']
-        context['payment_details'] = data['paymentDetails']
-        context['receipt_comments'] = data['receiptComments']
-        context['return_policy'] = qrOptions[data['returnPolicy']]
-        context['qr_url'] = qrLinkOptions[data['returnPolicy']]
 
         if data.get('order'):
             items, items_remaining = self.create_order(data)
@@ -79,9 +72,9 @@ class GenerateBill(TemplateView):
             items, items_remaining = self.create_items_list(sale, data)
         context['items_remaining'] = items_remaining
         context['items'] = items
-        context['subtotal'] = formatted_number(data['subtotal'])
-        if float(data['taxes']):
-            context['taxes'] = formatted_number(data['taxes'])
+        context['subtotal'] = formatted_number(sale_instance.subtotal)
+        if float(sale_instance.taxes):
+            context['taxes'] = formatted_number(sale_instance.taxes)
         else:
             context['taxes'] = 0
         context['discounts'] = formatted_number(data['discounts'])
