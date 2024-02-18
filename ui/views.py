@@ -20,9 +20,11 @@ from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
 from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGame, Collectable, Console, Accessory, \
-    SaleTypeEnum
+    SaleTypeEnum, PlatformEnum
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from product.serializer import GenerateBillSerializer
 
 
 class ReturnPolicyView(TemplateView):
@@ -53,22 +55,12 @@ class GenerateBill(TemplateView):
     SERVICE = "S"
 
     def post(self, request, *args, **kwargs):
-        data = json.loads(request.body.decode('utf-8'))
+        serializer = GenerateBillSerializer(data=json.loads(request.body.decode('utf-8')))
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
         context = self.get_context_data(**kwargs)
-        context['store_name'] = data['storeName']
-        context['store_address'] = data['storeAddress']
-        context['store_contact'] = data['storeContact']
-        context['store_mail'] = data['storeMail']
-        context['receipt_number'] = data['receiptNumber']
-        context['purchase_date'] = data['purchaseDate']
-        context['customer_name'] = data['customerName']
-        context['customer_mail'] = data['customerMail']
-        context['payment_method'] = data['paymentMethod']
-        context['items'] = data['items']
-        context['payment_details'] = data['paymentDetails']
-        context['receipt_comments'] = data['receiptComments']
-        context['return_policy'] = qrOptions[data['returnPolicy']]
-        context['qr_url'] = qrLinkOptions[data['returnPolicy']]
+        context.update(data)
 
         if data.get('order'):
             items, items_remaining = self.create_order(data)
@@ -77,22 +69,20 @@ class GenerateBill(TemplateView):
         else:
             sale = self.create_sale(data)
             items, items_remaining = self.create_items_list(sale, data)
+
         context['items_remaining'] = items_remaining
         context['items'] = items
         context['subtotal'] = formatted_number(data['subtotal'])
-        if float(data['taxes']):
-            context['taxes'] = formatted_number(data['taxes'])
-        else:
-            context['taxes'] = 0
+        context['taxes'] = formatted_number(data['taxes']) if float(data['taxes']) else 0
         context['discounts'] = formatted_number(data['discounts'])
-        context['total_amount'] = formatted_number(data['totalAmount'])
+        context['total_amount'] = formatted_number(data['total_amount'])
 
         rendered_template = render_to_string(self.template_name, context)
 
         response = HttpResponse(rendered_template, content_type='text/html')
 
         try:
-            self.enviar_factura_por_correo(rendered_template, data['customerMail'], data['returnPolicy'])
+            self.enviar_factura_por_correo(rendered_template, data['customer_mail'], data['return_policy'])
         except SendMailError as e:
             logging.error(f'Error al enviar el correo: {e}')
 
@@ -104,24 +94,24 @@ class GenerateBill(TemplateView):
         with transaction.atomic():
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
-            warranty_type = return_policy_options[data['returnPolicy']]["name"]
+            warranty_type = return_policy_options[data['return_policy']]["name"]
             net_total = - float(data['discounts'])
-            payment_details = data['paymentDetails']
+            payment_details = data.get('payment_details', '')
             sale = Sale.objects.create(
                 report=report,
                 warranty_type=warranty_type,
-                purchase_date_time=data['purchaseDate'],
-                payment_method=data['paymentMethod'],
-                platform=data['platform'],
+                purchase_date_time=data['purchase_date'],
+                payment_method=data['payment_method'],
+                platform=data.get('platform', PlatformEnum.Store),
                 subtotal=data['subtotal'],
                 discount=data['discounts'],
                 taxes=data['taxes'],
-                gross_total=data['totalAmount'],
-                payment_details=f"{payment_details} - {data.get('customerPhone')}",
-                receipt_comments=data['receiptComments'],
-                customer_name=data['customerName'],
-                customer_mail=data['customerMail'],
-                shipping=data['shipping'],
+                gross_total=data['total_amount'],
+                payment_details=f"{payment_details} - {data.get('customer_phone', '')}",
+                receipt_comments=data.get('receipt_comments', ""),
+                customer_name=data.get('customer_name'),
+                customer_mail=data.get('customer_mail'),
+                shipping=data.get('shipping', False),
                 client=GenerateBill.get_or_create_client(data)
             )
 
@@ -141,7 +131,7 @@ class GenerateBill(TemplateView):
                         payment.save()
                     elif data.get('order'):
                         sale.type = SaleTypeEnum.Request
-                        payment.net_price = float(data['totalAmount'])
+                        payment.net_price = float(data['total_amount'])
                         payment.save()
                     else:
                         sale.type = SaleTypeEnum.Purchase
@@ -158,17 +148,17 @@ class GenerateBill(TemplateView):
 
     @staticmethod
     def get_or_create_client(data):
-        if client := Client.objects.filter(email__iexact=data['customerMail']).first():
-            if data.get("customerPhone") and not client.phone_number:
-                client.phone_number = data.get("customerPhone")
+        if client := Client.objects.filter(email__iexact=data['customer_mail']).first():
+            if data.get("customer_phone") and not client.phone_number:
+                client.phone_number = data.get("customer_phone")
                 client.save()
             return client
 
         return Client.objects.create(
-            full_name=data['customerName'],
-            email=data['customerMail'],
+            full_name=data['customer_name'],
+            email=data['customer_mail'],
             _id=data.get('id'),
-            phone_number=data['customerPhone']
+            phone_number=data['customer_phone']
         )
 
     def enviar_factura_por_correo(self, factura_html, address, return_policy):
@@ -227,7 +217,7 @@ class GenerateBill(TemplateView):
                 reserved = item.get('reserved')
                 if payment.remaining == payment.sale_price:  # al iniciar un pago con un producto, se le
                     # setea el metodo de pago y el costo nuevo si es el caso
-                    pay = choices_payment(data['paymentMethod'], payment.sale_price)
+                    pay = choices_payment(data['payment_method'], payment.sale_price)
                     payment.payment_method = pay["method"]
                     payment.sale_price = pay["price"]
                     payment.remaining = pay["price"]
@@ -289,7 +279,7 @@ class GenerateBill(TemplateView):
         })
 
         payment = product.payment
-        pay = choices_payment(data['paymentMethod'], payment.sale_price)
+        pay = choices_payment(data['payment_method'], payment.sale_price)
         payment.payment_method = pay["method"]
         payment.remaining = max(0, int(float(payment.remaining) - float(part_paid)))  # aqui en ves de price,
         # debe ser el pago de apartado que vendrá en una variable diferente
