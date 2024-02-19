@@ -4,7 +4,8 @@ from io import BytesIO
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
-from django.db.models import Q
+from django.db.models import Q, F, Value, ExpressionWrapper, CharField
+from django.db.models.functions import Concat
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -80,9 +81,12 @@ class ProductAdmin(admin.ModelAdmin):
 
 
     def get_queryset(self, request):
+        # Customize the queryset to show only distinct rows based on multiple fields
+        queryset = super(ProductAdmin, self).get_queryset(request)
+
         if not settings.USE_POSTGRES:
-            return Product.objects.all()
-        return Product.objects.all().distinct("barcode", "sale_price", "state").count()
+            return queryset
+        return queryset.objects.all().distinct("barcode", "sale_price", "state")
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
