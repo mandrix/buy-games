@@ -84,7 +84,7 @@ class ProductAdmin(admin.ModelAdmin):
         # Customize the queryset to show only distinct rows based on multiple fields
         queryset = super(ProductAdmin, self).get_queryset(request)
 
-        if not settings.USE_POSTGRES or settings.IS_HEROKU_APP:
+        if not (settings.USE_POSTGRES or settings.IS_HEROKU_APP):
             return queryset
         return queryset.objects.all().distinct("barcode", "sale_price", "state")
 
