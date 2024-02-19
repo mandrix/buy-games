@@ -85,6 +85,7 @@ class FullURLField(serializers.URLField):
             full_url = f'{scheme}{domain}{static("assets/common/default.jpg")}'
         return super().to_representation(full_url)
 
+
 class ProductSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     price = SerializerMethodField()
@@ -141,7 +142,6 @@ class ProductSerializer(serializers.ModelSerializer):
         return full_url
 
 
-
 class ProductSerializerToShow(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -154,6 +154,29 @@ class SaleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = '__all__'
+
+
+class GenerateBillSerializer(serializers.Serializer):
+    store_name = serializers.CharField()
+    store_address = serializers.CharField()
+    store_contact = serializers.CharField()
+    store_mail = serializers.EmailField()
+    receipt_number = serializers.CharField(required=False)
+    purchase_date = serializers.CharField()
+    customer_name = serializers.CharField()
+    customer_mail = serializers.EmailField()
+    platform = serializers.CharField(required=False)
+    payment_method = serializers.CharField()
+    items = serializers.ListField()
+    payment_details = serializers.CharField(required=False)
+    receipt_comments = serializers.CharField(required=False)
+    return_policy = serializers.IntegerField(min_value=0, max_value=3)
+    order = serializers.BooleanField(required=False)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
+    taxes = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discounts = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    shipping = serializers.BooleanField(required=False)
 
 
 class ReportSerializer(serializers.ModelSerializer):
