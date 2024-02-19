@@ -1,6 +1,7 @@
 from collections import defaultdict
 from io import BytesIO
 
+from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
 from django.db.models import Q
@@ -76,6 +77,12 @@ class ProductAdmin(admin.ModelAdmin):
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
+
+
+    def get_queryset(self, request):
+        if not settings.USE_POSTGRES:
+            return Product.objects.all()
+        return Product.objects.all().distinct("barcode", "sale_price", "state").count()
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
