@@ -414,7 +414,7 @@ class Product(models.Model):
             self.remaining = self.sale_price
             self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
-        else:
+        elif not Product.objects.filter(barcode__exact=self.barcode, state=StateEnum.available, hidden=False):
             if next_product_to_show := Product.objects.filter(barcode__exact=self.barcode,
                                                               state=StateEnum.available, hidden=True).first():
                 next_product_to_show.hidden = False
