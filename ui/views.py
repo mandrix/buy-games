@@ -233,6 +233,11 @@ class GenerateBill(TemplateView):
                 payment.save()
                 product.save()
 
+                if next_product_to_show := Product.objects.filter(barcode__exact=product.barcode,
+                                                                  state=StateEnum.available, hidden=True).first():
+                    next_product_to_show.hidden = False
+                    next_product_to_show.save()
+
         return items, items_remaining
 
     def get_additional_info(self, additional_info):

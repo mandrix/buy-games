@@ -239,6 +239,7 @@ class Product(models.Model):
 
     used = models.BooleanField(default=True)
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
+    hidden = models.BooleanField(default=False, help_text="Used mainly to hide duplicate products")
 
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
     order = models.BooleanField(default=False, blank=True, null=True)
