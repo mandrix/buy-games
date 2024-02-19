@@ -165,6 +165,7 @@ class GenerateBillSerializer(serializers.Serializer):
     purchase_date = serializers.CharField()
     customer_name = serializers.CharField()
     customer_mail = serializers.EmailField()
+    customer_phone = serializers.CharField()
     platform = serializers.CharField(required=False)
     payment_method = serializers.CharField()
     items = serializers.ListField()
