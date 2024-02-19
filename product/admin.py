@@ -86,7 +86,7 @@ class ProductAdmin(admin.ModelAdmin):
 
         if not (settings.USE_POSTGRES or settings.IS_HEROKU_APP):
             return queryset
-        return queryset.distinct("barcode", "sale_price", "state")
+        return queryset.order_by("-creation_date", "barcode", "sale_price", "state").distinct("creation_date", "barcode", "sale_price", "state")
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
