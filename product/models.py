@@ -285,7 +285,7 @@ class Product(models.Model):
 
         try:
             return self.get_additional_product_info().__class__.objects.filter(
-                title__in=filtered_results, product__state=StateEnum.available)
+                title__in=filtered_results, product__state=self.state)
         except ValueError:
             return "ERROR"
 
@@ -356,6 +356,7 @@ class Product(models.Model):
             copy.pk = None
             copy.payment = None
             copy.amount = 1
+            copy.hidden = True
             copy.save()
 
             copy.tags.set(current_tags)
@@ -413,6 +414,11 @@ class Product(models.Model):
             self.remaining = self.sale_price
             self.payment.payment_method = PaymentMethodEnum.na
             self.payment.save()
+        else:
+            if next_product_to_show := Product.objects.filter(barcode__exact=self.barcode,
+                                                              state=StateEnum.available, hidden=True).first():
+                next_product_to_show.hidden = False
+                next_product_to_show.save()
         if not self.barcode:
             self.generate_barcode()
         else:
@@ -421,10 +427,13 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
         try:
-            if self.amount > 1 and self.get_additional_product_info():
-                self.duplicate()
+            if self.get_additional_product_info():
+                if self.amount > 1:
+                    self.duplicate()
+
         except ValueError as e:
             pass
+
 
 
 class Report(models.Model):

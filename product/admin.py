@@ -16,7 +16,7 @@ from unidecode import unidecode
 from helpers.admin import exclude_copies
 from helpers.business_information import business_information
 from helpers.payment import formatted_number
-from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter
+from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, SaleTypeEnum
@@ -61,7 +61,7 @@ class ProductAdmin(admin.ModelAdmin):
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used_display', 'owner', 'etiquetas', 'image')
     model = Product
-    list_filter = (SoldFilter, TypeFilter, BelowThreshHoldFilter,
+    list_filter = (DuplicatesFilter, SoldFilter, TypeFilter, BelowThreshHoldFilter,
                    ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags', )
     inlines = []
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
@@ -79,12 +79,6 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
-
-    def get_queryset(self, request):
-        # Customize the queryset to show only distinct rows based on multiple fields
-        queryset = super(ProductAdmin, self).get_queryset(request)
-
-        return queryset.filter(hidden=False)
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")

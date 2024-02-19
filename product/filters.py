@@ -48,6 +48,24 @@ class TypeFilter(admin.SimpleListFilter):
         elif product_type == 'collectable':
             return queryset.filter(collectable__isnull=False)
 
+class DuplicatesFilter(admin.SimpleListFilter):
+    title = 'Mostrar duplicados'
+    parameter_name = 'duplicates'
+
+    def lookups(self, request, model_admin):
+        # Devuelve las opciones de filtro y sus etiquetas
+        return (
+            ('yes', ('Si')),
+            ('no', ('No')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'no':
+            return queryset.filter(hidden=False)
+        else:
+            return queryset
+
+
 class SoldFilter(admin.SimpleListFilter):
     title = 'Estado de Producto'
     parameter_name = 'state'
