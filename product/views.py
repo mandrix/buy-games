@@ -225,10 +225,9 @@ class GenerateExcelOfProducts(APIView):
         product_barcodes_ids = [products.filter(barcode=barcode).first().id for barcode in product_barcodes]
         products = products.filter(id__in=product_barcodes_ids)
 
-        tags_to_show = [tag.name for tag in Tag.objects.filter(internal=False)]
         rows = [
             [str(product), product.sale_price, product.description,
-             "|".join(tags_to_show), str(product.console_type)] for product in products
+             "|".join([tag.name for tag in product.tags.filter(internal=False)]), str(product.console_type)] for product in products
         ]
         wb = Workbook()
         # Add data to the Excel workbook (replace this with your actual data)
