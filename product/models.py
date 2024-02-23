@@ -612,6 +612,8 @@ class Expense(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
     color = ColorField(default='#00FF00')
+    internal = models.BooleanField(default=False, help_text="Si es interno, entonces solo se muestra en la pagina"\
+                                                            "administrativa, en la pagina web no ni el excel por ejemplo")
 
     def __str__(self):
         return self.name
