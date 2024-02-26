@@ -20,7 +20,7 @@ from collections import defaultdict
 
 from helpers.admin import exclude_copies
 from product.filters import TypeFilter
-from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale
+from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale, Tag
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
     ReportSerializer
 from datetime import datetime
@@ -226,7 +226,8 @@ class GenerateExcelOfProducts(APIView):
         products = products.filter(id__in=product_barcodes_ids)
 
         rows = [
-            [str(product), product.sale_price, product.description, str(product.console_type)] for product in products
+            [str(product), product.sale_price, product.description,
+             "|".join([tag.name for tag in product.tags.filter(internal=False)]), str(product.console_type)] for product in products
         ]
         wb = Workbook()
         # Add data to the Excel workbook (replace this with your actual data)
@@ -235,7 +236,8 @@ class GenerateExcelOfProducts(APIView):
         sheet['A1'] = "Nombre"
         sheet['B1'] = "Precio"
         sheet['C1'] = "Descripción"
-        sheet['D1'] = "Consola"
+        sheet['D1'] = "Adicional"
+        sheet['E1'] = "Consola"
         # Make titles bold
         for cell in sheet['1:1']:
             cell.font = Font(bold=True)
@@ -244,6 +246,7 @@ class GenerateExcelOfProducts(APIView):
             sheet[f"B{row_num + 2}"] = f"₡{row[1]:,.2f}" if type == "excel" else f"{row[1]:,.2f}"
             sheet[f"C{row_num + 2}"] = row[2]
             sheet[f"D{row_num + 2}"] = row[3]
+            sheet[f"E{row_num + 2}"] = row[4]
 
             # Set the column width based on content length
             for column in sheet.columns:

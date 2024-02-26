@@ -129,6 +129,9 @@ class ClientAdmin(admin.ModelAdmin):
     search_fields = ("full_name", "_id", "email", "phone_number")
     readonly_fields = ("purchases", "total_spent")
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def purchases(self, obj: Client):
         return obj.purchases.count()
 

@@ -552,7 +552,7 @@ class Sale(models.Model):
     type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
     shipping = models.BooleanField(default=False, help_text="Si es por envio")
     platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
-    client = models.ForeignKey('administration.Client', on_delete=models.CASCADE, null=True, blank=True, related_name="purchases")
+    client = models.ForeignKey('administration.Client', on_delete=models.SET_NULL, null=True, blank=True, related_name="purchases")
 
     def __str__(self):
         if not self.report:
@@ -612,6 +612,8 @@ class Expense(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
     color = ColorField(default='#00FF00')
+    internal = models.BooleanField(default=False, help_text="Si es interno, entonces solo se muestra en la pagina"\
+                                                            "administrativa, en la pagina web no ni el excel por ejemplo")
 
     def __str__(self):
         return self.name
