@@ -37,8 +37,8 @@ class ReturnPolicyView(TemplateView):
         return context
 
 
-class CountDownView(TemplateView):
-    template_name = "coming-soon.html"
+class HomePageView(TemplateView):
+    template_name = "homepage.html"
 
 
 class ReceiptView(TemplateView):
