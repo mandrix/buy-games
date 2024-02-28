@@ -308,8 +308,8 @@ class SaleAdmin(admin.ModelAdmin):
     change_form_template = "overrides/btn_sale.html"
 
     @staticmethod
-    def format_product_string(product):
-        return f"{str(product)} - ₡{product.sale_price:,} - {product.owner} - {product.barcode} - ID: {product.id} \n"
+    def format_product_string(product: Product):
+        return f"{str(product)} - {product.console_type} - ₡{product.sale_price:,} - {product.owner} - {product.barcode} - ID: {product.id} \n"
 
     def receipt_products(self, obj: Sale):
         products_string = [ self.format_product_string(product) for product in obj.products.all() ]
