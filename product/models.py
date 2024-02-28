@@ -273,7 +273,11 @@ class Product(models.Model):
 
     def similar_products(self):
         options_dict = defaultdict(list)
-        queryset_additional_info = self.get_additional_product_info().__class__.objects
+        try:
+            queryset_additional_info = self.get_additional_product_info().__class__.objects
+        except ValueError:
+            return "ERROR"
+
         search_term = self.get_additional_product_info().title
         for additional in queryset_additional_info.all():
             key = unidecode(additional.title.lower())
