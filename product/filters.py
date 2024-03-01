@@ -66,6 +66,23 @@ class DuplicatesFilter(admin.SimpleListFilter):
             return queryset
 
 
+class ToBeShippedFilter(admin.SimpleListFilter):
+    title = 'Por enviar'
+    parameter_name = 'to_be_sent'
+
+    def lookups(self, request, model_admin):
+        # Devuelve las opciones de filtro y sus etiquetas
+        return (
+            ('yes', ('Si')),
+            ('no', ('No')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(sent=False, shipping=True)
+        else:
+            return queryset.filter(shipping=True, sent=True)
+
 class SoldFilter(admin.SimpleListFilter):
     title = 'Estado de Producto'
     parameter_name = 'state'
