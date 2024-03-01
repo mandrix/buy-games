@@ -273,7 +273,11 @@ class Product(models.Model):
 
     def similar_products(self):
         options_dict = defaultdict(list)
-        queryset_additional_info = self.get_additional_product_info().__class__.objects
+        try:
+            queryset_additional_info = self.get_additional_product_info().__class__.objects
+        except ValueError:
+            return "ERROR"
+
         search_term = self.get_additional_product_info().title
         for additional in queryset_additional_info.all():
             key = unidecode(additional.title.lower())
@@ -550,7 +554,10 @@ class Sale(models.Model):
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
     type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
+
     shipping = models.BooleanField(default=False, help_text="Si es por envio")
+    sent = models.BooleanField(default=False, help_text="Si ya se envio")
+
     platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
     client = models.ForeignKey('administration.Client', on_delete=models.SET_NULL, null=True, blank=True, related_name="purchases")
 
