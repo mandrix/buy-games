@@ -80,8 +80,10 @@ class ToBeShippedFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'yes':
             return queryset.filter(sent=False, shipping=True)
-        else:
+        elif self.value() == 'no':
             return queryset.filter(shipping=True, sent=True)
+        else:
+            return queryset
 
 class SoldFilter(admin.SimpleListFilter):
     title = 'Estado de Producto'
