@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.templatetags.static import static
 from rest_framework import serializers
+from django.core.validators import RegexValidator
 from rest_framework.fields import CharField, SerializerMethodField, URLField
 
 from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment, Tag
@@ -79,7 +80,6 @@ class FullURLField(serializers.URLField):
         current_site = get_current_site(request) if request else None
         domain = current_site.domain if current_site else ''
 
-
         full_url = f'{scheme}{domain}/media/{value}'
         if not value:
             full_url = f'{scheme}{domain}{static("assets/common/default.jpg")}'
@@ -122,7 +122,8 @@ class ProductSerializer(serializers.ModelSerializer):
         if type(obj.get_additional_product_info()) == Collectable:
             console_code = ""
         else:
-            console_code = obj.get_additional_product_info().title if type(obj.get_additional_product_info()) == Console else obj.get_additional_product_info().console
+            console_code = obj.get_additional_product_info().title if type(
+                obj.get_additional_product_info()) == Console else obj.get_additional_product_info().console
         return {"console": str(obj.console_type), "console-code": console_code}
 
     def get_tags(self, obj: Product):
@@ -134,7 +135,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
         current_site = get_current_site(request) if request else None
         domain = current_site.domain if current_site else ''
-
 
         full_url = f'{scheme}{domain}{static("assets/common/default.jpg")}'
         if obj.image:
@@ -162,10 +162,18 @@ class GenerateBillSerializer(serializers.Serializer):
     store_contact = serializers.CharField()
     store_mail = serializers.EmailField()
     receipt_number = serializers.CharField(required=False)
-    purchase_date = serializers.CharField()
+    purchase_date = serializers.DateField(input_formats=['%d/%m/%Y'])
     customer_name = serializers.CharField()
     customer_mail = serializers.EmailField()
-    customer_phone = serializers.CharField()
+    customer_phone = serializers.CharField(
+        required=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{8}$',
+                message='El número de teléfono debe tener 8 dígitos.',
+                code='invalid_phone_number'
+            ),
+        ])
     platform = serializers.CharField(required=False)
     payment_method = serializers.CharField()
     items = serializers.ListField()
@@ -173,10 +181,10 @@ class GenerateBillSerializer(serializers.Serializer):
     receipt_comments = serializers.CharField(required=False)
     return_policy = serializers.IntegerField(min_value=0, max_value=3)
     order = serializers.BooleanField(required=False)
-    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
-    taxes = serializers.DecimalField(max_digits=10, decimal_places=2)
-    discounts = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
-    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
+    taxes = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
+    discounts = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, min_value=0)
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
     shipping = serializers.BooleanField(required=False)
 
 
