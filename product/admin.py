@@ -80,6 +80,20 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
+    def save_model(self, request, obj, form, change):
+
+        if "image" in form.changed_data:
+            new_img = form.cleaned_data['image']
+            obj.image = None if not new_img else new_img
+            obj.save()
+
+            adi_copies = obj.similar_products()
+            copies_pk = [adi.product.pk for adi in adi_copies]
+
+            Product.objects.filter(pk__in=copies_pk).update(image=obj.image)
+
+        obj.updated_by_admin = True
+        super().save_model(request, obj, form, change)
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
