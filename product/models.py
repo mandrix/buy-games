@@ -17,6 +17,7 @@ from django.db.models import Q
 from unidecode import unidecode
 
 from games.utils.storage_backends import PrivateMediaStorage
+from helpers.admin import exclude_copies
 from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
 
 
@@ -371,9 +372,6 @@ class Product(models.Model):
             additional_info.save()
 
     def save_img(self, queryset):
-        if self.image:
-            return
-
         adi = self.get_additional_product_info()
         title = adi.title
         if adi.__class__ == Console:
@@ -389,18 +387,27 @@ class Product(models.Model):
             print(dir, title)
             with open(file_path, 'rb') as file:
                 file_content = file.read()
-                for i in queryset:
-                    print(1,"")
-                    i.image.save(f"{title}.jpg", ContentFile(file_content), save=False)
-                    i.save()
-                print("")
+                first_img = queryset.first()
+                first_img.image.save(f"{title}.jpg", ContentFile(file_content), save=True)
+                first_img.save()
+                print(queryset.count())
+                queryset.update(image=first_img.image)
 
-    def pro_img(self):
+    def pro_img(self, allow_empty_image=None):
         query = Product.objects.filter(state=StateEnum.available)
+        if allow_empty_image is not True:
+            query = query.filter(Q(image__isnull=True) | Q(image=''))
+        if not query:
+            return
+        query = exclude_copies(query)
         for product in query:
             adi_copies = product.similar_products()
             copies_pk = [adi.product.pk for adi in adi_copies]
-            copies = Product.objects.filter(pk__in=copies_pk)
+
+            copies = Product.objects.filter(pk__in=copies_pk, state=StateEnum.available)
+            if allow_empty_image is not True:
+                copies = copies.filter(Q(image__isnull=True) | Q(image=''))
+
             product.save_img(copies)
 
     def save(self, *args, **kwargs):
@@ -437,7 +444,6 @@ class Product(models.Model):
 
         except ValueError as e:
             pass
-
 
 
 class Report(models.Model):

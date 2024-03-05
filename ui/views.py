@@ -2,21 +2,19 @@ import json
 
 import logging
 from datetime import datetime
-from decimal import Decimal
-
-from django.db.models import Q
 from openpyxl import Workbook
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.views.generic import TemplateView
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from rest_framework import status
+
 from administration.models import Coupon, CouponTypeEnum, Client
 from helpers.payment import formatted_number, choices_payment
-from helpers.qr import qrOptions, qrLinkOptions
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
 from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGame, Collectable, Console, Accessory, \
@@ -33,7 +31,7 @@ class ReturnPolicyView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         t_param = kwargs.get('t')
-        context['return_policy_text'] = return_policy_options[int(t_param)]["desc"]
+        context['return_policy_text'] = return_policy_options[int(t_param)]['desc']
         return context
 
 
@@ -55,16 +53,19 @@ class GenerateBill(TemplateView):
     SERVICE = "S"
 
     def post(self, request, *args, **kwargs):
-        serializer = GenerateBillSerializer(data=json.loads(request.body.decode('utf-8')))
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
+        data = json.loads(request.body.decode('utf-8'))
+        serializer = GenerateBillSerializer(data=data)
+
+        if not serializer.is_valid():
+            error_message = serializer.errors
+            return JsonResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
 
         context = self.get_context_data(**kwargs)
-        context.update(data)
+        context.update(serializer.validated_data)
 
         if data.get('order'):
             items, items_remaining = self.create_order(data)
-            data["items"] = items
+            data['items'] = items
             self.create_sale(data)
         else:
             sale = self.create_sale(data)
@@ -79,13 +80,12 @@ class GenerateBill(TemplateView):
 
         rendered_template = render_to_string(self.template_name, context)
 
-        response = HttpResponse(rendered_template, content_type='text/html')
-
         try:
             self.enviar_factura_por_correo(rendered_template, data['customer_mail'], data['return_policy'])
         except SendMailError as e:
             logging.error(f'Error al enviar el correo: {e}')
 
+        response = HttpResponse(rendered_template, content_type='text/html')
         response['Content-Disposition'] = 'inline; filename="bill.html"'
         response['Cache-Control'] = 'no-cache'
         return self.render_to_response(context)
@@ -94,7 +94,7 @@ class GenerateBill(TemplateView):
         with transaction.atomic():
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
-            warranty_type = return_policy_options[data['return_policy']]["name"]
+            warranty_type = return_policy_options[data['return_policy']]['name']
             net_total = - float(data['discounts'])
             payment_details = data.get('payment_details', '')
             sale = Sale.objects.create(
@@ -114,8 +114,6 @@ class GenerateBill(TemplateView):
                 shipping=data.get('shipping', False),
                 client=GenerateBill.get_or_create_client(data)
             )
-
-
 
             for item in data['items']:
                 product_id = item['id']
@@ -158,7 +156,7 @@ class GenerateBill(TemplateView):
             full_name=data['customer_name'],
             email=data['customer_mail'],
             _id=data.get('id'),
-            phone_number=data['customer_phone']
+            phone_number=data.get('customer_phone', "")
         )
 
     def enviar_factura_por_correo(self, factura_html, address, return_policy):
@@ -177,7 +175,7 @@ class GenerateBill(TemplateView):
 
         email_template_name = "return-policy.html"
         email_context = {
-            'return_policy_text': return_policy_options[return_policy]["desc"],
+            'return_policy_text': return_policy_options[return_policy]['desc'],
         }
 
         rendered_email_template = render_to_string(email_template_name, email_context)
@@ -218,9 +216,9 @@ class GenerateBill(TemplateView):
                 if payment.remaining == payment.sale_price:  # al iniciar un pago con un producto, se le
                     # setea el metodo de pago y el costo nuevo si es el caso
                     pay = choices_payment(data['payment_method'], payment.sale_price)
-                    payment.payment_method = pay["method"]
-                    payment.sale_price = pay["price"]
-                    payment.remaining = pay["price"]
+                    payment.payment_method = pay['method']
+                    payment.sale_price = pay['price']
+                    payment.remaining = pay['price']
                 payment.remaining = max(0, payment.remaining - int(item['price']) if reserved else 0)
                 if payment.remaining:
                     items_remaining.append({
@@ -273,9 +271,9 @@ class GenerateBill(TemplateView):
         formatted_price = formatted_number(part_paid)
 
         product = Product.objects.create(sale_price=price_total, sale_date=datetime.now(),
-                                         state=StateEnum.reserved, order=False, description=item_info["name"])
+                                         state=StateEnum.reserved, order=False, description=item_info['name'])
 
-        additional_info["additional_info"].create(title=item_info["name"], product=product)
+        additional_info['additional_info'].create(title=item_info['name'], product=product)
         item.append({
             'id': product.id,
             'name': item_info['name'],
@@ -285,7 +283,7 @@ class GenerateBill(TemplateView):
 
         payment = product.payment
         pay = choices_payment(data['payment_method'], payment.sale_price)
-        payment.payment_method = pay["method"]
+        payment.payment_method = pay['method']
         payment.remaining = max(0, int(float(payment.remaining) - float(part_paid)))  # aqui en ves de price,
         # debe ser el pago de apartado que vendrá en una variable diferente
         item_remaining.append({
@@ -353,7 +351,7 @@ class CalculatePayNewProduct(APIView):
         data = request.data
         price = data.get('price', 0)
         payment_method = data.get('paymentMethod', "Sinpe")
-        new_price = choices_payment(payment_method, price)["price"]
+        new_price = choices_payment(payment_method, price)['price']
         response_data = {
             'price': round(float(new_price), 2)
         }
