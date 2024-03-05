@@ -285,7 +285,7 @@ class Product(models.Model):
             options_dict[key].append(additional.title)
 
         search_query_lower = unidecode(search_term.lower())
-        filtered_results = [desc for key, descs in options_dict.items() if search_query_lower in key for desc in
+        filtered_results = [desc for key, descs in options_dict.items() if search_query_lower == key for desc in
                             descs]
 
         try:
