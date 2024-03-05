@@ -387,10 +387,10 @@ class Product(models.Model):
             print(dir, title)
             with open(file_path, 'rb') as file:
                 file_content = file.read()
+                print(queryset.count())
                 first_img = queryset.first()
                 first_img.image.save(f"{title}.jpg", ContentFile(file_content), save=True)
                 first_img.save()
-                print(queryset.count())
                 queryset.update(image=first_img.image)
 
     def pro_img(self, allow_empty_image=None):
