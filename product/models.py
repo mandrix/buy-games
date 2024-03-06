@@ -247,6 +247,8 @@ class Product(models.Model):
 
     tags = models.ManyToManyField("Tag", related_name="products", blank=True)
 
+    location = models.ForeignKey("administration.Location", blank=True, null=True, on_delete=models.SET_NULL)
+
     def __str__(self):
         try:
             display = self.get_additional_product_info().get_title_display()

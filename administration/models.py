@@ -1,9 +1,13 @@
 import random
 from datetime import datetime
 
+from django.conf import settings
+from django.core.files.storage import DefaultStorage
 from django.db import models
 from bs4 import BeautifulSoup
 import requests
+
+from games.utils.storage_backends import PrivateMediaStorage
 from product.models import ProviderEnum
 
 
@@ -114,3 +118,20 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.full_name.title()} - {self.email}"
+
+
+class Location(models.Model):
+    """
+    Used to locate products
+    """
+    floor = models.PositiveIntegerField(default=1)
+    name = models.CharField(max_length=200)
+    details = models.CharField(max_length=200, help_text="Por ejemplo: Primer Gabeta", blank=True, null=True)
+    location_image = models.ImageField(
+        upload_to='location/photos/', null=True, blank=True,
+        storage=DefaultStorage() if not settings.S3_ENABLED else PrivateMediaStorage()
+    )
+
+
+    def __str__(self):
+        return f"{self.name} - Piso: {self.floor} {'('+self.details+')' if self.details else ''}"

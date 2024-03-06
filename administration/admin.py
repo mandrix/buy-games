@@ -8,7 +8,7 @@ from django.utils.html import format_html
 from django.contrib import messages
 
 
-from administration.models import Request, RequestStateEnum, Coupon, Client
+from administration.models import Request, RequestStateEnum, Coupon, Client, Location
 from product.models import Sale
 from ui.views import SendMailError
 
@@ -138,6 +138,18 @@ class ClientAdmin(admin.ModelAdmin):
     def total_spent(self, obj: Client):
         return f"₡{sum([purchase.gross_total for purchase in obj.purchases.all()]):,.2f}"
 
+
+class LocationAdmin(admin.ModelAdmin):
+    model = Location
+
+    readonly_fields = ("image",)
+
+
+    def image(self, obj: Location):
+        return format_html('<img src="{}" width="50" height="50" />', obj.location_image.url)
+
+
 admin.site.register(Request, RequestAdmin)
 admin.site.register(Coupon, CouponAdmin)
 admin.site.register(Client, ClientAdmin)
+admin.site.register(Location, LocationAdmin)

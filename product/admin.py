@@ -69,6 +69,7 @@ class ProductAdmin(admin.ModelAdmin):
                      "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
     readonly_fields = (
+        "location_image",
         "product_image",
         "id",
         "creation_date",
@@ -135,6 +136,13 @@ class ProductAdmin(admin.ModelAdmin):
         return format_html('<img src="{}" width="50" height="50" />', obj.image.url)
 
     product_image.short_description = 'Product Image'
+
+    def location_image(self, obj):
+        if not obj.location: return
+        return format_html('<img src="{}" width="100" height="100" />', obj.location.location_image.url)
+
+    location_image.short_description = 'Location Image'
+
 
     def get_exclude(self, request, obj=None):
         exclude = list(self.exclude)
