@@ -65,6 +65,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = (DuplicatesFilter, SoldFilter, TypeFilter, BelowThreshHoldFilter,
                    ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags', )
     inlines = []
+    actions = ['set_location']
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
@@ -95,6 +96,18 @@ class ProductAdmin(admin.ModelAdmin):
 
         obj.updated_by_admin = True
         super().save_model(request, obj, form, change)
+
+    def set_location(self, request, queryset):
+        new_location = queryset.filter(location__isnull=False).first()
+
+        if new_location:
+            queryset.update(location=new_location.location)
+
+            self.message_user(request, f"Se actualizó el location de {queryset.count()} objetos correctamente.")
+        else:
+            self.message_user(request, "No hay objetos relacionados con una ubicación definida.", level='warning')
+
+    set_location.short_description = "Actualizar location con el primer objeto relacionado"
 
     def get_search_results(self, request, queryset, search_term):
         queryset, use_distinct = super().get_search_results(request, queryset, "")
