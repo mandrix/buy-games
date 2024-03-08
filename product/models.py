@@ -112,6 +112,11 @@ class Console(models.Model):
         null=True
     )
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+        ]
+
     def __str__(self):
         return self.get_title_display()
 
@@ -134,6 +139,11 @@ class VideoGame(models.Model):
     )
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+        ]
+
     def __str__(self):
         return self.title
 
@@ -150,6 +160,12 @@ class Collectable(models.Model):
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
     category = models.CharField(max_length=100)
     title = models.CharField(max_length=100)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+            models.Index(fields=['category']),
+        ]
 
     def __str__(self):
         return self.title
@@ -172,6 +188,11 @@ class Accessory(models.Model):
         choices=ConsoleEnum.choices,
         null=True
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+        ]
 
     def __str__(self):
         return self.title
@@ -267,6 +288,14 @@ class Product(models.Model):
 
     location = models.ForeignKey("administration.Location", blank=True, null=True, on_delete=models.SET_NULL)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['barcode']),
+            models.Index(fields=['used']),
+            models.Index(fields=['state']),
+            models.Index(fields=['hidden']),
+        ]
+
     def __str__(self):
         try:
             display = self.get_additional_product_info().get_title_display()
@@ -305,7 +334,6 @@ class Product(models.Model):
     @property
     @admin.display(description='copies')
     def copies(self):
-        return ''
         similar_products_result = self.similar_products()
 
         if type(similar_products_result) != str:
@@ -338,13 +366,13 @@ class Product(models.Model):
 
     def get_additional_product_info(self):
         if self.type == ProductTypeEnum.videogame:
-            return VideoGame.objects.filter(product=self).first()
+            return self.videogame_set.first()
         elif self.type == ProductTypeEnum.console:
-            return Console.objects.filter(product=self).first()
+            return self.console_set.first()
         elif self.type == ProductTypeEnum.accessory:
-            return Accessory.objects.filter(product=self).first()
+            return self.accessory_set.first()
         elif self.type == ProductTypeEnum.collectable:
-            return Collectable.objects.filter(product=self).first()
+            return self.collectable_set.first()
         else:
             raise ValueError("Este producto no tiene informacion adicional")
 
@@ -396,7 +424,6 @@ class Product(models.Model):
             print(dir, title)
             with open(file_path, 'rb') as file:
                 file_content = file.read()
-                print(queryset.count())
                 first_img = queryset.first()
                 first_img.image.save(f"{title}.jpg", ContentFile(file_content), save=True)
                 first_img.save()
