@@ -58,7 +58,7 @@ class AccessoryInline(StackedInline):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        "__str__", "tipo", "console_type", "description", 'copies', "_state", "sale_price_formatted",
+        "__str__", "tipo", "console_type", "description", "_state", "sale_price_formatted",
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used_display', 'owner', 'etiquetas', 'image')
     model = Product
