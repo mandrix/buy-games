@@ -58,7 +58,7 @@ class AccessoryInline(StackedInline):
 
 class ProductAdmin(admin.ModelAdmin):
     list_display = (
-        "__str__", "tipo", "console_type", "description", "_state", "sale_price_formatted",
+        "__str__", "tipo", "console_type", "description", 'copies', "_state", "sale_price_formatted",
         "sale_price_with_card", "sale_price_with_tasa_0",
         'used_display', 'owner', 'etiquetas', 'image')
     model = Product
@@ -78,6 +78,8 @@ class ProductAdmin(admin.ModelAdmin):
         "payment_link"
     )
     exclude = ('remaining', 'payment')
+    list_per_page = 50
+
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"

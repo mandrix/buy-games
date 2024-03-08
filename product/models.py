@@ -329,7 +329,8 @@ class Product(models.Model):
             return "ERROR"
 
         search_term = additional_info.title
-        return queryset_additional_info.filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
+        return queryset_additional_info.filter(product__state=StateEnum.available).\
+            filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
 
     @property
     @admin.display(description='copies')
