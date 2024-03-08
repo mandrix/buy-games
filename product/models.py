@@ -305,6 +305,7 @@ class Product(models.Model):
     @property
     @admin.display(description='copies')
     def copies(self):
+        return ''
         similar_products_result = self.similar_products()
 
         if type(similar_products_result) != str:
