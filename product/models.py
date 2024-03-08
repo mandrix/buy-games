@@ -13,7 +13,7 @@ from django.db import models
 import django.conf as conf
 import random
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from unidecode import unidecode
 
 from games.utils.storage_backends import PrivateMediaStorage
@@ -32,6 +32,12 @@ class StateEnum(models.TextChoices):
     available = "available", "Disponible"
     reserved = "reserved", "Apartado"
     na = "na", "N/A"
+
+class ProductTypeEnum(models.TextChoices):
+    videogame = "videogame", "Videojuego"
+    console = "console", "Consola"
+    accessory = "accessory", "Accesorio"
+    collectable = "collectable", "Collecionable"
 
 
 class OwnerEnum(models.TextChoices):
@@ -115,6 +121,9 @@ class Console(models.Model):
         if self.product.amount > 1:
             self.product.duplicate()
 
+        self.product.type = ProductTypeEnum.console
+        self.product.save()
+
 
 class VideoGame(models.Model):
     title = models.CharField(max_length=100, default="")
@@ -134,6 +143,8 @@ class VideoGame(models.Model):
         if self.product.amount > 1:
             self.product.duplicate()
 
+        self.product.type = ProductTypeEnum.videogame
+        self.product.save()
 
 class Collectable(models.Model):
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
@@ -148,6 +159,9 @@ class Collectable(models.Model):
 
         if self.product.amount > 1:
             self.product.duplicate()
+
+        self.product.type = ProductTypeEnum.collectable
+        self.product.save()
 
 
 class Accessory(models.Model):
@@ -167,6 +181,9 @@ class Accessory(models.Model):
 
         if self.product.amount > 1:
             self.product.duplicate()
+
+        self.product.type = ProductTypeEnum.accessory
+        self.product.save()
 
 
 class Payment(models.Model):
@@ -240,6 +257,7 @@ class Product(models.Model):
 
     used = models.BooleanField(default=True)
     state = models.CharField(default=StateEnum.available, max_length=100, choices=StateEnum.choices)
+    type = models.CharField(default=ProductTypeEnum.videogame, max_length=100, choices=ProductTypeEnum.choices)
     hidden = models.BooleanField(default=False, help_text="Used mainly to hide duplicate products")
 
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True)
@@ -275,26 +293,14 @@ class Product(models.Model):
             return "ERROR no tiene tipo"
 
     def similar_products(self):
-        options_dict = defaultdict(list)
         try:
-            queryset_additional_info = self.get_additional_product_info().__class__.objects
+            additional_info = self.get_additional_product_info()
+            queryset_additional_info: QuerySet = additional_info.__class__.objects
         except ValueError:
             return "ERROR"
 
-        search_term = self.get_additional_product_info().title
-        for additional in queryset_additional_info.all():
-            key = unidecode(additional.title.lower())
-            options_dict[key].append(additional.title)
-
-        search_query_lower = unidecode(search_term.lower())
-        filtered_results = [desc for key, descs in options_dict.items() if search_query_lower == key for desc in
-                            descs]
-
-        try:
-            return self.get_additional_product_info().__class__.objects.filter(
-                title__in=filtered_results, product__state=self.state)
-        except ValueError:
-            return "ERROR"
+        search_term = additional_info.title
+        return queryset_additional_info.filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
 
     @property
     @admin.display(description='copies')
@@ -330,14 +336,14 @@ class Product(models.Model):
             return f'{self.provider_price:,}₡'
 
     def get_additional_product_info(self):
-        if additional_info := VideoGame.objects.filter(product=self).first():
-            return additional_info
-        elif additional_info := Console.objects.filter(product=self).first():
-            return additional_info
-        elif additional_info := Accessory.objects.filter(product=self).first():
-            return additional_info
-        elif additional_info := Collectable.objects.filter(product=self).first():
-            return additional_info
+        if self.type == ProductTypeEnum.videogame:
+            return VideoGame.objects.filter(product=self).first()
+        elif self.type == ProductTypeEnum.console:
+            return Console.objects.filter(product=self).first()
+        elif self.type == ProductTypeEnum.accessory:
+            return Accessory.objects.filter(product=self).first()
+        elif self.type == ProductTypeEnum.collectable:
+            return Collectable.objects.filter(product=self).first()
         else:
             raise ValueError("Este producto no tiene informacion adicional")
 

@@ -5,12 +5,6 @@ from product.models import VideoGame, Collectable, Console, Accessory
 def forwards(apps, schema_editor):
     if schema_editor.connection.alias != "default":
         return
-    models = [VideoGame, Collectable, Console, Accessory]
-    for m in models:
-        for item in m.objects.all():
-            if m.objects.filter(product__barcode=item.product.barcode):
-                item.product.generate_barcode()
-                item.product.save()
 
 
 class Migration(migrations.Migration):
