@@ -325,11 +325,11 @@ class Product(models.Model):
         try:
             additional_info = self.get_additional_product_info()
             queryset_additional_info: QuerySet = additional_info.__class__.objects
-        except ValueError:
+        except (ValueError, AttributeError):
             return "ERROR"
 
         search_term = additional_info.title
-        return queryset_additional_info.filter(product__state=StateEnum.available).\
+        return queryset_additional_info.filter(product__state=self.state).\
             filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
 
     @property
