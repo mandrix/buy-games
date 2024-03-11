@@ -329,6 +329,10 @@ class Product(models.Model):
             return "ERROR"
 
         search_term = additional_info.title
+        if additional_info.__class__ == Console:
+            queryset_additional_info = queryset_additional_info.filter(title=additional_info.title)
+        else:
+            queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
         return queryset_additional_info.filter(product__state=self.state).\
             filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
 
