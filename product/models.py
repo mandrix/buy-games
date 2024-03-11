@@ -331,6 +331,8 @@ class Product(models.Model):
         search_term = additional_info.title
         if additional_info.__class__ == Console:
             queryset_additional_info = queryset_additional_info.filter(title=additional_info.title)
+        elif additional_info.__class__ == Collectable:
+            None
         else:
             queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
         return queryset_additional_info.filter(product__state=self.state).\
