@@ -106,7 +106,8 @@ class ProductAdmin(admin.ModelAdmin):
 
         if not request.user.is_superuser:
             for field in self.honeypot_fields:
-                del actions[field]
+                if actions[field]:
+                    del actions[field]
 
         return actions
 
