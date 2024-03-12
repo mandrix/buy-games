@@ -6,6 +6,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
 from django.db.models import Q, F, Value, ExpressionWrapper, CharField
 from django.db.models.functions import Concat
+from django import forms
 from django.http import HttpResponse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -79,7 +80,8 @@ class ProductAdmin(admin.ModelAdmin):
     )
     exclude = ('remaining', 'payment')
     list_per_page = 50
-
+    honeypot_fields = ['amount_to_notify', 'type', 'hidden', 'order', 'payment_link', 'remaining',
+                       'provider_purchase_date']
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
@@ -98,6 +100,23 @@ class ProductAdmin(admin.ModelAdmin):
 
         obj.updated_by_admin = True
         super().save_model(request, obj, form, change)
+
+    def get_actions(self, request):
+        actions = super(ProductAdmin, self).get_actions(request)
+
+        if not request.user.is_superuser:
+            for field in self.honeypot_fields:
+                del actions[field]
+
+        return actions
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+
+        if not obj:
+            form.base_fields['state'].widget = forms.HiddenInput()
+
+        return form
 
     def set_location(self, request, queryset):
         new_location = queryset.filter(location__isnull=False).first()
@@ -195,6 +214,7 @@ class ProductAdmin(admin.ModelAdmin):
         )
 
     def get_inlines(self, request, obj):
+        return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline]
         if not obj:
             return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline]
 
