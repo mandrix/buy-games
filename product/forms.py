@@ -8,6 +8,26 @@ class ProductsField(forms.Field):
     pass
 
 
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(ProductForm, self).__init__(*args, **kwargs)
+
+        user = kwargs.get('user')
+
+        if not user.is_superuser:
+            self.fields['amount_to_notify'].widget = forms.HiddenInput()
+            self.fields['type'].widget = forms.HiddenInput()
+            self.fields['hidden'].widget = forms.HiddenInput()
+            self.fields['order'].widget = forms.HiddenInput()
+            self.fields['payment_link'].widget = forms.HiddenInput()
+            self.fields['remaining'].widget = forms.HiddenInput()
+            self.fields['provider_purchase_date'].widget = forms.HiddenInput()
+
+
 class SaleInlineForm(forms.ModelForm):
 
     receipt_products = forms.CharField(max_length=10000, label='Receipt Products', widget=forms.Textarea(attrs={'rows': 10, 'cols': 45}))

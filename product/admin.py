@@ -104,6 +104,10 @@ class ProductAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
 
+        if not request.user.is_superuser:
+            for field in self.honeypot_fields:
+                if form.base_fields.get(field):
+                    form.base_fields[field].widget = forms.HiddenInput()
 
         if not obj:
             form.base_fields['state'].widget = forms.HiddenInput()
