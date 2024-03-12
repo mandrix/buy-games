@@ -105,9 +105,8 @@ class ProductAdmin(admin.ModelAdmin):
         actions = super(ProductAdmin, self).get_actions(request)
 
         if not request.user.is_superuser:
-            for field in self.honeypot_fields:
-                if actions.get(field):
-                    del actions[field]
+            self.exclude = ('amount_to_notify', 'type', 'hidden', 'order', 'payment_link', 'remaining',
+                                    'provider_purchase_date', 'remaining', 'payment')
 
         return actions
 
