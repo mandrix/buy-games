@@ -347,7 +347,7 @@ class Product(models.Model):
     def copies(self):
         similar_products_result = self.similar_products()
 
-        if type(similar_products_result) != str:
+        if type(similar_products_result) != str and similar_products_result:
             return similar_products_result.count()
         return similar_products_result
 
