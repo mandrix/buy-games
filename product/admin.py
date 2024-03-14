@@ -94,9 +94,10 @@ class ProductAdmin(admin.ModelAdmin):
             obj.save()
 
             adi_copies = obj.similar_products()
-            copies_pk = [adi.product.pk for adi in adi_copies]
+            if type(adi_copies) != str and adi_copies:
+                copies_pk = [adi.product.pk for adi in adi_copies]
 
-            Product.objects.filter(pk__in=copies_pk).update(image=obj.image)
+                Product.objects.filter(pk__in=copies_pk).update(image=obj.image)
 
         obj.updated_by_admin = True
         super().save_model(request, obj, form, change)

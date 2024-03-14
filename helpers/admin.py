@@ -7,7 +7,7 @@ def exclude_copies(queryset):
         if products.exists():
             product = products.first()
             adi_copies = product.similar_products()
-            if adi_copies:
+            if adi_copies and type(adi_copies) != str:
                 copies_pk = [i.product.pk for i in adi_copies if not isinstance(i, str)][1:]
                 products_to_exclude.extend(copies_pk)
 

@@ -449,13 +449,14 @@ class Product(models.Model):
         query = exclude_copies(query)
         for product in query:
             adi_copies = product.similar_products()
-            copies_pk = [adi.product.pk for adi in adi_copies]
+            if type(adi_copies) != str and adi_copies:
+                copies_pk = [adi.product.pk for adi in adi_copies]
 
-            copies = Product.objects.filter(pk__in=copies_pk, state=StateEnum.available)
-            if allow_empty_image is not True:
-                copies = copies.filter(Q(image__isnull=True) | Q(image=''))
+                copies = Product.objects.filter(pk__in=copies_pk, state=StateEnum.available)
+                if allow_empty_image is not True:
+                    copies = copies.filter(Q(image__isnull=True) | Q(image=''))
 
-            product.save_img(copies)
+                product.save_img(copies)
 
     def save(self, *args, **kwargs):
         if not self.payment:
