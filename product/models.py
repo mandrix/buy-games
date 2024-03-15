@@ -345,11 +345,10 @@ class Product(models.Model):
     @property
     @admin.display(description='copies')
     def copies(self):
-        return '' #  TODO remove
         similar_products_result = self.similar_products()
 
-        if type(similar_products_result) != str and similar_products_result:
-            return similar_products_result.count()
+        if type(similar_products_result) != str:
+            return len(similar_products_result)
         return similar_products_result
 
     @property
@@ -445,6 +444,7 @@ class Product(models.Model):
         query = Product.objects.filter(state=StateEnum.available)
         if allow_empty_image is not True:
             query = query.filter(Q(image__isnull=True) | Q(image=''))
+            print(f'hay {query} sin imagen')
         if not query:
             return
         query = exclude_copies(query)
