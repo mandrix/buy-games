@@ -18,7 +18,7 @@ from helpers.admin import exclude_copies
 from helpers.business_information import business_information
 from helpers.payment import formatted_number
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
-    ToBeShippedFilter
+    ToBeShippedFilter, PaymentPendingFilter
 from product.forms import SaleInlineForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, SaleTypeEnum
@@ -357,7 +357,7 @@ class SaleAdmin(admin.ModelAdmin):
     list_display = ("__str__", "customer_mail", "customer_name", "type", "platform", "creation_date_time")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
-    list_filter = ("type", "payments_completed", ToBeShippedFilter, "shipping", "platform")
+    list_filter = ("type", PaymentPendingFilter, ToBeShippedFilter, "shipping", "platform")
     ordering = ("-creation_date_time",)
 
     change_form_template = "overrides/btn_sale.html"

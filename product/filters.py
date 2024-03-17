@@ -65,6 +65,29 @@ class DuplicatesFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+class PaymentPendingFilter(admin.SimpleListFilter):
+    title = 'Pago Pendiente'
+    parameter_name = 'payment_pending'
+
+    def lookups(self, request, model_admin):
+        # Devuelve las opciones de filtro y sus etiquetas
+        return (
+            ('yes', ('Si')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            sales = queryset.filter(type=SaleTypeEnum.Reserve)
+            pending_payments = []
+            for sale in sales:
+                product = sale.products.first()
+                pending_payments.append(sale.id)
+                if product and product.sale_set.filter(payments_completed=True):
+                    pending_payments.pop()
+            return queryset.filter(id__in=pending_payments)
+        else:
+            return queryset
+
 class ToBeShippedFilter(admin.SimpleListFilter):
     title = 'Por enviar'
     parameter_name = 'to_be_sent'
