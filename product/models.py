@@ -332,15 +332,15 @@ class Product(models.Model):
         if additional_info.__class__ == Console:
             queryset_additional_info = queryset_additional_info.filter(title=additional_info.title)
         elif additional_info.__class__ == Collectable:
-            None
+            pass
         else:
             queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
         queryset_additional_info = queryset_additional_info.filter(product__state=self.state).\
             filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
 
-        queryset_additional_info = [i for i in queryset_additional_info if not isinstance(i, str)]
+        additional_info = [i for i in queryset_additional_info if not isinstance(i, str)]
 
-        return queryset_additional_info
+        return additional_info
 
     @property
     @admin.display(description='copies')
