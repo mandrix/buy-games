@@ -231,10 +231,12 @@ class GenerateBill(TemplateView):
 
                 if product.state == StateEnum.reserved and not product.payment.remaining:
                     sale.payments_completed = True
-                    sale.save()
+                elif product.state == StateEnum.reserved and product.payment.remaining:
+                    sale.payments_completed = False
 
                 payment.save()
                 product.save()
+                sale.save()
 
                 if next_product_to_show := Product.objects.filter(barcode__exact=product.barcode,
                                                                   state=StateEnum.available, hidden=True).first():
