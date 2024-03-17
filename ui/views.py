@@ -147,9 +147,11 @@ class GenerateBill(TemplateView):
     @staticmethod
     def get_or_create_client(data):
         if client := Client.objects.filter(email__iexact=data['customer_mail']).first():
-            if data.get("customer_phone") and not client.phone_number:
+            if data.get("customer_phone"):
                 client.phone_number = data.get("customer_phone")
-                client.save()
+            if data.get("customer_name"):
+                client.full_name = data.get("customer_name")
+            client.save()
             return client
 
         return Client.objects.create(
