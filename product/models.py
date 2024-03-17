@@ -603,6 +603,7 @@ class Sale(models.Model):
                                       help_text="En colones")
     net_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
+    payments_completed = models.BooleanField(default=True, help_text="Si ya termino de pagar el producto")
     payment_details = models.TextField(blank=True, default="")
     receipt_comments = models.TextField(blank=True, default="")
     customer_name = models.CharField(max_length=100, default="Ready")

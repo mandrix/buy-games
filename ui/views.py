@@ -228,6 +228,11 @@ class GenerateBill(TemplateView):
                     }
                     )
                 product.state = StateEnum.sold if not reserved or payment.remaining <= 0 else StateEnum.reserved
+
+                if product.state == StateEnum.reserved and not product.payment.remaining:
+                    sale.payments_completed = True
+                    sale.save()
+
                 payment.save()
                 product.save()
 

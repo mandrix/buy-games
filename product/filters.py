@@ -1,6 +1,6 @@
 from django.contrib import admin
-from django.db.models import Q, F
-from product.models import ConsoleEnum, StateEnum
+from django.db.models import Q, F, QuerySet
+from product.models import ConsoleEnum, StateEnum, Sale, SaleTypeEnum
 
 
 class ConsoleTitleFilter(admin.SimpleListFilter):
@@ -64,7 +64,6 @@ class DuplicatesFilter(admin.SimpleListFilter):
             return queryset.filter(hidden=False)
         else:
             return queryset
-
 
 class ToBeShippedFilter(admin.SimpleListFilter):
     title = 'Por enviar'
