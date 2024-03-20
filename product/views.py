@@ -53,7 +53,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         consoles = self.request.query_params.get('consoles')
         product_types = self.request.query_params.get('types')
         search_query = self.request.query_params.get('q')
-        # self.queryset = exclude_copies(self.queryset)
+        self.queryset = self.queryset.filter(hidden=False)
         if not any([tags,consoles,product_types,search_query]):
             return self.queryset
 
