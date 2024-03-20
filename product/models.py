@@ -444,7 +444,7 @@ class Product(models.Model):
         query = Product.objects.filter(state=StateEnum.available)
         if allow_empty_image is not True:
             query = query.filter(Q(image__isnull=True) | Q(image=''))
-            print(f'hay {query} sin imagen')
+            print(f'hay {query.count()} sin imagen')
         if not query:
             return
         query = exclude_copies(query)
