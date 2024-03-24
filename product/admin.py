@@ -1,3 +1,4 @@
+import calendar
 from collections import defaultdict
 from io import BytesIO
 
@@ -322,7 +323,7 @@ class SaleInline(admin.TabularInline):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('date', 'display_total', 'display_total_business', 'display_total_mauricio', 'display_total_joseph')
+    list_display = ('display_day', 'date', 'display_total', 'display_total_business', 'display_total_mauricio', 'display_total_joseph')
     ordering = ("-date",)
     inlines = [SaleInline]
     readonly_fields = ("total",)
@@ -344,6 +345,11 @@ class ReportAdmin(admin.ModelAdmin):
 
     def display_total_joseph(self, obj):
         return obj.calculated_total_joseph
+
+    def display_day(self, obj: Report):
+        return calendar.day_name[obj.date.weekday()]
+
+    display_day.short_description = 'Day of week'
 
 
 class SaleAdmin(admin.ModelAdmin):
