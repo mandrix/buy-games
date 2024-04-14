@@ -65,7 +65,7 @@ class ProductAdmin(admin.ModelAdmin):
         'used_display', 'owner', 'etiquetas', 'image')
     model = Product
     list_filter = (DuplicatesFilter, SoldFilter, TypeFilter, BelowThreshHoldFilter,
-                   ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags', )
+                   ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags',)
     inlines = []
     actions = ['set_location']
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
@@ -94,8 +94,8 @@ class ProductAdmin(admin.ModelAdmin):
             obj.image = None if not new_img else new_img
             obj.save()
 
-            adi_copies = obj.similar_products()
-            if type(adi_copies) != str and adi_copies:
+            adi_copies = obj.equal_products()
+            if type(adi_copies) is not str and adi_copies:
                 copies_pk = [adi.product.pk for adi in adi_copies]
 
                 Product.objects.filter(pk__in=copies_pk).update(image=obj.image)
@@ -175,7 +175,6 @@ class ProductAdmin(admin.ModelAdmin):
 
     location_image.short_description = 'Location Image'
 
-
     def get_exclude(self, request, obj=None):
         exclude = list(self.exclude)
 
@@ -242,6 +241,7 @@ class ProductAdmin(admin.ModelAdmin):
         html = f"<div id='product_tags'>{inner_tags}</div>",
 
         return mark_safe(html[0])
+
     etiquetas.short_description = "Etiquetas"
 
     def get_readonly_fields(self, request, obj=None):
@@ -323,7 +323,9 @@ class SaleInline(admin.TabularInline):
 
 
 class ReportAdmin(admin.ModelAdmin):
-    list_display = ('display_day', 'date', 'display_total', 'display_total_business', 'display_total_mauricio', 'display_total_joseph')
+    list_display = (
+        'display_day', 'date', 'display_total', 'display_total_business', 'display_total_mauricio',
+        'display_total_joseph')
     ordering = ("-date",)
     inlines = [SaleInline]
     readonly_fields = ("total",)
@@ -373,7 +375,7 @@ class SaleAdmin(admin.ModelAdmin):
         return f"{str(product)} - {product.console_type} - ₡{product.sale_price:,} - {product.owner} - ID: {product.id} \n"
 
     def receipt_products(self, obj: Sale):
-        products_string = [ self.format_product_string(product) for product in obj.products.all() ]
+        products_string = [self.format_product_string(product) for product in obj.products.all()]
         return " ".join(products_string)
 
     def response_change(self, request, obj: Sale):
@@ -447,7 +449,8 @@ class SaleAdmin(admin.ModelAdmin):
                     window.print()
                 </script>
             """
-            response.content = response.content.decode('utf-8').replace('</body>', js_script + '</body>').encode('utf-8')
+            response.content = response.content.decode('utf-8').replace('</body>', js_script + '</body>').encode(
+                'utf-8')
             return response
 
         return super().response_change(request, obj)

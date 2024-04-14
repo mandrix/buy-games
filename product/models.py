@@ -33,6 +33,7 @@ class StateEnum(models.TextChoices):
     reserved = "reserved", "Apartado"
     na = "na", "N/A"
 
+
 class ProductTypeEnum(models.TextChoices):
     videogame = "videogame", "Videojuego"
     console = "console", "Consola"
@@ -123,11 +124,11 @@ class Console(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.product.amount > 1:
-            self.product.duplicate()
-
         self.product.type = ProductTypeEnum.console
         self.product.save()
+
+        if self.product.amount > 1:
+            self.product.duplicate()
 
 
 class VideoGame(models.Model):
@@ -150,11 +151,12 @@ class VideoGame(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
+        self.product.type = ProductTypeEnum.videogame
+        self.product.save()
+
         if self.product.amount > 1:
             self.product.duplicate()
 
-        self.product.type = ProductTypeEnum.videogame
-        self.product.save()
 
 class Collectable(models.Model):
     product = models.ForeignKey("Product", on_delete=models.CASCADE)
@@ -173,11 +175,11 @@ class Collectable(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.product.amount > 1:
-            self.product.duplicate()
-
         self.product.type = ProductTypeEnum.collectable
         self.product.save()
+
+        if self.product.amount > 1:
+            self.product.duplicate()
 
 
 class Accessory(models.Model):
@@ -200,11 +202,11 @@ class Accessory(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.product.amount > 1:
-            self.product.duplicate()
-
         self.product.type = ProductTypeEnum.accessory
         self.product.save()
+
+        if self.product.amount > 1:
+            self.product.duplicate()
 
 
 class Payment(models.Model):
@@ -248,6 +250,7 @@ class Payment(models.Model):
         if self.net_price:
             return formatted_number(commission_price(self.net_price, factor_tasa_0()))
 
+
 def food_path(instance, filename):
     return '{0}/{1}'.format(instance.category.name, filename)
 
@@ -271,7 +274,8 @@ class Product(models.Model):
 
     region = models.CharField(default=RegionEnum.USA, max_length=100, choices=RegionEnum.choices, null=True, blank=True)
     image = models.ImageField(upload_to='products/photos/', null=True,
-                              blank=True, storage=DefaultStorage() if not settings.S3_ENABLED else PrivateMediaStorage())
+                              blank=True,
+                              storage=DefaultStorage() if not settings.S3_ENABLED else PrivateMediaStorage())
 
     amount = models.PositiveIntegerField(default=1, help_text="Se generan copias si pones mas que uno")
     amount_to_notify = models.PositiveIntegerField(null=True, blank=True)
@@ -335,8 +339,34 @@ class Product(models.Model):
             pass
         else:
             queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
-        queryset_additional_info = queryset_additional_info.filter(product__state=self.state).\
+        queryset_additional_info = queryset_additional_info.filter(product__state=self.state). \
             filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
+
+        additional_info = [i for i in queryset_additional_info if not isinstance(i, str)]
+
+        return additional_info
+
+    def equal_products(self):
+        try:
+            additional_info = self.get_additional_product_info()
+            queryset_additional_info: QuerySet = additional_info.__class__.objects
+        except (ValueError, AttributeError):
+            return "ERROR"
+
+        search_term = additional_info.title
+        if additional_info.__class__ == Console:
+            queryset_additional_info = queryset_additional_info.filter(
+                title=search_term,
+                product__description=self.description,
+                product__barcode=self.barcode
+            )
+        elif additional_info.__class__ == Collectable:
+            pass
+        else:
+            queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
+        queryset_additional_info = queryset_additional_info.filter(product__state=self.state). \
+            filter(Q(title__iexact=search_term) & Q(product__barcode__exact=self.barcode) &
+                   Q(product__description__iexact=self.description))
 
         additional_info = [i for i in queryset_additional_info if not isinstance(i, str)]
 
@@ -449,8 +479,8 @@ class Product(models.Model):
             return
         query = exclude_copies(query)
         for product in query:
-            adi_copies = product.similar_products()
-            if type(adi_copies) != str and adi_copies:
+            adi_copies = product.equal_products()
+            if type(adi_copies) is not str and adi_copies:
                 copies_pk = [adi.product.pk for adi in adi_copies]
 
                 copies = Product.objects.filter(pk__in=copies_pk, state=StateEnum.available)
@@ -481,18 +511,8 @@ class Product(models.Model):
                 next_product_to_show.save()
         if not self.barcode:
             self.generate_barcode()
-        else:
-            duplicate_products = Product.objects.filter(barcode=self.barcode)
 
         super().save(*args, **kwargs)
-
-        try:
-            if self.get_additional_product_info():
-                if self.amount > 1:
-                    self.duplicate()
-
-        except ValueError as e:
-            pass
 
 
 class Report(models.Model):
@@ -533,19 +553,25 @@ class Report(models.Model):
         list_of_all_products = [
             list(
                 sale.products.filter(owner__exact=owner).values(field_keyword)
-            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for sale in all_sales
+            ) if sale.products.count() else [{field_keyword: sale.net_total if owner == OwnerEnum.Business else 0}] for
+            sale in all_sales
         ]
 
-        list_of_all_products = reduce(lambda a, b: a + b, list_of_all_products) if len(list_of_all_products) else [{field_keyword: 0}]
-        list_of_all_products = [float(total.get(field_keyword)) * remaining_percentage if total.get(field_keyword) else 0 for total in list_of_all_products]
+        list_of_all_products = reduce(lambda a, b: a + b, list_of_all_products) if len(list_of_all_products) else [
+            {field_keyword: 0}]
+        list_of_all_products = [
+            float(total.get(field_keyword)) * remaining_percentage if total.get(field_keyword) else 0 for total in
+            list_of_all_products]
 
         if owner == OwnerEnum.Business:
             list_of_other_owners_products = [
                 list(sale.products.filter(~Q(owner__exact=owner)).values(field_keyword)) for sale in all_sales
             ]
-            list_of_other_owners_products = reduce(lambda a, b: a + b, list_of_other_owners_products) if len(list_of_other_owners_products) else [{field_keyword: 0}]
+            list_of_other_owners_products = reduce(lambda a, b: a + b, list_of_other_owners_products) if len(
+                list_of_other_owners_products) else [{field_keyword: 0}]
             list_of_other_owners_products = [
-                float(total.get(field_keyword)) * 0.1 if total.get(field_keyword) else 0 for total in list_of_other_owners_products
+                float(total.get(field_keyword)) * 0.1 if total.get(field_keyword) else 0 for total in
+                list_of_other_owners_products
             ]
             list_of_all_products = [*list_of_all_products, *list_of_other_owners_products]
 
@@ -615,7 +641,8 @@ class Sale(models.Model):
     sent = models.BooleanField(default=False, help_text="Si ya se envio")
 
     platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
-    client = models.ForeignKey('administration.Client', on_delete=models.SET_NULL, null=True, blank=True, related_name="purchases")
+    client = models.ForeignKey('administration.Client', on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name="purchases")
 
     def __str__(self):
         if not self.report:
@@ -675,7 +702,7 @@ class Expense(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True)
     color = ColorField(default='#00FF00')
-    internal = models.BooleanField(default=False, help_text="Si es interno, entonces solo se muestra en la pagina"\
+    internal = models.BooleanField(default=False, help_text="Si es interno, entonces solo se muestra en la pagina" \
                                                             "administrativa, en la pagina web no ni el excel por ejemplo")
 
     def __str__(self):
