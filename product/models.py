@@ -548,6 +548,14 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
 
+        try:
+            if self.get_additional_product_info():
+                if self.amount > 1:
+                    self.duplicate()
+
+        except ValueError as e:
+            pass
+
 
 class Report(models.Model):
     date = models.DateField()
