@@ -2,6 +2,7 @@ import calendar
 from collections import defaultdict
 from io import BytesIO
 
+import django
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
@@ -17,10 +18,10 @@ from unidecode import unidecode
 
 from helpers.admin import exclude_copies
 from helpers.business_information import business_information
-from helpers.payment import formatted_number
+from helpers.payment import formatted_number, PaymentMethodEnum
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
     ToBeShippedFilter, PaymentPendingFilter
-from product.forms import SaleInlineForm
+from product.forms import SaleInlineForm, ProductAdminForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, SaleTypeEnum
 from django.utils.html import format_html
@@ -59,6 +60,7 @@ class AccessoryInline(StackedInline):
 
 
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
     list_display = (
         "__str__", "tipo", "console_type", "description", 'copies', "_state", "sale_price_formatted",
         "sale_price_with_card", "sale_price_with_tasa_0",
@@ -71,18 +73,18 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ["videogame__title", "barcode", "console__title", "accessory__title", "collectable__title",
                      "description"]
     search_help_text = "Busca usando el titulo del videojuego, consola, accesorio, colleccionable o el codigo de barra"
-    readonly_fields = (
+    readonly_fields = [
         "location_image",
         "product_image",
         "id",
         "creation_date",
         "modification_date",
         "payment_link"
-    )
+    ]
     exclude = ('remaining', 'payment')
     list_per_page = 50
     honeypot_fields = ['amount_to_notify', 'type', 'hidden', 'order', 'payment_link', 'remaining',
-                       'provider_purchase_date']
+                       'provider_purchase_date', 'region', 'remaining']
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
@@ -110,7 +112,6 @@ class ProductAdmin(admin.ModelAdmin):
             for field in self.honeypot_fields:
                 if form.base_fields.get(field):
                     form.base_fields[field].widget = forms.HiddenInput()
-
         if not obj:
             form.base_fields['state'].widget = forms.HiddenInput()
 
@@ -226,12 +227,6 @@ class ProductAdmin(admin.ModelAdmin):
             inline_instances.append(CollectableInline)
         return inline_instances
 
-    def vendido(self, obj):
-        return format_html(
-            '<img src="/static/admin/img/icon-{}.svg" alt="True">',
-            "yes" if obj.sale_date else "no"
-        )
-
     def etiquetas(self, obj: Product):
         styling = lambda color: "display: inline-block; padding: 0.5em; " \
                                 f"background-color: {color}; color: #fff; border-radius: 0.25em;"
@@ -244,17 +239,25 @@ class ProductAdmin(admin.ModelAdmin):
 
     etiquetas.short_description = "Etiquetas"
 
-    def get_readonly_fields(self, request, obj=None):
+    def get_readonly_fields(self, request, obj: Product = None):
         readonly_fields = list(self.readonly_fields)  # Start with initial readonly_fields
 
-        if obj and obj.state == StateEnum.sold:
-            readonly_fields.extend(
-                ['amount', 'sale_price', 'remaining', 'barcode', 'provider_purchase_date', 'sale_date'])
-        elif obj and obj.state == StateEnum.reserved:
-            readonly_fields.extend(
-                ['sale_price', 'remaining', 'barcode', 'provider_purchase_date', 'sale_date', 'amount'])
-        elif obj and obj.state == StateEnum.available:
-            readonly_fields.extend(['remaining', 'provider_purchase_date', 'sale_date'])
+        if obj:
+            if obj.state == StateEnum.sold:
+                readonly_fields.extend(
+                    ['amount', 'sale_price', 'remaining', 'barcode', 'provider_purchase_date', 'sale_date'])
+            elif obj.state == StateEnum.reserved:
+                readonly_fields.extend(
+                    ['sale_price', 'remaining', 'barcode', 'provider_purchase_date', 'sale_date', 'amount'])
+            elif obj.state == StateEnum.available:
+                readonly_fields.extend(['remaining', 'provider_purchase_date', 'sale_date'])
+
+        if (not obj or not obj.location) and 'location_image' in readonly_fields:
+            readonly_fields.remove('location_image')
+        if (not obj or not obj.image) and 'image' in readonly_fields:
+            readonly_fields.remove('image')
+        if (not obj or obj.payment.payment_method == PaymentMethodEnum.na) and 'payment_link' in readonly_fields:
+            readonly_fields.remove('payment_link')
 
         return readonly_fields
 
@@ -285,7 +288,6 @@ class ProductAdmin(admin.ModelAdmin):
         return super().response_change(request, obj)
 
     payment_link.allow_tags = True
-    vendido.short_description = 'Vendido'
     tipo.short_description = 'Tipo de producto'
 
 
