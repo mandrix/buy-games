@@ -58,24 +58,24 @@ class ProviderEnum(models.TextChoices):
 class ConsoleEnum(models.TextChoices):
     # Sony
     PlayStation1 = "ps1", "PS1"
+    PSone = "psone", "PSone"
     PlayStation2 = "ps2", "PS2"
+    PS2FAT = "ps2-fat", "PS2 Fat"
+    PS2Slim = "ps2-slim", "PS2 Slim"
+    PS2Japanese = "ps2-japonés", "PS2 Japanese"
     PlayStation3 = "ps3", "PS3"
+    PS3FAT = "ps3-fat", "PS3 Fat"
+    PS3Slim = "ps3-slim", "PS3 Slim"
+    PS3SuperSlim = "ps3-super-slim", "PS3 Super Slim"
     PlayStation4 = "ps4", "PS4"
+    PS4FAT = "ps4-fat", "PS4 Fat"
+    PS4Slim = "ps4-slim", "PS4 Slim"
+    PS4Pro = "ps4-pro", "PS4 Pro"
     PlayStation5 = "ps5", "PS5"
     PlayStation5Slim = "ps5-slim", "PS5 Slim"
     PSP = "psp", "PSP"
     PSVita = "psvita", "PSVita"
-    PSone = "psone", "PSone"
     PSClassic = "ps-classic", "PS Classic"
-    PS2FAT = "ps2-fat", "PS2 Fat"
-    PS2Slim = "ps2-slim", "PS2 Slim"
-    PS2Japanese = "ps2-japonés", "PS2 Japanese"
-    PS3FAT = "ps3-fat", "PS3 Fat"
-    PS3Slim = "ps3-slim", "PS3 Slim"
-    PS3SuperSlim = "ps3-super-slim", "PS3 Super Slim"
-    PS4FAT = "ps4-fat", "PS4 Fat"
-    PS4Slim = "ps4-slim", "PS4 Slim"
-    PS4Pro = "ps4-pro", "PS4 Pro"
 
     # Xbox
     Xbox = "xbox", "Xbox"
@@ -116,12 +116,20 @@ class ConsoleEnum(models.TextChoices):
     WiiMini = "wii-mini", "Wii Mini"
     N64 = "n64", "N64"
     Snes = "snes", "SNES"
+    SuperFamicom = "super-famicom", "Super Famicom"
     SnesJunior = "snes-junior", "SNES Junior"
+    SnesMini = "snes-mini", "SNES Mini"
     Nes = "nes", "NES"
+    NesTopLoader = "nes-top-loader", "NES Top Loader"
+    Famicom = "famicom", "Famicom"
+    NesMini = "nes-mini", "NES Mini"
     Gamecube = "gamecube", "Gamecube"
 
     # Sega
-    SegaGenesis = "sega-genesis", "Sega Genesis"
+    SegaGenesis = "sega-genesis", "Sega Genesis (Modelo 1)"
+    SegaGenesis2 = "sega-genesis-2", "Sega Genesis (Modelo 2)"
+    SegaGenesis3 = "sega-genesis-3", "Sega Genesis (Modelo 3)"
+    SegaGenesisMini = "sega-genesis-mini", "Sega Genesis Mini"
     SegaDreamcast = "sega-dreamcast", "Sega Dreamcast"
     SegaSaturn = "sega-saturn", "Sega Saturn"
     SegaNomad = "sega-nomad", "Sega Nomad"
@@ -132,6 +140,7 @@ class ConsoleEnum(models.TextChoices):
 
     # Other
     PC = "pc", "PC"
+    Mobile = "mobile", "Celular/Tablet"
 
 
 class WarrantyType(models.TextChoices):
@@ -553,7 +562,7 @@ class Product(models.Model):
                 if self.amount > 1:
                     self.duplicate()
 
-        except ValueError as e:
+        except ValueError:
             pass
 
 
