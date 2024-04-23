@@ -15,6 +15,7 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from unidecode import unidecode
 from collections import defaultdict
 
@@ -38,7 +39,11 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 12
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class Throttling:
+    throttle_classes = [UserRateThrottle]
+
+
+class ProductViewSet(viewsets.ModelViewSet, Throttling):
     queryset = Product.objects.filter(state=StateEnum.available)
     serializer_class = ProductSerializer
     pagination_class = StandardResultsSetPagination
@@ -109,19 +114,19 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CollectableViewSet(viewsets.ModelViewSet):
+class CollectableViewSet(viewsets.ModelViewSet, Throttling):
     queryset = Collectable.objects.filter()
     serializer_class = CollectableSerializer
     permission_classes = []
 
 
-class VideoGameViewSet(viewsets.ModelViewSet):
+class VideoGameViewSet(viewsets.ModelViewSet, Throttling):
     queryset = VideoGame.objects.filter()
     serializer_class = VideoGameSerializer
     permission_classes = []
 
 
-class AccessoryViewSet(viewsets.ModelViewSet):
+class AccessoryViewSet(viewsets.ModelViewSet, Throttling):
     queryset = Accessory.objects.filter()
     serializer_class = AccessorySerializer
     permission_classes = []
@@ -159,7 +164,7 @@ class DailySalesReport(APIView):
             )
 
 
-class ReportViewSet(viewsets.ModelViewSet):
+class ReportViewSet(viewsets.ModelViewSet, Throttling):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
     filter_backends = [filters.OrderingFilter]

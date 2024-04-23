@@ -25,6 +25,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from product.serializer import GenerateBillSerializer
+from product.views import Throttling
 
 
 class ReturnPolicyView(TemplateView):
@@ -37,7 +38,7 @@ class ReturnPolicyView(TemplateView):
         return context
 
 
-class HomePageView(APIView):
+class HomePageView(APIView, Throttling):
 
     def get(self, request):
         return redirect("https://store.readygamescr.com")
@@ -311,7 +312,7 @@ class GenerateBill(TemplateView):
         return item, item_remaining
 
 
-class CalculateTotalView(APIView):
+class CalculateTotalView(APIView, Throttling):
     def post(self, request, format=None):
         data = request.data
 
@@ -359,7 +360,7 @@ class CalculateTotalView(APIView):
         return Response(response_data)
 
 
-class CalculatePayNewProduct(APIView):
+class CalculatePayNewProduct(APIView, Throttling):
     def post(self, request, format=None):
         data = request.data
         price = data.get('price', 0)
