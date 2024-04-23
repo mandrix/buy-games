@@ -62,7 +62,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.readygamescr.com",
     "http://localhost:3000",
     "https://ready-games-ui.vercel.app",
-    "https://readygames.vercel.app"
+    "https://readygames-eight.vercel.app",
+    "https://store.readygamescr.com",
+    "https://www.store.readygamescr.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
