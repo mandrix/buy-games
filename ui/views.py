@@ -2,6 +2,8 @@ import json
 
 import logging
 from datetime import datetime
+
+from django.shortcuts import redirect
 from openpyxl import Workbook
 
 from django.http import HttpResponse, JsonResponse
@@ -35,8 +37,10 @@ class ReturnPolicyView(TemplateView):
         return context
 
 
-class HomePageView(TemplateView):
-    template_name = "homepage.html"
+class HomePageView(APIView):
+
+    def get(self, request):
+        return redirect("https://store.readygamescr.com")
 
 
 class ReceiptView(TemplateView):
