@@ -80,15 +80,15 @@ class ConsoleEnum(models.TextChoices):
     # Xbox
     Xbox = "xbox", "Xbox"
     Xbox360 = "xbox360", "Xbox 360"
-    XboxOne = "xbox-one", "Xbox One"
-    XboxSeriesS = "xbox-series-s", "Xbox Series S"
-    XboxSeriesX = "xbox-series-x", "Xbox Series X"
     Xbox360Fat = "xbox360-fat", "Xbox 360 Fat"
     Xbox360Slim = "xbox360-slim", "Xbox 360 Slim"
     Xbox360SlimE = "xbox360-slim-e", "Xbox 360 Slim E"
+    XboxOne = "xbox-one", "Xbox One"
     XboxOneFat = "xbox-one-fat", "Xbox One Fat"
     XboxOneS = "xbox-one-s", "Xbox One S"
     XboxOneX = "xbox-one-x", "Xbox One X"
+    XboxSeriesS = "xbox-series-s", "Xbox Series S"
+    XboxSeriesX = "xbox-series-x", "Xbox Series X"
 
     # Nintendo
     Switch = "switch", "Nintendo Switch"
