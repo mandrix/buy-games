@@ -31,6 +31,7 @@ class TypeFilter(admin.SimpleListFilter):
             ('console', 'Consola'),
             ('accessory', 'Accesorio'),
             ('collectable', 'Coleccionable'),
+            ('replacement', 'Replacement'),
         )
 
     def queryset(self, request, queryset):
@@ -47,6 +48,8 @@ class TypeFilter(admin.SimpleListFilter):
             return queryset.filter(accessory__isnull=False)
         elif product_type == 'collectable':
             return queryset.filter(collectable__isnull=False)
+        elif product_type == 'replacement':
+            return queryset.filter(replacement__isnull=False)
 
 class DuplicatesFilter(admin.SimpleListFilter):
     title = 'Mostrar duplicados'

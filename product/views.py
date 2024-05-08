@@ -206,6 +206,7 @@ class GenerateExcelOfProducts(APIView):
         product_type = request.query_params.get("type")
         used = request.query_params.get("used")
         product_name = request.query_params.get("name")
+        with_price = request.query_params.get("with_price", False)
 
         if console:
             products = products.filter(
@@ -239,7 +240,7 @@ class GenerateExcelOfProducts(APIView):
         sheet = wb.active
         sheet.title = "Productos"
         sheet['A1'] = "Nombre"
-        sheet['B1'] = "Precio"
+        sheet['B1'] = "Precio" if with_price else ""
         sheet['C1'] = "Descripción"
         sheet['D1'] = "Adicional"
         sheet['E1'] = "Consola"
@@ -248,7 +249,8 @@ class GenerateExcelOfProducts(APIView):
             cell.font = Font(bold=True)
         for row_num, row in enumerate(rows):
             sheet[f"A{row_num + 2}"] = row[0]
-            sheet[f"B{row_num + 2}"] = f"₡{row[1]:,.2f}" if type == "excel" else f"{row[1]:,.2f}"
+            if with_price:
+                sheet[f"B{row_num + 2}"] = f"₡{row[1]:,.2f}" if type == "excel" else f"{row[1]:,.2f}"
             sheet[f"C{row_num + 2}"] = row[2]
             sheet[f"D{row_num + 2}"] = row[3]
             sheet[f"E{row_num + 2}"] = row[4]

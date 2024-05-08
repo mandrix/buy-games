@@ -38,6 +38,7 @@ class ProductTypeEnum(models.TextChoices):
     videogame = "videogame", "Videojuego"
     console = "console", "Consola"
     accessory = "accessory", "Accesorio"
+    replacement = "replacement", "Replacement"
     collectable = "collectable", "Collecionable"
 
 
@@ -94,6 +95,7 @@ class ConsoleEnum(models.TextChoices):
     Switch = "switch", "Nintendo Switch"
     SwitchOLED = "switch-oled", "Nintendo Switch OLED"
     SwitchLite = "switch-lite", "Nintendo Switch Lite"
+    Gamecube = "gamecube", "Gamecube"
     Gameboy = "gameboy", "Gameboy"
     GameboyDMG = "gameboy-dmg", "Gameboy DMG"
     GameboyColor = "gameboy-color", "Gameboy Color"
@@ -123,7 +125,6 @@ class ConsoleEnum(models.TextChoices):
     NesTopLoader = "nes-top-loader", "NES Top Loader"
     Famicom = "famicom", "Famicom"
     NesMini = "nes-mini", "NES Mini"
-    Gamecube = "gamecube", "Gamecube"
 
     # Sega
     SegaGenesis = "sega-genesis", "Sega Genesis (Modelo 1)"
@@ -168,6 +169,33 @@ class Console(models.Model):
         super().save(*args, **kwargs)
 
         self.product.type = ProductTypeEnum.console
+        self.product.save()
+
+        if self.product.amount > 1:
+            self.product.duplicate()
+
+
+class Replacement(models.Model):
+    title = models.CharField(max_length=100, default="")
+    console = models.CharField(
+        max_length=20,
+        choices=ConsoleEnum.choices,
+        null=True
+    )
+    product = models.ForeignKey("Product", on_delete=models.CASCADE)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['title']),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        self.product.type = ProductTypeEnum.replacement
         self.product.save()
 
         if self.product.amount > 1:
@@ -457,12 +485,15 @@ class Product(models.Model):
             return self.accessory_set.first()
         elif self.type == ProductTypeEnum.collectable:
             return self.collectable_set.first()
+        elif self.type == ProductTypeEnum.replacement:
+            return self.replacement_set.first()
         else:
             raise ValueError("Este producto no tiene informacion adicional")
 
     def get_product_type(self):
         type_mapping = {
             VideoGame: "Videojuego",
+            Replacement: "Repuesto",
             Collectable: "Collecionable",
             Console: "Consola",
             Accessory: "Accesorio"

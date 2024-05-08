@@ -23,7 +23,7 @@ from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThr
     ToBeShippedFilter, PaymentPendingFilter
 from product.forms import SaleInlineForm, ProductAdminForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
-    StateEnum, Expense, Payment, Tag, SaleTypeEnum
+    StateEnum, Expense, Payment, Tag, SaleTypeEnum, Replacement
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
@@ -33,6 +33,13 @@ from fuzzywuzzy import process
 
 class VideoGamesInline(StackedInline):
     model = VideoGame
+    extra = 0
+    min_num = 0
+    max_num = 1
+
+
+class ReplacementsInline(StackedInline):
+    model = Replacement
     extra = 0
     min_num = 0
     max_num = 1
@@ -212,7 +219,7 @@ class ProductAdmin(admin.ModelAdmin):
         )
 
     def get_inlines(self, request, obj):
-        return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline]
+        return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline, ReplacementsInline]
         if not obj:
             return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline]
 
@@ -308,6 +315,13 @@ class VideoGameAdmin(admin.ModelAdmin):
     @admin.display(description='Region')
     def get_region(self, obj):
         return obj.product.region
+
+
+class ReplacementAdmin(admin.ModelAdmin):
+    model = Replacement
+    list_display = ["title", "console"]
+    list_filter = ("console", "product__region")
+    search_fields = ["title"]
 
 
 class AccessoryAdmin(admin.ModelAdmin):

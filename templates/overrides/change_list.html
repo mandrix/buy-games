@@ -55,9 +55,19 @@
               </li>
               <li>
                   <a href="{% url 'products-image' %}?name={{ request.GET.q }}&console_title={{ request.GET.console_title }}&type={{ request.GET.tipo }}&used={{ request.GET.used__exact }}" class="addlink">
-                        📷Image
+                        📷Imagen
                   </a>
               </li>
+          <li>
+            <a href="{% url 'products-excel' %}?name={{ request.GET.q }}&console_title={{ request.GET.console_title }}&type={{ request.GET.tipo }}&used={{ request.GET.used__exact }}&with_price=true" class="addlink">
+              📑Excel con precios
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'products-image' %}?name={{ request.GET.q }}&console_title={{ request.GET.console_title }}&type={{ request.GET.tipo }}&used={{ request.GET.used__exact }}&with_price=True" class="addlink">
+              📷Imagen con precios
+            </a>
+          </li>
             {% endif %}
           {% endblock %}
         </ul>

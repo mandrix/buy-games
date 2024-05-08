@@ -5,7 +5,7 @@ from rest_framework import serializers
 from django.core.validators import RegexValidator
 from rest_framework.fields import CharField, SerializerMethodField, URLField
 
-from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment, Tag
+from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment, Tag, Replacement
 
 
 def create_product(validated_data):
@@ -27,6 +27,15 @@ class CollectableSerializer(serializers.ModelSerializer):
 class VideoGameSerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoGame
+        fields = "__all__"
+
+    def create(self, validated_data):
+        return super().create(create_product(validated_data))
+
+
+class ReplacementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Replacement
         fields = "__all__"
 
     def create(self, validated_data):
@@ -91,6 +100,7 @@ class ProductSerializer(serializers.ModelSerializer):
     price = SerializerMethodField()
     name = SerializerMethodField()
     videogame_set = VideoGameSerializer(many=True)
+    replacement_set = ReplacementSerializer(many=True)
     console_set = ConsoleSerializer(many=True)
     collectable_set = CollectableSerializer(many=True)
     accessory_set = AccessorySerializer(many=True)

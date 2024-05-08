@@ -20,7 +20,7 @@ from helpers.payment import formatted_number, choices_payment
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
 from product.models import Product, StateEnum, Sale, Report, OwnerEnum, VideoGame, Collectable, Console, Accessory, \
-    SaleTypeEnum, PlatformEnum
+    SaleTypeEnum, PlatformEnum, Replacement
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -265,6 +265,9 @@ class GenerateBill(TemplateView):
             },
             "accessory": {
                 "additional_info": Accessory.objects
+            },
+            "replacement": {
+                "additional_info": Replacement.objects
             },
         }
         return all_info[additional_info]
