@@ -31,7 +31,7 @@ class TypeFilter(admin.SimpleListFilter):
             ('console', 'Consola'),
             ('accessory', 'Accesorio'),
             ('collectable', 'Coleccionable'),
-            ('replacement', 'Replacement'),
+            ('replacement', 'Repuesto'),
         )
 
     def queryset(self, request, queryset):
