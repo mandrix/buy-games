@@ -17,7 +17,8 @@ class ConsoleTitleFilter(admin.SimpleListFilter):
         # Apply the filter to the queryset
         value = self.value()
         if value:
-            return queryset.filter(Q(console__title=value) | Q(videogame__console=value) | Q(accessory__console=value))
+            return queryset.filter(Q(console__title=value) | Q(videogame__console=value)
+                                   | Q(accessory__console=value) | Q(replacement__console=value))
         return queryset
 
 

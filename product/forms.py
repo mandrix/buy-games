@@ -42,7 +42,6 @@ class ProductAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductAdminForm, self).__init__(*args, **kwargs)
 
-        print(args, kwargs)
         if False:
             self.fields['amount_to_notify'].widget = forms.HiddenInput()
             self.fields['type'].widget = forms.HiddenInput()
