@@ -25,8 +25,19 @@ def commission_price(price, factor):
 def roundup_nearest_hundred(x):
     return round(x if x % 100 == 0 else x + 100 - x % 100, 2)
 
+def is_numeric(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
 
-def formatted_number(number):
+
+def formatted_number(number: float | decimal.Decimal | int | str):
+    if type(number) not in [float, int]:
+        return ''
+    elif type(number) is str and not is_numeric(number):
+        return ''
     return str(format_currency(number, 'CRC', locale='es_CR'))
 
 
