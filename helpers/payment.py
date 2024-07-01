@@ -34,9 +34,9 @@ def is_numeric(value):
 
 
 def formatted_number(number: float | decimal.Decimal | int | str):
-    if type(number) not in [float, int]:
+    if type(number) is str and not is_numeric(number):
         return ''
-    elif type(number) is str and not is_numeric(number):
+    elif type(number) not in [float, int, decimal.Decimal]:
         return ''
     return str(format_currency(number, 'CRC', locale='es_CR'))
 
