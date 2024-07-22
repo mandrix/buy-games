@@ -14,6 +14,10 @@ def factor_tasa_0():
     return 0.77
 
 
+def factor_tasa_0_10_months():
+    return 0.60
+
+
 def factor_card():
     return 0.84
 
@@ -24,6 +28,7 @@ def commission_price(price, factor):
 
 def roundup_nearest_hundred(x):
     return round(x if x % 100 == 0 else x + 100 - x % 100, 2)
+
 
 def is_numeric(value):
     try:

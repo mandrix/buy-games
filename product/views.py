@@ -30,7 +30,7 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework import filters, status
 from django.http import JsonResponse, HttpResponse
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, TruncMonth
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -135,8 +135,13 @@ class AccessoryViewSet(viewsets.ModelViewSet, Throttling):
 class DailySalesReport(APIView):
 
     def post(self, request):
-        start_date_str = request.data.get('start_date')
-        end_date_str = request.data.get('end_date')
+        start_date_str = request.data.get('start_date', "2023-08-01")
+        # Get today's date
+        today_date = datetime.today()
+
+        # Format today's date as "YYYY-MM-DD"
+        formatted_date = today_date.strftime("%Y-%m-%d")
+        end_date_str = request.data.get('end_date', formatted_date)
 
         if start_date_str and end_date_str:
             try:
@@ -149,13 +154,22 @@ class DailySalesReport(APIView):
                 )
 
             queryset = Sale.objects.filter(purchase_date_time__range=(start_date, end_date))
-            queryset = queryset.values('purchase_date_time__date').annotate(
+            queryset = queryset.annotate(
+                purchase_month=TruncMonth('purchase_date_time')
+            ).values('purchase_month').annotate(
                 total_sales=Count('id'),
                 gross_total=Cast(Sum('gross_total'), output_field=IntegerField()),
                 net_total=Cast(Sum('net_total'), output_field=IntegerField()),
-            ).order_by('purchase_date_time__date')
+            ).order_by('purchase_month')
 
-            data = list(queryset)  # Convertir el QuerySet en una lista de diccionarios
+            # Convert month to string representation
+            data = []
+            for item in queryset:
+                item['month'] = item['purchase_month'].month
+                item['year'] = item['purchase_month'].year
+                del item['purchase_month']
+                data.append(item)
+
             return JsonResponse(data, safe=False)
         else:
             return Response(

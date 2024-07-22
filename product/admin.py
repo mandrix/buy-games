@@ -70,7 +70,7 @@ class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
     list_display = (
         "__str__", "tipo", "console_type", "description", 'copies', "_state", "sale_price_formatted",
-        "sale_price_with_card", "sale_price_with_tasa_0",
+        "sale_price_with_card", "sale_price_with_tasa_0", "sale_price_with_tasa_0_10_months",
         'used_display', 'owner', 'etiquetas', 'image')
     model = Product
     list_filter = (DuplicatesFilter, SoldFilter, TypeFilter, BelowThreshHoldFilter,
@@ -346,21 +346,21 @@ class ReportAdmin(admin.ModelAdmin):
     inlines = [SaleInline]
     readonly_fields = ("total",)
 
+    @admin.display(description='Total', ordering='total')
     def display_total(self, obj):
         return obj.calculate_total()
 
     display_total.short_description = 'Total'
 
+    @admin.display(description='Total Business', ordering='total_business')
     def display_total_business(self, obj):
         return obj.calculated_total_business
 
-    display_total_business.short_description = 'Total Business'
-
+    @admin.display(description='Total Mauricio', ordering='total_mauricio')
     def display_total_mauricio(self, obj):
         return obj.calculated_total_mauricio
 
-    display_total_mauricio.short_description = 'Total Mauricio'
-
+    @admin.display(description='Total Joseph', ordering='total_joseph')
     def display_total_joseph(self, obj):
         return obj.calculated_total_joseph
 

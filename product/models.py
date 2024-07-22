@@ -18,7 +18,8 @@ from unidecode import unidecode
 
 from games.utils.storage_backends import PrivateMediaStorage
 from helpers.admin import exclude_copies
-from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum
+from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum, \
+    factor_tasa_0_10_months
 
 
 class RegionEnum(models.TextChoices):
@@ -321,6 +322,12 @@ class Payment(models.Model):
         if self.net_price:
             return formatted_number(commission_price(self.net_price, factor_tasa_0()))
 
+    @property
+    @admin.display(description='precio tasa 0 (10 meses)', ordering='sale_price')
+    def sale_price_with_tasa_0_10_months(self):
+        if self.net_price:
+            return formatted_number(commission_price(self.net_price, factor_tasa_0_10_months()))
+
 
 def food_path(instance, filename):
     return '{0}/{1}'.format(instance.category.name, filename)
@@ -469,6 +476,12 @@ class Product(models.Model):
     def sale_price_with_tasa_0(self):
         if self.payment:
             return self.payment.sale_price_with_tasa_0
+
+    @property
+    @admin.display(description='precio tasa 0 (10 meses)', ordering='sale_price')
+    def sale_price_with_tasa_0_10_months(self):
+        if self.payment:
+            return self.payment.sale_price_with_tasa_0_10_months
 
     @property
     @admin.display(description='provider price', ordering='provider_price')
