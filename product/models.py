@@ -76,6 +76,9 @@ class ConsoleEnum(models.TextChoices):
     PlayStation5 = "ps5", "PS5"
     PlayStation5Slim = "ps5-slim", "PS5 Slim"
     PSP = "psp", "PSP"
+    PSP1000 = "psp1000", "PSP1000"
+    PSP2000 = "psp2000", "PSP2000"
+    PSP3000 = "psp3000", "PSP3000"
     PSVita = "psvita", "PSVita"
     PSClassic = "ps-classic", "PS Classic"
 
