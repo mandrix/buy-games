@@ -79,6 +79,7 @@ class ConsoleEnum(models.TextChoices):
     PSP1000 = "psp1000", "PSP1000"
     PSP2000 = "psp2000", "PSP2000"
     PSP3000 = "psp3000", "PSP3000"
+    PSPGo = "psp-go", "PSP Go"
     PSVita = "psvita", "PSVita"
     PSClassic = "ps-classic", "PS Classic"
 
