@@ -553,7 +553,6 @@ class Product(models.Model):
         file_name = title + ".jpg"
         file_path = os.path.join(dir, file_name)
         if os.path.isfile(file_path):
-            print(dir, title)
             with open(file_path, 'rb') as file:
                 file_content = file.read()
                 first_img = queryset.first()
@@ -580,6 +579,12 @@ class Product(models.Model):
 
                 product.save_img(copies)
 
+    def assign_image_from_similar_products(self):
+        if similar_products := self.similar_products():
+            for product in similar_products:
+                if product.product.image:
+                    self.image = product.product.image
+
     def save(self, *args, **kwargs):
         if not self.payment:
             payment = Payment(sale_price=self.sale_price,
@@ -602,6 +607,9 @@ class Product(models.Model):
                 next_product_to_show.save()
         if not self.barcode:
             self.generate_barcode()
+
+        if not self.image and self.pk:
+            self.assign_image_from_similar_products()
 
         super().save(*args, **kwargs)
 
