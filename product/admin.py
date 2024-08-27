@@ -16,7 +16,6 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from unidecode import unidecode
 
-from helpers.admin import exclude_copies
 from helpers.business_information import business_information
 from helpers.payment import formatted_number, PaymentMethodEnum
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
@@ -27,8 +26,6 @@ from product.models import Product, Collectable, Console, VideoGame, Accessory, 
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
-
-from fuzzywuzzy import process
 
 
 class VideoGamesInline(StackedInline):

@@ -19,7 +19,6 @@ from rest_framework.throttling import UserRateThrottle
 from unidecode import unidecode
 from collections import defaultdict
 
-from helpers.admin import exclude_copies
 from product.filters import TypeFilter
 from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale, Tag
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \

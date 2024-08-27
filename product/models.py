@@ -14,7 +14,6 @@ import django.conf as conf
 import random
 
 from django.db.models import Q, QuerySet
-from unidecode import unidecode
 
 from games.utils.storage_backends import PrivateMediaStorage
 from helpers.admin import exclude_copies
@@ -411,8 +410,8 @@ class Product(models.Model):
         try:
             additional_info = self.get_additional_product_info()
             queryset_additional_info: QuerySet = additional_info.__class__.objects
-        except (ValueError, AttributeError):
-            return "ERROR"
+        except (ValueError, AttributeError) as e:
+            return []
 
         search_term = additional_info.title
         if additional_info.__class__ == Console:
