@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.db.models import Q, F, QuerySet
+from django.db.models.functions import ExtractWeekDay
+
 from product.models import ConsoleEnum, StateEnum, Sale, SaleTypeEnum
 
 
@@ -69,6 +71,7 @@ class DuplicatesFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+
 class PaymentPendingFilter(admin.SimpleListFilter):
     title = 'Pago Pendiente'
     parameter_name = 'payment_pending'
@@ -92,6 +95,7 @@ class PaymentPendingFilter(admin.SimpleListFilter):
         else:
             return queryset
 
+
 class ToBeShippedFilter(admin.SimpleListFilter):
     title = 'Por enviar'
     parameter_name = 'to_be_sent'
@@ -110,6 +114,7 @@ class ToBeShippedFilter(admin.SimpleListFilter):
             return queryset.filter(shipping=True, sent=True)
         else:
             return queryset
+
 
 class SoldFilter(admin.SimpleListFilter):
     title = 'Estado de Producto'
@@ -139,7 +144,6 @@ class BelowThreshHoldFilter(admin.SimpleListFilter):
     parameter_name = 'notify'
 
     def lookups(self, request, model_admin):
-        # Devuelve las opciones de filtro y sus etiquetas
         return (
             ('to_notify', 'A Notificar'),
         )
@@ -150,3 +154,26 @@ class BelowThreshHoldFilter(admin.SimpleListFilter):
             filtered_products = [product.id for product in all_products if product.amount_to_notify and  product.amount_to_notify >= product.copies]
             return all_products.filter(id__in=filtered_products)
         return queryset.all()
+
+
+class WeekdayFilter(admin.SimpleListFilter):
+    title = 'Weekday'
+    parameter_name = 'weekday'
+
+    def lookups(self, request, model_admin):
+        # Define the choices for the weekdays
+        return [
+            ('1', 'Sunday'),
+            ('2', 'Monday'),
+            ('3', 'Tuesday'),
+            ('4', 'Wednesday'),
+            ('5', 'Thursday'),
+            ('6', 'Friday'),
+            ('7', 'Saturday'),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.annotate(weekday=ExtractWeekDay('date')).filter(weekday=self.value())
+        return queryset
+

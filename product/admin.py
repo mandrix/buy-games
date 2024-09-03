@@ -19,7 +19,7 @@ from unidecode import unidecode
 from helpers.business_information import business_information
 from helpers.payment import formatted_number, PaymentMethodEnum
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
-    ToBeShippedFilter, PaymentPendingFilter
+    ToBeShippedFilter, PaymentPendingFilter, WeekdayFilter
 from product.forms import SaleInlineForm, ProductAdminForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, SaleTypeEnum, Replacement
@@ -342,6 +342,7 @@ class ReportAdmin(admin.ModelAdmin):
     ordering = ("-date",)
     inlines = [SaleInline]
     readonly_fields = ("total",)
+    list_filter = (WeekdayFilter,)
 
     @admin.display(description='Total', ordering='total')
     def display_total(self, obj):
