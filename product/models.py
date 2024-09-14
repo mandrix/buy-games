@@ -147,6 +147,7 @@ class ConsoleEnum(models.TextChoices):
     # Other
     PC = "pc", "PC"
     Mobile = "mobile", "Celular/Tablet"
+    NeoGeoPocket = "neogeo-pocket", "NeoGeo Pocket"
 
 
 class WarrantyType(models.TextChoices):
