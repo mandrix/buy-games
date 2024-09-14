@@ -131,6 +131,7 @@ class ConsoleEnum(models.TextChoices):
     NesMini = "nes-mini", "NES Mini"
 
     # Sega
+    SegaMasterSystem = "sega-master-system", "Sega Master System"
     SegaGenesis = "sega-genesis", "Sega Genesis (Modelo 1)"
     SegaGenesis2 = "sega-genesis-2", "Sega Genesis (Modelo 2)"
     SegaGenesis3 = "sega-genesis-3", "Sega Genesis (Modelo 3)"
