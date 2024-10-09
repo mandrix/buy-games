@@ -170,7 +170,7 @@ class GenerateBill(TemplateView):
         smtp_server = 'smtp.gmail.com'
         smtp_port = 587
         smtp_user = 'readygamescr@gmail.com'
-        smtp_password = 'dasieujszfbbvcew'
+        smtp_password = 'uihn utds dvwn hqgi'
 
         remittent = 'readygamescr@gmail.com'
         destination = address
