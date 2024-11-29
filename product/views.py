@@ -43,7 +43,9 @@ class Throttling:
 
 
 class ProductViewSet(viewsets.ModelViewSet, Throttling):
-    queryset = Product.objects.filter(state=StateEnum.available)
+    queryset = Product.objects.filter(
+        state=StateEnum.available
+    ).exclude(replacement__isnull=False)
     serializer_class = ProductSerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = []
@@ -99,7 +101,7 @@ class ProductViewSet(viewsets.ModelViewSet, Throttling):
         return self.queryset
 
     def retrieve(self, request, *args, **kwargs):
-        self.queryset = Product.objects.filter(state__in=[StateEnum.available, StateEnum.reserved])
+        self.queryset = Product.objects.filter(state__in=[StateEnum.available])
         pk = kwargs.get("pk")
         instance = None
 

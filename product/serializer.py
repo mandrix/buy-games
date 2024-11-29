@@ -129,7 +129,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return str(obj)
 
     def get_console(self, obj: Product):
-        if type(obj.get_additional_product_info()) == Collectable:
+        if type(obj.get_additional_product_info()) == Collectable or not obj.get_additional_product_info():
             console_code = ""
         else:
             console_code = obj.get_additional_product_info().title if type(
