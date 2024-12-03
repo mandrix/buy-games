@@ -22,7 +22,7 @@ from collections import defaultdict
 from product.filters import TypeFilter
 from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale, Tag
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
-    ReportSerializer
+    ReportSerializer, ProductStateByIdSerializer
 from datetime import datetime
 
 from django.utils import timezone
@@ -436,3 +436,28 @@ class GenerateImageOfProducts(APIView):
         return font, bold_font
 
 
+class ProductStateView(APIView):
+    def post(self, request, *args, **kwargs):
+        # Usamos el nuevo serializer para los IDs
+        serializer = ProductStateByIdSerializer(data=request.data)
+        if serializer.is_valid():
+            ids = serializer.validated_data['ids']
+            products = Product.objects.filter(id__in=ids)
+
+            # Generar la lista de diccionarios
+            result = [
+                {
+                    "id": product.id,
+                    "state":  "available" if product.state == StateEnum.available else "sold"
+                }
+                for product in products
+            ]
+
+            # Agregar IDs que no existen en la base de datos
+            found_ids = {product.id for product in products}
+            missing_ids = set(ids) - found_ids
+            result.extend({"id": product_id, "state": False} for product_id in missing_ids)
+
+            return Response(result, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
