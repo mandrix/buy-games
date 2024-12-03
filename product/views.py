@@ -456,7 +456,7 @@ class ProductStateView(APIView):
             # Agregar IDs que no existen en la base de datos
             found_ids = {product.id for product in products}
             missing_ids = set(ids) - found_ids
-            result.extend({"id": product_id, "state": False} for product_id in missing_ids)
+            result.extend({"id": product_id, "state": "sold"} for product_id in missing_ids)
 
             return Response(result, status=status.HTTP_200_OK)
 
