@@ -409,23 +409,33 @@ class Product(models.Model):
         except:
             return "ERROR no tiene tipo"
 
-    def similar_products(self):
+    def similar_products(self, equal_state: bool = True):
         try:
             additional_info = self.get_additional_product_info()
             queryset_additional_info: QuerySet = additional_info.__class__.objects
-        except (ValueError, AttributeError) as e:
+        except (ValueError, AttributeError):
             return []
 
         search_term = additional_info.title
+
+        # Filtering logic based on additional_info's class
         if additional_info.__class__ == Console:
             queryset_additional_info = queryset_additional_info.filter(title=additional_info.title)
         elif additional_info.__class__ == Collectable:
-            pass
+            pass  # Logic specific to Collectable can go here
         else:
             queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
-        queryset_additional_info = queryset_additional_info.filter(product__state=self.state). \
-            filter(Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode))
 
+        # Base filtering logic
+        queryset_additional_info = queryset_additional_info.filter(
+            Q(title__iexact=search_term) | Q(product__barcode__exact=self.barcode)
+        )
+
+        # Conditionally filter by state based on equal_state
+        if equal_state:
+            queryset_additional_info = queryset_additional_info.filter(product__state=self.state)
+
+        # Exclude invalid entries
         additional_info = [i for i in queryset_additional_info if not isinstance(i, str)]
 
         return additional_info
@@ -582,10 +592,11 @@ class Product(models.Model):
                 product.save_img(copies)
 
     def assign_image_from_similar_products(self):
-        if similar_products := self.similar_products():
+        if similar_products := self.similar_products(equal_state=False):
             for product in similar_products:
                 if product.product.image:
                     self.image = product.product.image
+                    break
 
     def save(self, *args, **kwargs):
         if not self.payment:
