@@ -46,6 +46,7 @@ class OwnerEnum(models.TextChoices):
     Joseph = "joseph", "Joseph"
     Mauricio = "mauricio", "Mauricio"
     Business = "business", "Business"
+    Consignacion = "consignacion", "Consignacion"
 
 
 class ProviderEnum(models.TextChoices):
