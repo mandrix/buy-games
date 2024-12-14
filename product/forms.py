@@ -1,6 +1,8 @@
 from django import forms
 from django.forms import CheckboxSelectMultiple
+from django.urls import reverse
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from product.models import Sale, Product
 
@@ -23,12 +25,25 @@ class ColoredCheckboxSelectMultiple(CheckboxSelectMultiple):
             result['attrs']['label']['style'] = (f'background-color: {tag_color};'
                                                  f' margin-top: 5px;border-radius: 10px;'
                                                  f'padding-left: 5px')
+            # Add 'internal' group info
+            result['group'] = 'Internos' if tag.internal else 'Normales'
 
-        return result
+            return result
 
     def get_context(self, name, value, attrs):
-        result = super().get_context(name, value, attrs)
-        return result
+        context = super().get_context(name, value, attrs)
+
+        # Group options by 'group'
+        grouped_options = {}
+        for group, options, index in context['widget']['optgroups']:
+            for option in options:
+                group_name = option['group']
+                if group_name not in grouped_options:
+                    grouped_options[group_name] = []
+                grouped_options[group_name].append(option)
+
+        context['widget']['grouped_options'] = grouped_options
+        return context
 
 
 class ProductAdminForm(forms.ModelForm):
@@ -52,10 +67,19 @@ class ProductAdminForm(forms.ModelForm):
             self.fields['provider_purchase_date'].widget = forms.HiddenInput()
 
 
+class DivWidget(forms.Widget):
+    """Custom widget to render text inside a div."""
+    def render(self, name, value, attrs=None, renderer=None):
+        # Ensure the value is safe HTML
+        return mark_safe(f"<div>{value or ''}</div>")
+
+
 class SaleInlineForm(forms.ModelForm):
-
-    receipt_products = forms.CharField(max_length=10000, label='Receipt Products', widget=forms.Textarea(attrs={'rows': 10, 'cols': 45}))
-
+    receipt_products = forms.Field(
+        label='Receipt Products',
+        required=False,
+        widget=DivWidget()
+    )
 
     class Meta:
         model = Sale
@@ -65,11 +89,17 @@ class SaleInlineForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.id:
             # Set the custom value based on the parent object (obj)
-            self.initial['receipt_products'] = self._receipt_products(self.instance)
+            self.fields['receipt_products'].initial = self._receipt_products(self.instance)
 
     def format_product_string(self, product: Product):
-        return f"{str(product)} - {product.console_type} - ₡{product.payment.net_price if product.payment else self.instance.net_total} - {product.owner} - ID: {product.id} \n"
+        product_url = reverse('admin:product_product_change', args=[product.pk])
+        net_price = product.payment.net_price if product.payment else self.instance.net_total
+        owner = product.owner
+        console_type = product.console_type
+        product_string = (f"<li style='width: 33rem;'>{str(product)} - {console_type} - ₡{net_price} - {owner} - ID: "
+                          f"<a href='{product_url}'>{product.pk}</a> </li>\n")
+        return mark_safe(product_string)
 
     def _receipt_products(self, obj: Sale):
-        products_string = [ self.format_product_string(product) for product in obj.products.all() ]
-        return " ".join(products_string)
+        products_string = [self.format_product_string(product) for product in obj.products.all()]
+        return mark_safe(f'<ul>{"".join(products_string)}</ul>')

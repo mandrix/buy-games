@@ -149,6 +149,7 @@ class ConsoleEnum(models.TextChoices):
     # Other
     PC = "pc", "PC"
     Mobile = "mobile", "Celular/Tablet"
+    Other = "other", "Otros"
     NeoGeoPocket = "neogeo-pocket", "NeoGeo Pocket"
 
 

@@ -10,6 +10,7 @@ from django.db.models import Q, F, Value, ExpressionWrapper, CharField
 from django.db.models.functions import Concat
 from django import forms
 from django.http import HttpResponse
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
 from reportlab.lib.pagesizes import letter
@@ -88,7 +89,7 @@ class ProductAdmin(admin.ModelAdmin):
     exclude = ('remaining', 'payment')
     list_per_page = 50
     honeypot_fields = ['amount_to_notify', 'type', 'hidden', 'order', 'payment_link', 'remaining',
-                       'provider_purchase_date', 'region', 'remaining']
+                       'provider_purchase_date', 'region', 'remaining', 'order']
 
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
@@ -384,13 +385,18 @@ class SaleAdmin(admin.ModelAdmin):
 
     change_form_template = "overrides/btn_sale.html"
 
-    @staticmethod
-    def format_product_string(product: Product):
-        return f"{str(product)} - {product.console_type} - ₡{product.sale_price:,} - {product.owner} - ID: {product.id} \n"
+    def format_product_string(self, product: Product):
+        product_url = reverse('admin:product_product_change', args=[product.pk])
+        net_price = product.payment.net_price if product.payment else product.sale_price
+        owner = product.owner
+        console_type = product.console_type
+        product_string = (f"<li style='list-style: disc;'>{str(product)} - {console_type} - ₡{net_price} - {owner} - ID: "
+                          f"<a href='{product_url}'>{product.pk}</a> </li>\n")
+        return mark_safe(product_string)
 
     def receipt_products(self, obj: Sale):
         products_string = [self.format_product_string(product) for product in obj.products.all()]
-        return " ".join(products_string)
+        return mark_safe(f'<ul style="margin-left: 0; padding-left: 0;">{"".join(products_string)}</ul>')
 
     def response_change(self, request, obj: Sale):
         if "_print_receipt" in request.POST:

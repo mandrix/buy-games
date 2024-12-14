@@ -1,6 +1,15 @@
-{% with id=widget.attrs.id %}<div style="display: flex;flex-wrap: wrap;" {% if id %} id="{{ id }}"{% endif %}{% if widget.attrs.class %}
-                                  class="{{ widget.attrs.class }}"{% endif %}>{% for group, options, index in widget.optgroups %}{% if group %}
-  <div><label>{{ group }}</label>{% endif %}{% for option in options %}<div style="{{option.attrs.label.style}}">
-    {% include option.template_name with widget=option %}</div>{% endfor %}{% if group %}
-  </div>{% endif %}{% endfor %}
-</div>{% endwith %}
+<div style="display: flex; flex-wrap: wrap; "
+     {% if widget.attrs.id %} id="{{ widget.attrs.id }}"{% endif %}
+     {% if widget.attrs.class %} class="{{ widget.attrs.class }}"{% endif %}>
+
+    {% for group_name, options in widget.grouped_options.items %}
+        <h3 style="margin: 5px 0;">{{ group_name }}</h3>
+        <div style="width: 100%; display: flex; flex-wrap: wrap;">
+            {% for option in options %}
+                <div style="{{ option.attrs.label.style }}">
+                    {% include option.template_name with widget=option %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>
