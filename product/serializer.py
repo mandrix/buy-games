@@ -105,6 +105,7 @@ class ProductSerializer(serializers.ModelSerializer):
     collectable_set = CollectableSerializer(many=True)
     accessory_set = AccessorySerializer(many=True)
     type = SerializerMethodField()
+    state = serializers.CharField()
     payment = PaymentSerializer(required=True)
     image = SerializerMethodField()
     console = SerializerMethodField()
@@ -113,7 +114,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ["payment", "barcode", "name", "price", "description", "videogame_set",
-                  "console_set", "accessory_set", "collectable_set", "replacement_set", "type", "image", "id",
+                  "console_set", "accessory_set", "collectable_set", "replacement_set", "type", "state", "image", "id",
                   "console", "tags", "used"]
 
     def get_type(self, obj: Product):

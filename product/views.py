@@ -101,7 +101,7 @@ class ProductViewSet(viewsets.ModelViewSet, Throttling):
         return self.queryset
 
     def retrieve(self, request, *args, **kwargs):
-        self.queryset = Product.objects.filter(state__in=[StateEnum.available, StateEnum.reserved])
+        self.queryset = Product.objects.all()
         pk = kwargs.get("pk")
         instance = None
 
