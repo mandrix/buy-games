@@ -6,7 +6,7 @@ from io import BytesIO
 from tempfile import NamedTemporaryFile
 from PIL import Image, ImageDraw, ImageFont
 
-from django.db.models import Sum, Count, IntegerField, Q
+from django.db.models import Sum, Count, IntegerField, Q, Case, When
 from fuzzywuzzy import process
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
@@ -103,14 +103,33 @@ class ProductViewSet(viewsets.ModelViewSet, Throttling):
     def retrieve(self, request, *args, **kwargs):
         self.queryset = Product.objects.all()
         pk = kwargs.get("pk")
-        instance = None
 
-        if pk is not None:
-            if pk.isdigit():
-                instance = self.queryset.filter(id=pk).first()
+        if pk is None:
+            return Response({"error": "Invalid identifier"}, status=400)
 
-            if instance is None:
-                instance = self.queryset.filter(barcode=pk).first()
+        # Optimize query filtering in a single step
+        query_filters = Q(id=pk) if pk.isdigit() else Q(barcode=pk)
+        prioritized_filters = (
+                Q(state__in=[StateEnum.reserved, StateEnum.available]) & Q(barcode=pk)
+        )
+
+        # Query prioritizing specific states
+        instance = (
+            self.queryset.filter(query_filters | prioritized_filters)
+            .order_by(
+                Case(
+                    When(prioritized_filters, then=0),  # Prioritize reserved/available items
+                    default=1,
+                    output_field=IntegerField(),
+                ),
+                "id",
+            )
+            .first()
+        )
+
+        if not instance:
+            return Response({"error": "Product not found"}, status=404)
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
