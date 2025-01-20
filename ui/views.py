@@ -54,10 +54,9 @@ class ReportView(TemplateView):
 
 class GenerateBill(TemplateView):
     template_name = "receipt-template.html"
-
     SERVICE = "S"
 
-    def post(self, request, *args, **kwargs):
+    def handle_post_logic(self, request, *args, **kwargs):
         data = json.loads(request.body.decode('utf-8'))
         serializer = GenerateBillSerializer(data=data)
 
@@ -93,7 +92,10 @@ class GenerateBill(TemplateView):
         response = HttpResponse(rendered_template, content_type='text/html')
         response['Content-Disposition'] = 'inline; filename="bill.html"'
         response['Cache-Control'] = 'no-cache'
-        return self.render_to_response(context)
+        return response
+
+    def post(self, request, *args, **kwargs):
+        return self.handle_post_logic(request, *args, **kwargs)
 
     def create_sale(self, data):
         with transaction.atomic():
@@ -313,6 +315,14 @@ class GenerateBill(TemplateView):
         product.save()
 
         return item, item_remaining
+
+
+class BuyOnline(TemplateView):
+    template_name = "receipt-template.html"
+
+    def post(self, request, *args, **kwargs):
+        generate_bill_view = GenerateBill()
+        return generate_bill_view.handle_post_logic(request, *args, **kwargs)
 
 
 class CalculateTotalView(APIView, Throttling):
