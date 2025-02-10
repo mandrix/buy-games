@@ -96,11 +96,12 @@ class GenerateBill(TemplateView):
         context['taxes'] = formatted_number(validated_data['taxes']) if float(validated_data['taxes']) else 0
         context['discounts'] = formatted_number(validated_data['discounts'])
         context['total_amount'] = formatted_number(validated_data['total_amount'])
+        context['online_payment'] = serializer.online_payment
 
         rendered_template = render_to_string(self.template_name, context)
 
         try:
-            self.enviar_factura_por_correo(
+            GenerateBill.enviar_factura_por_correo(
                 rendered_template,
                 validated_data['customer_mail'],
                 validated_data['return_policy']
@@ -198,7 +199,8 @@ class GenerateBill(TemplateView):
             phone_number=data.customer_phone or ""
         )
 
-    def enviar_factura_por_correo(self, factura_html, address, return_policy):
+    @staticmethod
+    def enviar_factura_por_correo(factura_html, address, return_policy):
         smtp_server = 'smtp.gmail.com'
         smtp_port = 587
         smtp_user = 'readygamescr@gmail.com'

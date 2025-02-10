@@ -139,7 +139,7 @@ class SoldFilter(admin.SimpleListFilter):
         elif self.value() == 'pending':
             return queryset.filter(state=StateEnum.pending)
         else:
-            return queryset.filter(Q(state=StateEnum.available) | Q(state=StateEnum.reserved))
+            return queryset.filter(Q(state=StateEnum.available) | Q(state=StateEnum.reserved) | Q(state=StateEnum.pending))
 
 
 class BelowThreshHoldFilter(admin.SimpleListFilter):

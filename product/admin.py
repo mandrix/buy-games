@@ -28,6 +28,7 @@ from product.models import Product, Collectable, Console, VideoGame, Accessory, 
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
+from ui.views import GenerateBill, SendMailError
 
 
 class VideoGamesInline(StackedInline):
@@ -428,7 +429,20 @@ class SaleAdmin(admin.ModelAdmin):
                 self.message_user(request, f"Error intentando de confirmar pago: {err}", level=messages.ERROR)
                 return HttpResponseRedirect(request.path)
 
-            # Optionally update the sale’s status (e.g., set it to 'captured')
+            context = {"payment_details": obj.payment_details, "items": obj.products.all()}
+
+            rendered_template = render_to_string("online-payments/capture-payment.html", context)
+
+            try:
+                GenerateBill.enviar_factura_por_correo(
+                    rendered_template,
+                    obj.customer_mail,
+                    0
+                )
+            except SendMailError as e:
+                self.message_user(f'Error al enviar el correo: {e}', level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
             obj.type = SaleTypeEnum.Purchase
             today = datetime.datetime.today().date()
             obj.report, _ = Report.objects.get_or_create(date=today)
@@ -441,6 +455,52 @@ class SaleAdmin(admin.ModelAdmin):
                 print("Updated product: ", product)
 
             self.message_user(request, f"El pago #{obj.pk} por ₡{obj.gross_total} fue hecho con exito", level=messages.SUCCESS)
+        elif "_cancel_payment" in request.POST:
+            # Ensure the sale has a payment intent ID
+            payment_intent_id = obj.onvo_pay_payment_intent_id
+            if not payment_intent_id:
+                self.message_user(request, "No Payment Intent ID found on this sale.", level=messages.ERROR)
+                return super().response_change(request, obj)
+
+            headers = {"Authorization": f"Bearer {settings.ONVOPAY_API_KEY}"}
+            capture_url = f"https://api.onvopay.com/v1/payment-intents/{payment_intent_id}/cancel"
+
+            try:
+                print("Making cancel for:", payment_intent_id)
+                capture_response = requests.post(capture_url, headers=headers)
+                capture_response.raise_for_status()
+            except (requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                self.message_user(request, f"Error intentando de cancelar pago: {err}", level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
+            context = {"payment_details": obj.payment_details, "items": obj.products.all()}
+
+            rendered_template = render_to_string("online-payments/cancel-payment.html", context)
+
+            try:
+                GenerateBill.enviar_factura_por_correo(
+                    rendered_template,
+                    obj.customer_mail,
+                    0
+                )
+            except SendMailError as e:
+                self.message_user(f'Error al enviar el correo: {e}', level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
+            obj.type = SaleTypeEnum.Cancelled
+            today = datetime.datetime.today().date()
+            obj.report, _ = Report.objects.get_or_create(date=today)
+            obj.save()
+            print("Updated sale: ", obj)
+
+            for product in obj.products.all():
+                product.state = StateEnum.available
+                product.save()
+                print("Updated product: ", product)
+
+            self.message_user(request, f"El pago #{obj.pk} por ₡{obj.gross_total} fue cancelado con exito",
+                              level=messages.WARNING)
+
         elif "_print_receipt" in request.POST:
             context = {'store_name': business_information["store_name"],
                        'store_address': business_information["store_address"],

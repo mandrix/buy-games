@@ -657,7 +657,7 @@ class Report(models.Model):
 
         if self.date < yesterday:
             return formatted_number(self.total)
-        total_value = sum([sale.net_total for sale in self.sale_set.all()])
+        total_value = sum([sale.net_total for sale in self.sale_set.exclude(Q(type=SaleTypeEnum.Pending) | Q(type=SaleTypeEnum.Cancelled) )])
         self.total = total_value
         self.save()
         return formatted_number(total_value)
@@ -671,7 +671,7 @@ class Report(models.Model):
         field_keyword = 'payment__net_price'
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
 
-        all_sales = self.sale_set.exclude(type=SaleTypeEnum.Pending)
+        all_sales = self.sale_set.exclude(Q(type=SaleTypeEnum.Pending) | Q(type=SaleTypeEnum.Cancelled) )
 
         list_of_all_products = [
             list(
@@ -726,6 +726,7 @@ class SaleTypeEnum(models.TextChoices):
     Reserve = "reserve", "Reserve"
     Purchase = "purchase", "Purchase"
     Pending = "pending", "Pending"
+    Cancelled = "cancelled", "Cancelled"
 
 
 class PlatformEnum(models.TextChoices):
@@ -784,7 +785,9 @@ class Sale(models.Model):
         elif not products_str:
             products_str = "ERROR"
 
-        return f"{self.report.date} - {products_str} - ₡{self.gross_total:,}"
+        price = self.type if self.type in (SaleTypeEnum.Pending, SaleTypeEnum.Cancelled) else f"₡{self.gross_total:,}"
+
+        return f"{self.report.date} - {products_str} - {price}"
 
 
 class Log(models.Model):

@@ -20,6 +20,7 @@
         <input type="submit" value="Imprimir Factura" name="_print_receipt"><div class="yes-icon"></div>
         {% if sale and sale.type == 'pending' %}
             <input type="submit" value="Confirmar Pago" name="_confirm_payment"><div class="alert-icon"></div>
+            <input type="submit" value="Cancelar Pago" name="_cancel_payment"><div class="alert-icon"></div>
         {% endif %}
     </div>
 {% endblock %}
