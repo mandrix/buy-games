@@ -135,3 +135,10 @@ class Location(models.Model):
 
     def __str__(self):
         return f"{self.name} - Piso: {self.floor} {'('+self.details+')' if self.details else ''}"
+
+
+class Setting(models.Model):
+    disable_online_purchase = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "Configuraciones"

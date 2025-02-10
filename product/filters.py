@@ -126,6 +126,7 @@ class SoldFilter(admin.SimpleListFilter):
             ('vendido', ('Vendido')),
             ('available', ('Disponible')),
             ('reserved', ('Apartado')),
+            ('pending', ('Pago Pendiente')),
         )
 
     def queryset(self, request, queryset):
@@ -135,6 +136,8 @@ class SoldFilter(admin.SimpleListFilter):
             return queryset.filter(state=StateEnum.available)
         elif self.value() == 'reserved':
             return queryset.filter(state=StateEnum.reserved)
+        elif self.value() == 'pending':
+            return queryset.filter(state=StateEnum.pending)
         else:
             return queryset.filter(Q(state=StateEnum.available) | Q(state=StateEnum.reserved))
 

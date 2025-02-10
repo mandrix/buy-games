@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 
+from django.conf import settings
 from django.shortcuts import redirect
 from openpyxl import Workbook
 
@@ -15,7 +16,7 @@ from email.mime.multipart import MIMEMultipart
 
 from rest_framework import status
 
-from administration.models import Coupon, CouponTypeEnum, Client
+from administration.models import Coupon, CouponTypeEnum, Client, Setting
 from helpers.payment import formatted_number, choices_payment
 from helpers.returnPolicy import return_policy_options
 from django.db import transaction
@@ -55,37 +56,55 @@ class ReportView(TemplateView):
 class GenerateBill(TemplateView):
     template_name = "receipt-template.html"
     SERVICE = "S"
+    sale: Sale = None
 
     def handle_post_logic(self, request, *args, **kwargs):
-        data = json.loads(request.body.decode('utf-8'))
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"error": "Invalid JSON format."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         serializer = GenerateBillSerializer(data=data)
 
         if not serializer.is_valid():
-            error_message = serializer.errors
-            return JsonResponse({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse(
+                {"error": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        validated_data = serializer.validated_data
+        print("validated_data:", validated_data)  # TODO: remove all prints for logs
         context = self.get_context_data(**kwargs)
-        context.update(serializer.validated_data)
+        context.update(validated_data)
 
-        if data.get('order'):
-            items, items_remaining = self.create_order(data)
-            data['items'] = items
-            self.create_sale(data)
+        if validated_data.get('order'):
+            items, items_remaining = self.create_order(validated_data)
+            validated_data['items'] = items
+            self.sale = self.create_sale(serializer)
         else:
-            sale = self.create_sale(data)
-            items, items_remaining = self.create_items_list(sale, data)
+            self.sale = self.create_sale(serializer)
+            items, items_remaining = self.create_items_list(self.sale, serializer)
+
+        print("Created sale:", self.sale)
 
         context['items_remaining'] = items_remaining
         context['items'] = items
-        context['subtotal'] = formatted_number(data['subtotal'])
-        context['taxes'] = formatted_number(data['taxes']) if float(data['taxes']) else 0
-        context['discounts'] = formatted_number(data['discounts'])
-        context['total_amount'] = formatted_number(data['total_amount'])
+        context['subtotal'] = formatted_number(validated_data['subtotal'])
+        context['taxes'] = formatted_number(validated_data['taxes']) if float(validated_data['taxes']) else 0
+        context['discounts'] = formatted_number(validated_data['discounts'])
+        context['total_amount'] = formatted_number(validated_data['total_amount'])
 
         rendered_template = render_to_string(self.template_name, context)
 
         try:
-            self.enviar_factura_por_correo(rendered_template, data['customer_mail'], data['return_policy'])
+            self.enviar_factura_por_correo(
+                rendered_template,
+                validated_data['customer_mail'],
+                validated_data['return_policy']
+            )
         except SendMailError as e:
             logging.error(f'Error al enviar el correo: {e}')
 
@@ -97,46 +116,57 @@ class GenerateBill(TemplateView):
     def post(self, request, *args, **kwargs):
         return self.handle_post_logic(request, *args, **kwargs)
 
-    def create_sale(self, data):
+    def create_sale(self, data: GenerateBillSerializer):
         with transaction.atomic():
             today = datetime.today().date()
             report, created = Report.objects.get_or_create(date=today)
-            warranty_type = return_policy_options[data['return_policy']]['name']
-            net_total = - float(data['discounts'])
-            payment_details = data.get('payment_details', '')
+            warranty_type = return_policy_options[data.return_policy]['name']
+            net_total = -float(data.discounts)
+
+            payment_details = data.payment_details or ""
+            payment_details = f"{payment_details} - {data.customer_phone or ''}"
+
+            receipt_comments = data.receipt_comments or ""
+
+            platform = data.platform or PlatformEnum.Store
+            if data.online_payment:
+                platform = PlatformEnum.Online
+
             sale = Sale.objects.create(
                 report=report,
                 warranty_type=warranty_type,
-                purchase_date_time=data['purchase_date'],
-                payment_method=data['payment_method'],
-                platform=data.get('platform', PlatformEnum.Store),
-                subtotal=data['subtotal'],
-                discount=data['discounts'],
-                taxes=data['taxes'],
-                gross_total=data['total_amount'],
-                payment_details=f"{payment_details} - {data.get('customer_phone', '')}",
-                receipt_comments=data.get('receipt_comments', ""),
-                customer_name=data.get('customer_name'),
-                customer_mail=data.get('customer_mail'),
-                shipping=data.get('shipping', False),
-                client=GenerateBill.get_or_create_client(data)
+                purchase_date_time=data.purchase_date,
+                payment_method=data.payment_method,
+                platform=platform,
+                subtotal=data.subtotal,
+                discount=data.discounts,
+                taxes=data.taxes,
+                gross_total=data.total_amount,
+                payment_details=payment_details,
+                receipt_comments=receipt_comments,
+                customer_name=data.customer_name,
+                customer_mail=data.customer_mail,
+                shipping=data.shipping,
+                client=GenerateBill.get_or_create_client(data),
+                onvo_pay_payment_intent_id=data.onvo_pay_payment_intent_id or None  # To save None instead of ""
             )
 
-            for item in data['items']:
-                product_id = item['id']
+            for item in data.items:
+                product_id = item["id"]
                 if product_id != self.SERVICE:
                     product = Product.objects.get(id=product_id)
-
                     sale.products.add(product)
 
                     payment = product.payment
-                    if item.get('reserved'):
+                    if data.online_payment:
+                        sale.type = SaleTypeEnum.Pending
+                    elif item.get("reserved"):
                         sale.type = SaleTypeEnum.Reserve
-                        payment.net_price = float(item['price'])
+                        payment.net_price = float(item["price"])
                         payment.save()
-                    elif data.get('order'):
+                    elif data.order:
                         sale.type = SaleTypeEnum.Request
-                        payment.net_price = float(data['total_amount'])
+                        payment.net_price = float(data.total_amount)
                         payment.save()
                     else:
                         sale.type = SaleTypeEnum.Purchase
@@ -144,7 +174,7 @@ class GenerateBill(TemplateView):
                     net_total += float(payment.net_price)
 
                 elif product_id == self.SERVICE:
-                    net_total += float(item['price'])
+                    net_total += float(item["price"])
                     sale.type = SaleTypeEnum.Repair
 
             sale.net_total = net_total
@@ -152,20 +182,20 @@ class GenerateBill(TemplateView):
             return sale
 
     @staticmethod
-    def get_or_create_client(data):
-        if client := Client.objects.filter(email__iexact=data['customer_mail']).first():
-            if data.get("customer_phone"):
-                client.phone_number = data.get("customer_phone")
-            if data.get("customer_name"):
-                client.full_name = data.get("customer_name")
+    def get_or_create_client(data: GenerateBillSerializer):
+        if client := Client.objects.filter(email__iexact=data.customer_mail).first():
+            if data.customer_phone:
+                client.phone_number = data.customer_phone
+            if data.customer_name:
+                client.full_name = data.customer_name
             client.save()
             return client
 
         return Client.objects.create(
-            full_name=data['customer_name'],
-            email=data['customer_mail'],
-            _id=data.get('id'),
-            phone_number=data.get('customer_phone', "")
+            full_name=data.customer_name,
+            email=data.customer_mail,
+            _id=data.id,
+            phone_number=data.customer_phone or ""
         )
 
     def enviar_factura_por_correo(self, factura_html, address, return_policy):
@@ -203,41 +233,56 @@ class GenerateBill(TemplateView):
         finally:
             server.quit()
 
-    def create_items_list(self, sale, data):  # aqui se enlistan los items para ser modificados debido a
-        # su compra en la BD, luego para mostrarse en una factura
+    def create_items_list(self, sale, data: GenerateBillSerializer):
+        """List items for modification due to purchase in the database and display them on a receipt."""
         items = []
         items_remaining = []
-        for item in data['items']:
-            formatted_price = formatted_number(item['price'])  # rework por
-            # la nueva tabla
-            id_ = item['id']
+
+        for item in data.items:
+            formatted_price = formatted_number(item["price"])
+            id_ = item["id"]
+
             items.append({
-                'id': id_,
-                'name': item['name'],
-                'price': formatted_price,
-                'status': "APARTADO" if item.get('reserved') else ""
+                "id": id_,
+                "name": item["name"],
+                "price": formatted_price,
+                "status": "RESERVED" if item.get("reserved") else ""
             })
+
             if id_ != self.SERVICE:
                 product = Product.objects.get(id=id_)
+                print("Updating product:", product)  # TODO: remove all prints for logs
                 product.sale_date = datetime.now()
                 payment = product.payment
-                reserved = item.get('reserved')
-                if payment.remaining == payment.sale_price:  # al iniciar un pago con un producto, se le
-                    # setea el metodo de pago y el costo nuevo si es el caso
-                    pay = choices_payment(data['payment_method'], payment.sale_price)
-                    payment.payment_method = pay['method']
-                    payment.sale_price = pay['price']
-                    payment.remaining = pay['price']
-                payment.remaining = max(0, payment.remaining - int(item['price']) if reserved else 0)
+                reserved = item.get("reserved")
+
+                # If the payment has not started yet, set the payment method and new cost
+                if payment.remaining == payment.sale_price:
+                    pay = choices_payment(data.payment_method, payment.sale_price)
+                    payment.payment_method = pay["method"]
+                    payment.sale_price = pay["price"]
+                    payment.remaining = pay["price"]
+
+                # Deduct payment if reserved
+                payment.remaining = max(0, payment.remaining - int(item["price"]) if reserved else 0)
+
+                # Track remaining payments
                 if payment.remaining:
                     items_remaining.append({
-                        'id': id_,
-                        'name': item['name'],
-                        'remaining': formatted_number(payment.remaining)
-                    }
-                    )
-                product.state = StateEnum.sold if not reserved or payment.remaining <= 0 else StateEnum.reserved
+                        "id": id_,
+                        "name": item["name"],
+                        "remaining": formatted_number(payment.remaining)
+                    })
 
+                # Update product state
+                if data.online_payment:
+                    product.state = StateEnum.pending
+                elif not reserved or payment.remaining <= 0:
+                    product.state = StateEnum.sold
+                else:
+                    product.state = StateEnum.reserved
+
+                # If the product is fully paid, mark the sale as completed
                 if product.state == StateEnum.reserved and not product.payment.remaining:
                     sale.payments_completed = True
                 elif product.state == StateEnum.reserved and product.payment.remaining:
@@ -247,8 +292,10 @@ class GenerateBill(TemplateView):
                 product.save()
                 sale.save()
 
-                if next_product_to_show := Product.objects.filter(barcode__exact=product.barcode,
-                                                                  state=StateEnum.available, hidden=True).first():
+                # If another product with the same barcode is hidden, make it available
+                if next_product_to_show := Product.objects.filter(
+                        barcode__exact=product.barcode, state=StateEnum.available, hidden=True
+                ).first():
                     next_product_to_show.hidden = False
                     next_product_to_show.save()
 
@@ -321,8 +368,18 @@ class BuyOnline(TemplateView):
     template_name = "receipt-template.html"
 
     def post(self, request, *args, **kwargs):
+        if not settings.ONLINE_PAYMENT or Setting.objects.first().disable_online_purchase:
+            return JsonResponse(
+                {"error": "Hubo un error con el sistema y no se hizo el cobro."},
+                status=403
+            )
         generate_bill_view = GenerateBill()
-        return generate_bill_view.handle_post_logic(request, *args, **kwargs)
+        response = generate_bill_view.handle_post_logic(request, *args, **kwargs)
+        if generate_bill_view.sale:
+            return JsonResponse(
+                {"message": generate_bill_view.sale.pk}
+            )
+        return response
 
 
 class CalculateTotalView(APIView, Throttling):

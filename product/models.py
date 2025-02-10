@@ -31,6 +31,7 @@ class StateEnum(models.TextChoices):
     sold = "sold", "Vendido"
     available = "available", "Disponible"
     reserved = "reserved", "Apartado"
+    pending = "pending", "Pago Pendiente"
     na = "na", "N/A"
 
 
@@ -670,7 +671,7 @@ class Report(models.Model):
         field_keyword = 'payment__net_price'
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
 
-        all_sales = self.sale_set.all()
+        all_sales = self.sale_set.exclude(type=SaleTypeEnum.Pending)
 
         list_of_all_products = [
             list(
@@ -724,6 +725,7 @@ class SaleTypeEnum(models.TextChoices):
     Request = "request", "Request"
     Reserve = "reserve", "Reserve"
     Purchase = "purchase", "Purchase"
+    Pending = "pending", "Pending"
 
 
 class PlatformEnum(models.TextChoices):
@@ -732,12 +734,14 @@ class PlatformEnum(models.TextChoices):
     Instagram = "instagram", "Instagram"
     Facebook = "facebook", "Facebook"
     Event = "event", "Event"
+    Online = "online", "Online"
     Other = "other", "Other"
 
 
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
+
     warranty_type = models.CharField(max_length=100)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=100)
@@ -752,11 +756,14 @@ class Sale(models.Model):
     net_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     payments_completed = models.BooleanField(default=True, help_text="Si ya termino de pagar el producto")
+
     payment_details = models.TextField(blank=True, default="")
     receipt_comments = models.TextField(blank=True, default="")
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
+
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
+
     type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
 
     shipping = models.BooleanField(default=False, help_text="Si es por envio")
@@ -765,6 +772,8 @@ class Sale(models.Model):
     platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
     client = models.ForeignKey('administration.Client', on_delete=models.SET_NULL, null=True, blank=True,
                                related_name="purchases")
+
+    onvo_pay_payment_intent_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         if not self.report:
