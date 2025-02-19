@@ -8,7 +8,8 @@ from django.utils.html import format_html
 from django.contrib import messages
 
 
-from administration.models import Request, RequestStateEnum, Coupon, Client, Location
+from administration.models import Request, RequestStateEnum, Coupon, Client, Location, Setting
+from games.admin import admin_site
 from product.models import Sale
 from ui.views import SendMailError
 
@@ -149,7 +150,18 @@ class LocationAdmin(admin.ModelAdmin):
         return format_html('<img src="{}" width="50" height="50" />', obj.location_image.url)
 
 
-admin.site.register(Request, RequestAdmin)
-admin.site.register(Coupon, CouponAdmin)
-admin.site.register(Client, ClientAdmin)
-admin.site.register(Location, LocationAdmin)
+class SettingsAdmin(admin.ModelAdmin):
+    model = Setting
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+admin_site.register(Request, RequestAdmin)
+admin_site.register(Coupon, CouponAdmin)
+admin_site.register(Client, ClientAdmin)
+admin_site.register(Location, LocationAdmin)
+admin_site.register(Setting, SettingsAdmin)

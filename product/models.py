@@ -31,6 +31,7 @@ class StateEnum(models.TextChoices):
     sold = "sold", "Vendido"
     available = "available", "Disponible"
     reserved = "reserved", "Apartado"
+    pending = "pending", "Pago Pendiente"
     na = "na", "N/A"
 
 
@@ -656,7 +657,7 @@ class Report(models.Model):
 
         if self.date < yesterday:
             return formatted_number(self.total)
-        total_value = sum([sale.net_total for sale in self.sale_set.all()])
+        total_value = sum([sale.net_total for sale in self.sale_set.exclude(Q(type=SaleTypeEnum.Pending) | Q(type=SaleTypeEnum.Cancelled) )])
         self.total = total_value
         self.save()
         return formatted_number(total_value)
@@ -670,7 +671,7 @@ class Report(models.Model):
         field_keyword = 'payment__net_price'
         remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
 
-        all_sales = self.sale_set.all()
+        all_sales = self.sale_set.exclude(Q(type=SaleTypeEnum.Pending) | Q(type=SaleTypeEnum.Cancelled) )
 
         list_of_all_products = [
             list(
@@ -724,6 +725,8 @@ class SaleTypeEnum(models.TextChoices):
     Request = "request", "Request"
     Reserve = "reserve", "Reserve"
     Purchase = "purchase", "Purchase"
+    Pending = "pending", "Pending"
+    Cancelled = "cancelled", "Cancelled"
 
 
 class PlatformEnum(models.TextChoices):
@@ -732,12 +735,14 @@ class PlatformEnum(models.TextChoices):
     Instagram = "instagram", "Instagram"
     Facebook = "facebook", "Facebook"
     Event = "event", "Event"
+    Online = "online", "Online"
     Other = "other", "Other"
 
 
 class Sale(models.Model):
     report = models.ForeignKey(Report, on_delete=models.SET_NULL, null=True, blank=True)
     products = models.ManyToManyField(Product)
+
     warranty_type = models.CharField(max_length=100)
     purchase_date_time = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=100)
@@ -752,11 +757,14 @@ class Sale(models.Model):
     net_total = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                     help_text="En colones")
     payments_completed = models.BooleanField(default=True, help_text="Si ya termino de pagar el producto")
+
     payment_details = models.TextField(blank=True, default="")
     receipt_comments = models.TextField(blank=True, default="")
     customer_name = models.CharField(max_length=100, default="Ready")
     customer_mail = models.EmailField(default='readygamescr@gmail.com')
+
     creation_date_time = models.DateTimeField(null=True, auto_now_add=True)
+
     type = models.CharField(max_length=100, default=SaleTypeEnum.Purchase, choices=SaleTypeEnum.choices)
 
     shipping = models.BooleanField(default=False, help_text="Si es por envio")
@@ -765,6 +773,8 @@ class Sale(models.Model):
     platform = models.CharField(max_length=100, default=PlatformEnum.Store, choices=PlatformEnum.choices)
     client = models.ForeignKey('administration.Client', on_delete=models.SET_NULL, null=True, blank=True,
                                related_name="purchases")
+
+    onvo_pay_payment_intent_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         if not self.report:
@@ -775,7 +785,9 @@ class Sale(models.Model):
         elif not products_str:
             products_str = "ERROR"
 
-        return f"{self.report.date} - {products_str} - ₡{self.gross_total:,}"
+        price = self.type if self.type in (SaleTypeEnum.Pending, SaleTypeEnum.Cancelled) else f"₡{self.gross_total:,}"
+
+        return f"{self.report.date} - {products_str} - {price}"
 
 
 class Log(models.Model):

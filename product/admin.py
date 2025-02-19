@@ -1,15 +1,15 @@
 import calendar
+import datetime
 from collections import defaultdict
 from io import BytesIO
 
-import django
+import requests
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import StackedInline
-from django.db.models import Q, F, Value, ExpressionWrapper, CharField
-from django.db.models.functions import Concat
+from django.db.models import Q
 from django import forms
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from reportlab.graphics.barcode import code128
@@ -17,6 +17,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from unidecode import unidecode
 
+from games.admin import admin_site
 from helpers.business_information import business_information
 from helpers.payment import formatted_number, PaymentMethodEnum
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
@@ -27,6 +28,7 @@ from product.models import Product, Collectable, Console, VideoGame, Accessory, 
 from django.utils.html import format_html
 from django.template.loader import render_to_string
 from helpers.qr import qrOptions, qrLinkOptions
+from ui.views import GenerateBill, SendMailError
 
 
 class VideoGamesInline(StackedInline):
@@ -208,7 +210,8 @@ class ProductAdmin(admin.ModelAdmin):
         hex_colors = {
             StateEnum.available: "#70BF2B",
             StateEnum.sold: "#E70012",
-            StateEnum.reserved: "#FCC10F"
+            StateEnum.reserved: "#FCC10F",
+            StateEnum.pending: "#DC3545"
         }
         return format_html(
             "<div style='padding: 0.5em; background-color: {}; color: #fff; border-radius: 0.25em;'>{}</div>",
@@ -376,6 +379,7 @@ class SaleAdmin(admin.ModelAdmin):
     readonly_fields = (
         'creation_date_time',
         'receipt_products',
+        'onvo_pay_payment_intent_id'
     )
     list_display = ("__str__", "customer_mail", "customer_name", "type", "platform", "creation_date_time")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
@@ -384,6 +388,13 @@ class SaleAdmin(admin.ModelAdmin):
     ordering = ("-creation_date_time",)
 
     change_form_template = "overrides/btn_sale.html"
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        if object_id:
+            sale = self.get_object(request, object_id)
+            extra_context['sale'] = sale
+        return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
 
     def format_product_string(self, product: Product):
         product_url = reverse('admin:product_product_change', args=[product.pk])
@@ -399,7 +410,98 @@ class SaleAdmin(admin.ModelAdmin):
         return mark_safe(f'<ul style="margin-left: 0; padding-left: 0;">{"".join(products_string)}</ul>')
 
     def response_change(self, request, obj: Sale):
-        if "_print_receipt" in request.POST:
+        if "_confirm_payment" in request.POST:
+            # Ensure the sale has a payment intent ID
+            payment_intent_id = obj.onvo_pay_payment_intent_id
+            if not payment_intent_id:
+                self.message_user(request, "No Payment Intent ID found on this sale.", level=messages.ERROR)
+                return super().response_change(request, obj)
+
+            headers = {"Authorization": f"Bearer {settings.ONVOPAY_API_KEY}"}
+            capture_url = f"https://api.onvopay.com/v1/payment-intents/{payment_intent_id}/capture"
+
+
+            try:
+                print("Making capture for:", payment_intent_id)
+                capture_response = requests.post(capture_url, headers=headers)
+                capture_response.raise_for_status()
+            except (requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                self.message_user(request, f"Error intentando de confirmar pago: {err}", level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
+            context = {"payment_details": obj.payment_details, "items": obj.products.all()}
+
+            rendered_template = render_to_string("online-payments/capture-payment.html", context)
+
+            try:
+                GenerateBill.enviar_factura_por_correo(
+                    rendered_template,
+                    obj.customer_mail,
+                    0
+                )
+            except SendMailError as e:
+                self.message_user(f'Error al enviar el correo: {e}', level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
+            obj.type = SaleTypeEnum.Purchase
+            today = datetime.datetime.today().date()
+            obj.report, _ = Report.objects.get_or_create(date=today)
+            obj.save()
+            print("Updated sale: ", obj)
+
+            for product in obj.products.all():
+                product.state = StateEnum.sold
+                product.save()
+                print("Updated product: ", product)
+
+            self.message_user(request, f"El pago #{obj.pk} por ₡{obj.gross_total} fue hecho con exito", level=messages.SUCCESS)
+        elif "_cancel_payment" in request.POST:
+            # Ensure the sale has a payment intent ID
+            payment_intent_id = obj.onvo_pay_payment_intent_id
+            if not payment_intent_id:
+                self.message_user(request, "No Payment Intent ID found on this sale.", level=messages.ERROR)
+                return super().response_change(request, obj)
+
+            headers = {"Authorization": f"Bearer {settings.ONVOPAY_API_KEY}"}
+            capture_url = f"https://api.onvopay.com/v1/payment-intents/{payment_intent_id}/cancel"
+
+            try:
+                print("Making cancel for:", payment_intent_id)
+                capture_response = requests.post(capture_url, headers=headers)
+                capture_response.raise_for_status()
+            except (requests.exceptions.HTTPError, requests.exceptions.RequestException) as err:
+                self.message_user(request, f"Error intentando de cancelar pago: {err}", level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
+            context = {"payment_details": obj.payment_details, "items": obj.products.all()}
+
+            rendered_template = render_to_string("online-payments/cancel-payment.html", context)
+
+            try:
+                GenerateBill.enviar_factura_por_correo(
+                    rendered_template,
+                    obj.customer_mail,
+                    0
+                )
+            except SendMailError as e:
+                self.message_user(f'Error al enviar el correo: {e}', level=messages.ERROR)
+                return HttpResponseRedirect(request.path)
+
+            obj.type = SaleTypeEnum.Cancelled
+            today = datetime.datetime.today().date()
+            obj.report, _ = Report.objects.get_or_create(date=today)
+            obj.save()
+            print("Updated sale: ", obj)
+
+            for product in obj.products.all():
+                product.state = StateEnum.available
+                product.save()
+                print("Updated product: ", product)
+
+            self.message_user(request, f"El pago #{obj.pk} por ₡{obj.gross_total} fue cancelado con exito",
+                              level=messages.WARNING)
+
+        elif "_print_receipt" in request.POST:
             context = {'store_name': business_information["store_name"],
                        'store_address': business_information["store_address"],
                        'store_contact': business_information["store_contact"],
@@ -488,10 +590,10 @@ class TagAdmin(admin.ModelAdmin):
     model = Tag
 
 
-admin.site.register(Product, ProductAdmin)
-admin.site.register(Tag, TagAdmin)
-admin.site.register(Expense, ExpenseAdmin)
-admin.site.register(Report, ReportAdmin)
-admin.site.register(Sale, SaleAdmin)
-admin.site.register(Log, LogAdmin)
-admin.site.register(Payment, PaymentAdmin)
+admin_site.register(Product, ProductAdmin)
+admin_site.register(Tag, TagAdmin)
+admin_site.register(Expense, ExpenseAdmin)
+admin_site.register(Report, ReportAdmin)
+admin_site.register(Sale, SaleAdmin)
+admin_site.register(Log, LogAdmin)
+admin_site.register(Payment, PaymentAdmin)

@@ -195,4 +195,42 @@
 {% endif %}
 {% endblock %}
 
-{% block nav-global %}{% endblock %}
+{% load static %}
+{% load i18n %}
+
+
+
+{% block nav-global %}
+<style>
+    .pending-badge {
+        padding: 5px 10px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    .pending-badge.red {
+        background-color: #dc3545;
+        color: white;
+    }
+    .pending-badge.gray {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .alert-icon {
+        background: url('/static/admin/img/icon-alert.svg') no-repeat center;
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+    }
+
+</style>
+
+{% if pending_payments_count is not None %}
+<a href="/admin/product/sale/?type__exact=pending" class="pending-badge {% if pending_payments_count > 0 %}red{% else %}gray{% endif %}">
+    Ventas Pendientes <div class="alert-icon"></div> {{ pending_payments_count }}
+</a>
+{% endif %}
+
+{% endblock %}

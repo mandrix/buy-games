@@ -1,8 +1,26 @@
 {% extends 'admin/change_form.html' %}
 
 {% block submit_buttons_bottom %}
+    <style>
+        .alert-icon {
+            background: url('/static/admin/img/icon-alert.svg') no-repeat center;
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+        .yes-icon {
+            background: url('/static/admin/img/icon-yes.svg') no-repeat center;
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+        }
+    </style>
     {{ block.super }}
     <div class="submit-row">
-            <input type="submit" value="Imprimir Factura" name="_print_receipt">
+        <input type="submit" value="Imprimir Factura" name="_print_receipt"><div class="yes-icon"></div>
+        {% if sale and sale.type == 'pending' %}
+            <input type="submit" value="Confirmar Pago" name="_confirm_payment"><div class="alert-icon"></div>
+            <input type="submit" value="Cancelar Pago" name="_cancel_payment"><div class="alert-icon"></div>
+        {% endif %}
     </div>
 {% endblock %}

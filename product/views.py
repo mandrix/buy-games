@@ -7,7 +7,6 @@ from tempfile import NamedTemporaryFile
 from PIL import Image, ImageDraw, ImageFont
 
 from django.db.models import Sum, Count, IntegerField, Q, Case, When
-from fuzzywuzzy import process
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook

@@ -35,6 +35,8 @@ env = environ.Env(
     DB_PASSWORD=(str, ""),
     DB_NAME=(str, ""),
     DB_USER=(str, ""),
+    ONVOPAY_API_KEY = (str, "onvo_test_secret_key_IK7klm_16d2DcK6SBn95b_HEw41WSh8vZQ8d9ttoZE_vWXPfcvlGL2jVyY6lK90-htxVpQ_Uw5XGNmGDdvrPLg"),
+    ONLINE_PAYMENT = (bool, False)
 )
 environ.Env.read_env()
 USE_POSTGRES = env("USE_POSTGRES")
@@ -42,6 +44,8 @@ DB_NAME = env("DB_NAME")
 DB_USER = env("DB_USER")
 DB_PASSWORD = env("DB_PASSWORD")
 POSTGRES_IP = env("POSTGRES_IP")
+ONVOPAY_API_KEY = env('ONVOPAY_API_KEY')
+ONLINE_PAYMENT = env('ONLINE_PAYMENT')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

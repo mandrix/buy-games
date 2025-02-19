@@ -1,11 +1,12 @@
 import datetime
 
 from django.db.models import Value, CharField, F
+from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from administration.models import Coupon, Client
+from administration.models import Coupon, Client, Setting
 from administration.serializer import CouponSerializer, ClientSerializer
 from product.views import Throttling
 
@@ -41,6 +42,11 @@ class ClientViewSet(viewsets.ModelViewSet, Throttling):
         
 class CreateCustomer(APIView):
     def post(self, request, *args, **kwargs):
+        if Setting.objects.first().disable_online_purchase:
+            return JsonResponse(
+                {"error": "Hubo un error con el sistema y no se hizo el cobro."},
+                status=403
+            )
         payload = {
             "name": request.data.get("name"),
             "email": request.data.get("email"),
@@ -59,6 +65,11 @@ class CreateCustomer(APIView):
 
 class CreatePaymentMethod(APIView):
     def post(self, request, *args, **kwargs):
+        if Setting.objects.first().disable_online_purchase:
+            return JsonResponse(
+                {"error": "Hubo un error con el sistema y no se hizo el cobro."},
+                status=403
+            )
         payload = {
             "type": "card",
             "card": {
@@ -85,16 +96,22 @@ class CreatePaymentMethod(APIView):
 
 class CreatePaymentIntent(APIView):
     def post(self, request, *args, **kwargs):
+        if Setting.objects.first().disable_online_purchase:
+            return JsonResponse(
+                {"error": "Hubo un error con el sistema y no se hizo el cobro."},
+                status=403
+            )
         payload = {
+            "captureMethod": "manual",
             "amount": request.data.get("amount"),
             "currency": request.data.get("currency"),
             # "customerId": request.data.get("customerId"),
             "description": request.data.get("description"),
             "metadata":{
-                "userId":request.data.get("userId"),
-                "phoneNumber":request.data.get("phoneNumber"),
-                "userName":request.data.get("userName"),
-                "userEmail":request.data.get("userEmail")
+                "userId":request.data.get("id"),
+                "phoneNumber":request.data.get("phone"),
+                "userName":request.data.get("name"),
+                "userEmail":request.data.get("email")
             }
         }
         headers = {"Authorization": f"Bearer {settings.ONVOPAY_API_KEY}"}
@@ -104,7 +121,7 @@ class CreatePaymentIntent(APIView):
             response.raise_for_status()
             return Response({"paymentIntent": response.json()}, status=status.HTTP_200_OK)
         except requests.exceptions.HTTPError as err:
-            print(err)
+            print(err.response.json())
             return Response({"error": str(err)}, status=err.response.status_code)
         except requests.exceptions.RequestException as e:
             print(e)
@@ -112,6 +129,11 @@ class CreatePaymentIntent(APIView):
 
 class ConfirmPaymentIntent(APIView):
     def post(self, request, *args, **kwargs):
+        if Setting.objects.first().disable_online_purchase:
+            return JsonResponse(
+                {"error": "Hubo un error con el sistema y no se hizo el cobro."},
+                status=403
+            )
         paymentIntentId = request.data.get("paymentIntentId")
         paymentMethodId = request.data.get("paymentMethodId")
 
@@ -129,6 +151,35 @@ class ConfirmPaymentIntent(APIView):
                 headers=headers
             )
             response.raise_for_status()
+            return Response(response.json(), status=status.HTTP_200_OK)
+        except requests.exceptions.HTTPError as err:
+            print(err)
+            return Response({"error": str(err)}, status=err.response.status_code)
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CapturePaymentIntent(APIView):
+    def post(self, request, *args, **kwargs):
+        payment_intent_id = request.data.get("paymentIntentId")
+
+        if not payment_intent_id:
+            return Response({"error": "Payment Intent ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        headers = {
+            "Authorization": f"Bearer {settings.ONVOPAY_API_KEY}"
+        }
+
+        try:
+            # Make the API call to capture the payment
+            response = requests.post(
+                f'https://api.onvopay.com/v1/payment-intents/{payment_intent_id}/capture',
+                headers=headers
+            )
+            response.raise_for_status()
+
+            # Return the response data
             return Response(response.json(), status=status.HTTP_200_OK)
         except requests.exceptions.HTTPError as err:
             print(err)

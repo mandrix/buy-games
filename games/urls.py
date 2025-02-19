@@ -19,16 +19,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from games.admin import admin_site
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin_site.urls),
     path("api/", include("product.urls")),
     path("api/administration/", include("administration.urls")),
     path("", include("ui.urls")),
 ]
 
-admin.site.site_header = "Ready Games Admin"
-admin.site.site_title = "Ready Games Admin"
-admin.site.index_title = "Welcome to Ready Games Admin"
+admin_site.site_header = "Ready Games Admin"
+admin_site.site_title = "Ready Games Admin"
+admin_site.index_title = "Welcome to Ready Games Admin"
 
 # if settings.DEBUG:
     # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

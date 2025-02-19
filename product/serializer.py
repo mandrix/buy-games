@@ -5,7 +5,8 @@ from rest_framework import serializers
 from django.core.validators import RegexValidator
 from rest_framework.fields import CharField, SerializerMethodField, URLField
 
-from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment, Tag, Replacement
+from product.models import Product, Collectable, VideoGame, Accessory, Console, Report, Sale, Payment, Tag, Replacement, \
+    PlatformEnum
 
 
 def create_product(validated_data):
@@ -185,18 +186,40 @@ class GenerateBillSerializer(serializers.Serializer):
                 code='invalid_phone_number'
             ),
         ])
-    platform = serializers.CharField(required=False)
+    platform = serializers.CharField(required=False, default=PlatformEnum.Other)
     payment_method = serializers.CharField()
     items = serializers.ListField()
-    payment_details = serializers.CharField(required=False)
-    receipt_comments = serializers.CharField(required=False)
+    payment_details = serializers.CharField(required=False, default="")
+    receipt_comments = serializers.CharField(required=False, default="")
     return_policy = serializers.IntegerField(min_value=0, max_value=3)
-    order = serializers.BooleanField(required=False)
+    order = serializers.BooleanField(required=False, default=False)
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
-    taxes = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
+    taxes = serializers.DecimalField(required=False, default=0, max_digits=10, decimal_places=2, min_value=0)
     discounts = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, min_value=0)
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0)
-    shipping = serializers.BooleanField(required=False)
+    shipping = serializers.BooleanField(required=False, default=False)
+
+    online_payment = serializers.BooleanField(required=False, default=False)
+    onvo_pay_payment_intent_id = serializers.CharField(required=False, default="")
+
+    def __getattr__(self, item):
+        """
+        Allows direct attribute access on a validated serializer.
+        Example: serializer.discounts instead of serializer.validated_data['discounts'].
+        Requires that is_valid() has been called so that _validated_data is set.
+        """
+        try:
+            # Access the internal _validated_data directly.
+            validated_data = object.__getattribute__(self, "_validated_data")
+        except AttributeError:
+            # _validated_data isn't set, so re-raise a standard attribute error.
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{item}'"
+            )
+
+        if item in validated_data:
+            return validated_data[item]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{item}'")
 
 
 class ReportSerializer(serializers.ModelSerializer):
