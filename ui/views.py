@@ -195,7 +195,7 @@ class GenerateBill(TemplateView):
         return Client.objects.create(
             full_name=data.customer_name,
             email=data.customer_mail,
-            _id=data.id,
+            _id="0",
             phone_number=data.customer_phone or ""
         )
 
