@@ -648,6 +648,8 @@ class Report(models.Model):
                                          help_text="En colones")
     total_joseph = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
                                        help_text="En colones")
+    total_consignment = models.DecimalField(default=0.0, max_digits=11, decimal_places=2, null=True, blank=True,
+                                       help_text="En colones")
 
     def __str__(self):
         return self.date.strftime('%d de %B de %Y')
@@ -669,7 +671,8 @@ class Report(models.Model):
             return formatted_number(params['total'] if params['total'] else 0)
 
         field_keyword = 'payment__net_price'
-        remaining_percentage = 0.9 if owner != OwnerEnum.Business else 1
+
+        remaining_percentage = 0.9 if owner not in (OwnerEnum.Business, OwnerEnum.Consignacion) else 1
 
         all_sales = self.sale_set.exclude(Q(type=SaleTypeEnum.Pending) | Q(type=SaleTypeEnum.Cancelled) )
 
@@ -718,6 +721,11 @@ class Report(models.Model):
     def calculated_total_joseph(self):
         params = {'total': self.total_joseph, 'field': 'total_joseph'}
         return self._calculate_total_for(OwnerEnum.Joseph, params)
+
+    @property
+    def calculated_total_consignment(self):
+        params = {'total': self.total_joseph, 'field': 'total_consignment'}
+        return self._calculate_total_for(OwnerEnum.Consignacion, params)
 
 
 class SaleTypeEnum(models.TextChoices):

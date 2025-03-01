@@ -342,7 +342,7 @@ class SaleInline(admin.TabularInline):
 class ReportAdmin(admin.ModelAdmin):
     list_display = (
         'display_day', 'date', 'display_total', 'display_total_business', 'display_total_mauricio',
-        'display_total_joseph')
+        'display_total_joseph', 'display_total_consignment')
     ordering = ("-date",)
     inlines = [SaleInline]
     readonly_fields = ("total",)
@@ -365,6 +365,10 @@ class ReportAdmin(admin.ModelAdmin):
     @admin.display(description='Total Joseph', ordering='total_joseph')
     def display_total_joseph(self, obj):
         return obj.calculated_total_joseph
+
+    @admin.display(description='Total Consignacion', ordering='total_consignacion')
+    def display_total_consignment(self, obj):
+        return obj.calculated_total_consignment
 
     def display_day(self, obj: Report):
         return calendar.day_name[obj.date.weekday()]
