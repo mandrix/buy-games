@@ -118,7 +118,11 @@ class ProductAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
-            user_groups = request.user.groups.filter(Q(name=business_name) for business_name in settings.BUSINESSES)
+            query = Q()
+            for business_name in settings.BUSINESSES:
+                query |= Q(name=business_name)
+
+            user_groups = request.user.groups.filter(query)
             if user_groups.exists():
                 # Each product should have a business group assigned to it (The business owner)
                 obj.group = user_groups.first()
