@@ -249,7 +249,9 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_inlines(self, request, obj):
 
-        if request.user.groups.filter(name="Store").exists():
+        if request.user.groups.filter(name="All Access").exists():
+            return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline, ReplacementsInline, FoodInline]
+        elif request.user.groups.filter(name="Store").exists():
             return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline, ReplacementsInline]
         elif request.user.groups.filter(name="Restaurant").exists():
             return [FoodInline]
