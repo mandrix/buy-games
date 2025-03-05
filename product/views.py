@@ -18,8 +18,9 @@ from rest_framework.throttling import UserRateThrottle
 from unidecode import unidecode
 from collections import defaultdict
 
+from possimplified.serializer import ProductPOSSimplifiedSerializer
 from product.filters import TypeFilter
-from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale, Tag
+from product.models import Product, Collectable, VideoGame, Accessory, Report, StateEnum, Sale, Tag, ProductTypeEnum
 from product.serializer import ProductSerializer, CollectableSerializer, VideoGameSerializer, AccessorySerializer, \
     ReportSerializer, ProductStateByIdSerializer
 from datetime import datetime
@@ -40,6 +41,11 @@ class StandardResultsSetPagination(PageNumberPagination):
 class Throttling:
     throttle_classes = [UserRateThrottle]
 
+class ProductPOSSimplifiedViewSet(viewsets.ModelViewSet, Throttling):
+    queryset = Product.objects.filter(
+        type=ProductTypeEnum.food
+    )
+    serializer_class = ProductPOSSimplifiedSerializer
 
 class ProductViewSet(viewsets.ModelViewSet, Throttling):
     queryset = Product.objects.filter(

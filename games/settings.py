@@ -47,6 +47,7 @@ DB_PASSWORD = env("DB_PASSWORD")
 POSTGRES_IP = env("POSTGRES_IP")
 ONVOPAY_API_KEY = env('ONVOPAY_API_KEY')
 ONLINE_PAYMENT = env('ONLINE_PAYMENT')
+BUSINESSES = ("Ready Games", "Marisqueria Leiva")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,7 +98,8 @@ INSTALLED_APPS = [
 INSTALLED_APPS += [
     "product",
     "ui",
-    "administration"
+    "administration",
+    "possimplified"
 ]
 
 # Third-party apps

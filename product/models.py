@@ -7,6 +7,7 @@ from functools import reduce
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.core.files.storage import DefaultStorage
 from django.db import models
@@ -19,6 +20,7 @@ from games.utils.storage_backends import PrivateMediaStorage
 from helpers.admin import exclude_copies
 from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum, \
     factor_tasa_0_10_months
+from possimplified.models import Food
 
 
 class RegionEnum(models.TextChoices):
@@ -41,6 +43,7 @@ class ProductTypeEnum(models.TextChoices):
     accessory = "accessory", "Accesorio"
     replacement = "replacement", "Replacement"
     collectable = "collectable", "Collecionable"
+    food = "food", "Comida"
 
 
 class OwnerEnum(models.TextChoices):
@@ -338,11 +341,9 @@ class Payment(models.Model):
             return formatted_number(commission_price(self.net_price, factor_tasa_0_10_months()))
 
 
-def food_path(instance, filename):
-    return '{0}/{1}'.format(instance.category.name, filename)
-
-
 class Product(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
+
     sale_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, null=True, blank=True,
                                      help_text="En colones")
     provider_price = models.DecimalField(default=0.0, max_digits=10, decimal_places=2, help_text="En colones")
@@ -422,12 +423,11 @@ class Product(models.Model):
         search_term = additional_info.title
 
         # Filtering logic based on additional_info's class
-        if additional_info.__class__ == Console:
-            queryset_additional_info = queryset_additional_info.filter(title=additional_info.title)
-        elif additional_info.__class__ == Collectable:
-            pass  # Logic specific to Collectable can go here
-        else:
-            queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
+        if additional_info.__class__ in [Console, Accessory, VideoGame, Replacement]:
+            if additional_info.__class__ == Console:
+                queryset_additional_info = queryset_additional_info.filter(title=additional_info.title)
+            else:
+                queryset_additional_info = queryset_additional_info.filter(console=additional_info.console)
 
         # Base filtering logic
         queryset_additional_info = queryset_additional_info.filter(
@@ -509,6 +509,7 @@ class Product(models.Model):
             return f'{self.provider_price:,}₡'
 
     def get_additional_product_info(self):
+        print(self.type)
         if self.type == ProductTypeEnum.videogame:
             return self.videogame_set.first()
         elif self.type == ProductTypeEnum.console:
@@ -519,6 +520,8 @@ class Product(models.Model):
             return self.collectable_set.first()
         elif self.type == ProductTypeEnum.replacement:
             return self.replacement_set.first()
+        elif self.type == ProductTypeEnum.food:
+            return self.food_set.first()
         else:
             raise ValueError("Este producto no tiene informacion adicional")
 
@@ -528,7 +531,8 @@ class Product(models.Model):
             Replacement: "Repuesto",
             Collectable: "Collecionable",
             Console: "Consola",
-            Accessory: "Accesorio"
+            Accessory: "Accesorio",
+            Food: "Comida"
         }
         return type_mapping[type(self.get_additional_product_info())]
 

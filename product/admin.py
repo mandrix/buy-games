@@ -20,6 +20,7 @@ from unidecode import unidecode
 from games.admin import admin_site
 from helpers.business_information import business_information
 from helpers.payment import formatted_number, PaymentMethodEnum
+from possimplified.models import Food
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
     ToBeShippedFilter, PaymentPendingFilter, WeekdayFilter
 from product.forms import SaleInlineForm, ProductAdminForm
@@ -65,6 +66,12 @@ class AccessoryInline(StackedInline):
     min_num = 0
     max_num = 1
 
+class FoodInline(StackedInline):
+    model = Food
+    extra = 0
+    min_num = 0
+    max_num = 1
+
 
 class ProductAdmin(admin.ModelAdmin):
     form = ProductAdminForm
@@ -88,7 +95,7 @@ class ProductAdmin(admin.ModelAdmin):
         "modification_date",
         "payment_link"
     ]
-    exclude = ('remaining', 'payment')
+    exclude = ('remaining', 'payment', 'group')
     list_per_page = 50
     honeypot_fields = ['amount_to_notify', 'type', 'hidden', 'order', 'payment_link', 'remaining',
                        'provider_purchase_date', 'region', 'remaining', 'order']
@@ -96,7 +103,25 @@ class ProductAdmin(admin.ModelAdmin):
     change_form_template = "overrides/change_form.html"
     change_list_template = "overrides/change_list.html"
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+
+        # Get the groups the user belongs to
+        user_groups = request.user.groups.all()
+
+        # If the user is a All Access user, show all products
+        if request.user.groups.filter(name="All Access"):
+            return qs
+
+        # Otherwise, filter products by the groups the user belongs to
+        return qs.filter(group__in=user_groups)
+
     def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            user_groups = request.user.groups.filter(Q(name=business_name) for business_name in settings.BUSINESSES)
+            if user_groups.exists():
+                # Each product should have a business group assigned to it (The business owner)
+                obj.group = user_groups.first()
 
         if "image" in form.changed_data:
             new_img = form.cleaned_data['image']
@@ -189,6 +214,9 @@ class ProductAdmin(admin.ModelAdmin):
         if obj:
             exclude.remove('remaining')
 
+        if request.user.groups.filter(name="All Access"):
+            exclude.remove("group")
+
         return exclude
 
     def payment_link(self, obj):
@@ -220,20 +248,11 @@ class ProductAdmin(admin.ModelAdmin):
         )
 
     def get_inlines(self, request, obj):
-        return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline, ReplacementsInline]
-        if not obj:
-            return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline]
 
-        inline_instances = []
-        if obj.videogame_set.first():
-            inline_instances.append(VideoGamesInline)
-        elif obj.console_set.first():
-            inline_instances.append(ConsoleInline)
-        elif obj.accessory_set.first():
-            inline_instances.append(AccessoryInline)
-        elif obj.collectable_set.first():
-            inline_instances.append(CollectableInline)
-        return inline_instances
+        if request.user.groups.filter(name="Store").exists():
+            return [VideoGamesInline, ConsoleInline, AccessoryInline, CollectableInline, ReplacementsInline]
+        elif request.user.groups.filter(name="Restaurant").exists():
+            return [FoodInline]
 
     def etiquetas(self, obj: Product):
         styling = lambda color: "display: inline-block; padding: 0.5em; " \
