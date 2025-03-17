@@ -170,6 +170,7 @@ class SaleSerializer(serializers.ModelSerializer):
 
 
 class GenerateBillSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False, default=None)
     store_name = serializers.CharField()
     store_address = serializers.CharField()
     store_contact = serializers.CharField()

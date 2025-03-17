@@ -189,13 +189,16 @@ class GenerateBill(TemplateView):
                 client.phone_number = data.customer_phone
             if data.customer_name:
                 client.full_name = data.customer_name
+            if data.id:
+                client._id = data.id
             client.save()
             return client
 
         return Client.objects.create(
             full_name=data.customer_name,
             email=data.customer_mail,
-            phone_number=data.customer_phone or ""
+            phone_number=data.customer_phone or "",
+            _id=data.id
         )
 
     @staticmethod

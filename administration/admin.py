@@ -3,6 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from django.contrib import admin
+from django.db.models import Count, Sum
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 from django.contrib import messages
@@ -126,9 +127,14 @@ class CouponAdmin(admin.ModelAdmin):
 
 class ClientAdmin(admin.ModelAdmin):
     model = Client
-    list_display = ("__str__", "_id", "phone_number")
+    list_display = ["__str__", "_id", "phone_number"]
     search_fields = ("full_name", "_id", "email", "phone_number")
     readonly_fields = ("purchases", "total_spent")
+
+    def get_list_display(self, request):
+        if request.user.groups.filter(name="All Access").exists():
+            return self.list_display + ["purchases", "total_spent"]
+        return []
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -136,8 +142,19 @@ class ClientAdmin(admin.ModelAdmin):
     def purchases(self, obj: Client):
         return obj.purchases.count()
 
+    purchases.admin_order_field = "purchases_count"
+
     def total_spent(self, obj: Client):
         return f"₡{sum([purchase.gross_total for purchase in obj.purchases.all()]):,.2f}"
+
+    total_spent.admin_order_field = "total_spent_value"
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        # Annotate the queryset with computed values for sorting
+        return queryset.annotate(
+            total_spent_value=Sum("purchases__gross_total", distinct=True),
+        )
 
 
 class LocationAdmin(admin.ModelAdmin):

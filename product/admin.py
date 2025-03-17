@@ -109,7 +109,7 @@ class ProductAdmin(admin.ModelAdmin):
         # Get the groups the user belongs to
         user_groups = request.user.groups.all()
 
-        # If the user is a All Access user, show all products
+        # If the user is an All Access user, show all products
         if request.user.groups.filter(name="All Access"):
             return qs
 
