@@ -22,7 +22,7 @@ from helpers.business_information import business_information
 from helpers.payment import formatted_number, PaymentMethodEnum
 from possimplified.models import Food
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
-    ToBeShippedFilter, PaymentPendingFilter, WeekdayFilter
+    ToBeShippedFilter, PaymentPendingFilter, WeekdayFilter, WithoutImageFilter
 from product.forms import SaleInlineForm, ProductAdminForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, SaleTypeEnum, Replacement
@@ -80,7 +80,7 @@ class ProductAdmin(admin.ModelAdmin):
         "sale_price_with_card", "sale_price_with_tasa_0", "sale_price_with_tasa_0_10_months",
         'used_display', 'owner', 'etiquetas', 'image')
     model = Product
-    list_filter = (DuplicatesFilter, SoldFilter, TypeFilter, BelowThreshHoldFilter,
+    list_filter = (WithoutImageFilter, DuplicatesFilter, SoldFilter, TypeFilter, BelowThreshHoldFilter,
                    ConsoleTitleFilter, 'used', 'creation_date', 'provider', 'owner', 'tags',)
     inlines = []
     actions = ['set_location']

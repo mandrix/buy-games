@@ -509,7 +509,6 @@ class Product(models.Model):
             return f'{self.provider_price:,}₡'
 
     def get_additional_product_info(self):
-        print(self.type)
         if self.type == ProductTypeEnum.videogame:
             return self.videogame_set.first()
         elif self.type == ProductTypeEnum.console:

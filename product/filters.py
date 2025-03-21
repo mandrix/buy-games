@@ -54,6 +54,22 @@ class TypeFilter(admin.SimpleListFilter):
         elif product_type == 'replacement':
             return queryset.filter(replacement__isnull=False)
 
+
+class WithoutImageFilter(admin.SimpleListFilter):
+    title = 'Mostrar Sin Imagen'
+    parameter_name = 'without_image'
+
+    def lookups(self, request, model_admin):
+        # Devuelve las opciones de filtro y sus etiquetas
+        return (
+            ('yes', ('Si')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'yes':
+            return queryset.filter(Q(image__isnull=True) | Q(image=""))
+        return queryset
+
 class DuplicatesFilter(admin.SimpleListFilter):
     title = 'Mostrar duplicados'
     parameter_name = 'duplicates'
@@ -61,15 +77,13 @@ class DuplicatesFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         # Devuelve las opciones de filtro y sus etiquetas
         return (
-            ('yes', ('Si')),
             ('no', ('No')),
         )
 
     def queryset(self, request, queryset):
         if self.value() == 'no':
             return queryset.filter(hidden=False)
-        else:
-            return queryset
+        return queryset
 
 
 class PaymentPendingFilter(admin.SimpleListFilter):
