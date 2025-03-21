@@ -91,7 +91,6 @@ class UserSalesFilter(admin.SimpleListFilter):
     parameter_name = 'user_sales'
 
     def lookups(self, request, model_admin):
-        # Devuelve las opciones de filtro y sus etiquetas
         return (
             ('joseph', ('Joseph')),
             ('mauricio', ('Mauricio')),
@@ -111,7 +110,6 @@ class PaymentPendingFilter(admin.SimpleListFilter):
     parameter_name = 'payment_pending'
 
     def lookups(self, request, model_admin):
-        # Devuelve las opciones de filtro y sus etiquetas
         return (
             ('yes', ('Si')),
         )
@@ -135,7 +133,6 @@ class ToBeShippedFilter(admin.SimpleListFilter):
     parameter_name = 'to_be_sent'
 
     def lookups(self, request, model_admin):
-        # Devuelve las opciones de filtro y sus etiquetas
         return (
             ('yes', ('Si')),
             ('no', ('No')),
@@ -155,7 +152,6 @@ class SoldFilter(admin.SimpleListFilter):
     parameter_name = 'state'
 
     def lookups(self, request, model_admin):
-        # Devuelve las opciones de filtro y sus etiquetas
         return (
             ('vendido', ('Vendido')),
             ('available', ('Disponible')),
@@ -198,7 +194,6 @@ class WeekdayFilter(admin.SimpleListFilter):
     parameter_name = 'weekday'
 
     def lookups(self, request, model_admin):
-        # Define the choices for the weekdays
         return [
             ('1', 'Sunday'),
             ('2', 'Monday'),

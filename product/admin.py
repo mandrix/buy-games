@@ -410,13 +410,22 @@ class SaleAdmin(admin.ModelAdmin):
         'receipt_products',
         'onvo_pay_payment_intent_id'
     )
-    list_display = ("__str__", "customer_mail", "customer_name", "type", "platform", "creation_date_time")
+    list_display = ("__str__", "client_link", "type", "platform", "creation_date_time")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
     list_filter = (UserSalesFilter, "type", PaymentPendingFilter, ToBeShippedFilter, "shipping", "platform")
     ordering = ("-creation_date_time",)
 
     change_form_template = "overrides/btn_sale.html"
+
+    def client_link(self, obj):
+        if obj.client:
+            url = reverse('admin:administration_client_change', args=[obj.client.id])
+            return format_html('<a href="{}">{}</a>', url, obj.client)
+        return "-"
+
+    client_link.admin_order_field = 'client'  # Allows sorting by client
+    client_link.short_description = 'Client'  # Column name in admin
 
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         extra_context = extra_context or {}
