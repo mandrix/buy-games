@@ -22,7 +22,7 @@ from helpers.business_information import business_information
 from helpers.payment import formatted_number, PaymentMethodEnum
 from possimplified.models import Food
 from product.filters import SoldFilter, TypeFilter, ConsoleTitleFilter, BelowThreshHoldFilter, DuplicatesFilter, \
-    ToBeShippedFilter, PaymentPendingFilter, WeekdayFilter, WithoutImageFilter
+    ToBeShippedFilter, PaymentPendingFilter, WeekdayFilter, WithoutImageFilter, UserSalesFilter
 from product.forms import SaleInlineForm, ProductAdminForm
 from product.models import Product, Collectable, Console, VideoGame, Accessory, Report, Sale, Log, \
     StateEnum, Expense, Payment, Tag, SaleTypeEnum, Replacement
@@ -413,7 +413,7 @@ class SaleAdmin(admin.ModelAdmin):
     list_display = ("__str__", "customer_mail", "customer_name", "type", "platform", "creation_date_time")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
                      "products__console__title", "products__accessory__title", "products__collectable__title")
-    list_filter = ("type", PaymentPendingFilter, ToBeShippedFilter, "shipping", "platform")
+    list_filter = (UserSalesFilter, "type", PaymentPendingFilter, ToBeShippedFilter, "shipping", "platform")
     ordering = ("-creation_date_time",)
 
     change_form_template = "overrides/btn_sale.html"

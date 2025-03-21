@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db.models import Q, F, QuerySet
 from django.db.models.functions import ExtractWeekDay
 
-from product.models import ConsoleEnum, StateEnum, Sale, SaleTypeEnum
+from product.models import ConsoleEnum, StateEnum, Sale, SaleTypeEnum, OwnerEnum
 
 
 class ConsoleTitleFilter(admin.SimpleListFilter):
@@ -83,6 +83,26 @@ class DuplicatesFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() == 'no':
             return queryset.filter(hidden=False)
+        return queryset
+
+
+class UserSalesFilter(admin.SimpleListFilter):
+    title = 'Ventas por Usuario'
+    parameter_name = 'user_sales'
+
+    def lookups(self, request, model_admin):
+        # Devuelve las opciones de filtro y sus etiquetas
+        return (
+            ('joseph', ('Joseph')),
+            ('mauricio', ('Mauricio')),
+            ('business', ('Business')),
+            ('consignacion', ('Consignacion')),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            sales = queryset.filter(products__owner=self.value()).distinct()
+            return sales
         return queryset
 
 
