@@ -404,11 +404,16 @@ class ReportAdmin(admin.ModelAdmin):
 class SaleAdmin(admin.ModelAdmin):
     model = Sale
 
-    exclude = ('products',)
+    exclude = (
+        'products',
+        'customer_mail',
+        'customer_name',
+    )
     readonly_fields = (
         'creation_date_time',
         'receipt_products',
-        'onvo_pay_payment_intent_id'
+        'onvo_pay_payment_intent_id',
+        'client'
     )
     list_display = ("__str__", "client_link", "type", "platform", "creation_date_time")
     search_fields = ("customer_name", "customer_mail", "products__videogame__title", "payment_details",
