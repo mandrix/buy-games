@@ -36,6 +36,7 @@ env = environ.Env(
     DB_NAME=(str, ""),
     DB_USER=(str, ""),
     ONVOPAY_API_KEY = (str, "onvo_test_secret_key_IK7klm_16d2DcK6SBn95b_HEw41WSh8vZQ8d9ttoZE_vWXPfcvlGL2jVyY6lK90-htxVpQ_Uw5XGNmGDdvrPLg"),
+    RECAPTCHA_SECRET = (str, "6Ldv3-wqAAAAAFW8WPmD6dtmyB5aeLG2P_DeM8if"),
     ONLINE_PAYMENT = (bool, False)
 )
 environ.Env.read_env()
@@ -47,6 +48,7 @@ POSTGRES_IP = env("POSTGRES_IP")
 ONVOPAY_API_KEY = env('ONVOPAY_API_KEY')
 ONLINE_PAYMENT = env('ONLINE_PAYMENT')
 BUSINESSES = ("Ready Games", "Marisqueria Leiva")
+RECAPTCHA_SECRET_KEY = env("RECAPTCHA_SECRET")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

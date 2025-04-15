@@ -2,6 +2,7 @@ import json
 
 import logging
 from datetime import datetime
+import requests
 
 from django.conf import settings
 from django.shortcuts import redirect
@@ -368,6 +369,21 @@ class GenerateBill(TemplateView):
         return item, item_remaining
 
 
+
+def verify_recaptcha_token(token: str, remote_ip: str = None) -> bool:
+    url = "https://www.google.com/recaptcha/api/siteverify"
+    data = {
+        "secret": settings.RECAPTCHA_SECRET_KEY,
+        "response": token,
+    }
+    if remote_ip:
+        data["remoteip"] = remote_ip
+
+    response = requests.post(url, data=data)
+    result = response.json()
+    return result.get("success", False)
+
+
 class BuyOnline(TemplateView):
     template_name = "receipt-template.html"
 
@@ -377,6 +393,20 @@ class BuyOnline(TemplateView):
                 {"error": "Hubo un error con el sistema y no se hizo el cobro."},
                 status=403
             )
+
+        try:
+            recaptcha_token = json.loads(request.body.decode('utf-8')).get("recaptcha_token")
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"error": "Invalid JSON format."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not recaptcha_token or not verify_recaptcha_token(recaptcha_token, request.META.get("REMOTE_ADDR")):
+            return JsonResponse(
+                {"error": "Validación de seguridad fallida. Por favor, intente de nuevo."},
+                status=400
+            )
+
         generate_bill_view = GenerateBill()
         response = generate_bill_view.handle_post_logic(request, *args, **kwargs)
         if generate_bill_view.sale:
