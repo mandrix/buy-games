@@ -97,7 +97,7 @@ class ProductAdmin(admin.ModelAdmin):
     ]
     exclude = ('remaining', 'payment', 'group')
     list_per_page = 50
-    honeypot_fields = ['amount_to_notify', 'type', 'hidden', 'order', 'payment_link', 'remaining',
+    honeypot_fields = ['amount_to_notify', 'type', 'order', 'payment_link', 'remaining',
                        'provider_purchase_date', 'region', 'remaining', 'order']
 
     change_form_template = "overrides/change_form.html"
