@@ -134,7 +134,7 @@ class ClientAdmin(admin.ModelAdmin):
     def get_list_display(self, request):
         if request.user.groups.filter(name="All Access").exists():
             return self.list_display + ["purchases", "total_spent"]
-        return []
+        return self.list_display
 
     def has_delete_permission(self, request, obj=None):
         return False
