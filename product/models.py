@@ -18,7 +18,6 @@ import random
 from django.db.models import Q, QuerySet
 
 from games.utils.storage_backends import PrivateMediaStorage
-from helpers.admin import exclude_copies
 from helpers.payment import formatted_number, commission_price, factor_tasa_0, factor_card, PaymentMethodEnum, \
     factor_tasa_0_10_months
 from possimplified.models import Food
@@ -182,9 +181,8 @@ class Console(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if not self.product.type:
-            self.product.type = ProductTypeEnum.console
-            self.product.save()
+        self.product.type = ProductTypeEnum.console
+        self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -210,9 +208,8 @@ class Replacement(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if not self.product.type:
-            self.product.type = ProductTypeEnum.replacement
-            self.product.save()
+        self.product.type = ProductTypeEnum.replacement
+        self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -238,9 +235,8 @@ class VideoGame(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if not self.product.type:
-            self.product.type = ProductTypeEnum.videogame
-            self.product.save()
+        self.product.type = ProductTypeEnum.videogame
+        self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -263,9 +259,8 @@ class Collectable(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if not self.product.type:
-            self.product.type = ProductTypeEnum.collectable
-            self.product.save()
+        self.product.type = ProductTypeEnum.collectable
+        self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -291,9 +286,8 @@ class Accessory(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if not self.product.type:
-            self.product.type = ProductTypeEnum.accessory
-            self.product.save()
+        self.product.type = ProductTypeEnum.accessory
+        self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
