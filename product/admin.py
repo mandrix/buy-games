@@ -137,6 +137,7 @@ class ProductAdmin(admin.ModelAdmin):
                 copies_pk = [adi.product.pk for adi in adi_copies]
 
                 Product.objects.filter(pk__in=copies_pk).update(image=obj.image)
+            return
 
         obj.updated_by_admin = True
         super().save_model(request, obj, form, change)

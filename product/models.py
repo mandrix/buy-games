@@ -1,15 +1,16 @@
-import os
 import datetime
-from collections import defaultdict
+import sys
 from datetime import date, timedelta
 from functools import reduce
+from io import BytesIO
 
+from PIL import Image
 from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from django.core.files.base import ContentFile
 from django.core.files.storage import DefaultStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import models
 import django.conf as conf
 import random
@@ -181,8 +182,9 @@ class Console(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        self.product.type = ProductTypeEnum.console
-        self.product.save()
+        if not self.product.type:
+            self.product.type = ProductTypeEnum.console
+            self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -208,8 +210,9 @@ class Replacement(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        self.product.type = ProductTypeEnum.replacement
-        self.product.save()
+        if not self.product.type:
+            self.product.type = ProductTypeEnum.replacement
+            self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -235,8 +238,9 @@ class VideoGame(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        self.product.type = ProductTypeEnum.videogame
-        self.product.save()
+        if not self.product.type:
+            self.product.type = ProductTypeEnum.videogame
+            self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -259,8 +263,9 @@ class Collectable(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        self.product.type = ProductTypeEnum.collectable
-        self.product.save()
+        if not self.product.type:
+            self.product.type = ProductTypeEnum.collectable
+            self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -286,8 +291,9 @@ class Accessory(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        self.product.type = ProductTypeEnum.accessory
-        self.product.save()
+        if not self.product.type:
+            self.product.type = ProductTypeEnum.accessory
+            self.product.save()
 
         if self.product.amount > 1:
             self.product.duplicate()
@@ -558,51 +564,33 @@ class Product(models.Model):
             additional_info.product = copy
             additional_info.save()
 
-    def save_img(self, queryset):
-        adi = self.get_additional_product_info()
-        title = adi.title
-        if adi.__class__ == Console:
-            console = adi.title
-        elif adi.__class__ == Collectable:
-            console = "collec"
-        else:
-            console = adi.console
-        dir = f"./p/{console}/"
-        file_name = title + ".jpg"
-        file_path = os.path.join(dir, file_name)
-        if os.path.isfile(file_path):
-            with open(file_path, 'rb') as file:
-                file_content = file.read()
-                first_img = queryset.first()
-                first_img.image.save(f"{title}.jpg", ContentFile(file_content), save=True)
-                first_img.save()
-                queryset.update(image=first_img.image)
-
-    def pro_img(self, allow_empty_image=None):
-        query = Product.objects.filter(state=StateEnum.available)
-        if allow_empty_image is not True:
-            query = query.filter(Q(image__isnull=True) | Q(image=''))
-            print(f'hay {query.count()} sin imagen')
-        if not query:
-            return
-        query = exclude_copies(query)
-        for product in query:
-            adi_copies = product.equal_products()
-            if type(adi_copies) is not str and adi_copies:
-                copies_pk = [adi.product.pk for adi in adi_copies]
-
-                copies = Product.objects.filter(pk__in=copies_pk, state=StateEnum.available)
-                if allow_empty_image is not True:
-                    copies = copies.filter(Q(image__isnull=True) | Q(image=''))
-
-                product.save_img(copies)
-
     def assign_image_from_similar_products(self):
         if similar_products := self.similar_products(equal_state=False):
             for product in similar_products:
                 if product.product.image:
                     self.image = product.product.image
                     break
+
+    def optimize_image(self):
+        if self.image and self.image.size > 500 * 1024:  # 500 KB
+            img = Image.open(self.image)
+
+            # Convert to RGB if it's a .png or has alpha channel
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            output = BytesIO()
+            img.save(output, format='WEBP', quality=30)
+            output.seek(0)
+
+            self.image = InMemoryUploadedFile(
+                output,
+                'ImageField',
+                f"{self.image.name.split('.')[0]}.webp",
+                'image/webp',
+                sys.getsizeof(output),
+                None
+            )
 
     def save(self, *args, **kwargs):
         if not self.payment:
@@ -629,7 +617,9 @@ class Product(models.Model):
 
         if not self.image and self.pk:
             self.assign_image_from_similar_products()
-
+        else:
+            self.optimize_image()
+            
         super().save(*args, **kwargs)
 
         try:
