@@ -102,6 +102,7 @@ class ConsoleEnum(models.TextChoices):
     XboxSeriesX = "xbox-series-x", "Xbox Series X"
 
     # Nintendo
+    Switch2 = "switch2", "Nintendo Switch 2"
     Switch = "switch", "Nintendo Switch"
     SwitchOLED = "switch-oled", "Nintendo Switch OLED"
     SwitchLite = "switch-lite", "Nintendo Switch Lite"

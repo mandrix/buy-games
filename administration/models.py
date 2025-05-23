@@ -94,7 +94,7 @@ class Coupon(models.Model):
     type = models.CharField(max_length=100, choices=CouponTypeEnum.choices, default=CouponTypeEnum.percentage)
     amount = models.PositiveIntegerField(default=0)
     expiration = models.DateTimeField()
-    uses = models.PositiveSmallIntegerField()
+    uses = models.PositiveSmallIntegerField(default=1)
 
 
     def __str__(self):
