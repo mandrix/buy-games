@@ -64,7 +64,8 @@ class ProductViewSet(viewsets.ModelViewSet, Throttling):
         consoles = self.request.query_params.get('consoles')
         product_types = self.request.query_params.get('types')
         search_query = self.request.query_params.get('q')
-        self.queryset = self.queryset.filter(hidden=False).order_by('-sale_price')
+        order_by = self.request.query_params.get('order_by', '-sale_price')
+        self.queryset = self.queryset.filter(hidden=False).order_by(order_by)
         if not any([tags,consoles,product_types,search_query]):
             return self.queryset
 
